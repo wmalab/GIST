@@ -1,4 +1,2 @@
-from .build_graph import *
-from .utils import *
-from .model_v1 import *
+from .model import *
 from .loss import *

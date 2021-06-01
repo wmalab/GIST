@@ -90,7 +90,7 @@ if __name__ == '__main__':
     graph = create_hierarchical_graph_1lvl(norm_hics[0], percentile=10)
     # graphs_save('.', 'demo', [graph])'''
 
-    norm_hics, ratios = hic_prepare_pool(
+    norm_hics, ratios = hic_prepare_pooling(
         rawfile='Dixon2012-H1hESC-HindIII-allreps-filtered.500kb.cool', 
         chromosome='chr20', ratios=[1,2,2], strides=[1,1,1], remove_zero_col=False)
 

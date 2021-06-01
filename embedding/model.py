@@ -7,14 +7,6 @@ import math
 
 def tilt_hic(hic, dim):
     featrues = np.zeros((hic.shape[0], dim))
-    '''front = int(dim/2)
-    for i in np.arange(hic.shape[0]):
-        for j in np.arange(hic.shape[1]):
-            if (abs(i-j)<= dim/2) and (i != j):
-                if i-j < 0:
-                    featrues[i, front+i-j] = hic[i,j]
-                elif i-j >0:
-                    featrues[i, front-1+i-j] = hic[i,j]'''
     for i in np.arange(hic.shape[0]):
         for l in np.arange(1, dim+1):
             if i-l >= 0 and i+l < hic.shape[1]:
