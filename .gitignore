@@ -1,0 +1,6 @@
+*.ipynb
+G3DM/__pycache__/
+embedding/__pycache__
+*.json
+*.cool
+model_v1.py
