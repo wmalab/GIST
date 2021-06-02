@@ -1,49 +1,49 @@
 import dgl
 import torch
+import os
 
-class HiCDataset(DGLDataset):
-    def __init__(self, graphs_dict, train, validation, test):
-        super().__init__(name='Hi-C_dgl_dataset')
+class HiCDataset(dgl.data.DGLDataset):
+    def __init__(self, graphs_dict, train, validation, test, path=None, name=None):
+        self.g_dict = graphs_dict
+        self.train = train
+        self.valid = validation
+        self.test = test
+        if (path is not None) and (name is not None):
+            save_dir = os.path.join(path, name)
+        else:
+            save_dir=None
+        super(HiCDataset, self).__init__(name='Hi-C_dgl_dataset', save_dir=save_dir)
+
 
     def process(self):
         self.graphs = []
         self.labels = []
+        self.train_list = []
+        self.valid_list = []
+        self.test_list = []
+        for i, (key, gs) in enumerate(self.g_dict.items()):
+            self.graphs.append(gs)
+            self.labels.append(key)
+            if(key in self.train):
+                self.train_list.append(i)
+            if(key in self.valid):
+                self.valid_list.append(i)
+            if(key in self.test):
+                self.test_list.append(i)
 
-        # Create a graph for each graph ID from the edges table.
-        # First process the properties table into two dictionaries with graph IDs as keys.
-        # The label and number of nodes are values.
-        label_dict = {}
-        num_nodes_dict = {}
-        for _, row in properties.iterrows():
-            label_dict[row['graph_id']] = row['label']
-            num_nodes_dict[row['graph_id']] = row['num_nodes']
-
-        # For the edges, first group the table by graph IDs.
-        edges_group = edges.groupby('graph_id')
-
-        # For each graph ID...
-        for graph_id in edges_group.groups:
-            # Find the edges as well as the number of nodes and its label.
-            edges_of_id = edges_group.get_group(graph_id)
-            src = edges_of_id['src'].to_numpy()
-            dst = edges_of_id['dst'].to_numpy()
-            num_nodes = num_nodes_dict[graph_id]
-            label = label_dict[graph_id]
-
-            # Create a graph and add it to the list of graphs and labels.
-            g = dgl.graph((src, dst), num_nodes=num_nodes)
-            self.graphs.append(g)
-            self.labels.append(label)
-
-        # Convert the label list to tensor for saving.
-        self.labels = torch.LongTensor(self.labels)
 
     def __getitem__(self, i):
         return self.graphs[i], self.labels[i]
 
     def __len__(self):
         return len(self.graphs)
+    
+    def save(self):
+        torch.save(self, self.save_dir)
 
-dataset = HiCDataset()
-graphs, label = dataset[0]
-print(graphs, label)
+'''
+    HD = HiCDataset(graph_dict, train_list, valid_list, test_list, os.path.join( root, 'data', cell, hyper), 'dataset.pt')
+    # HD.save()
+    torch.save(HD, os.path.join( root, 'data', cell, hyper, 'dataset.pt'))
+    load_HD = torch.load(os.path.join( root, 'data', cell, hyper, 'dataset.pt'))
+'''
