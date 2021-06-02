@@ -17,7 +17,7 @@ from dgl import save_graphs, load_graphs
 from dgl.data.utils import makedirs, save_info, load_info
 
 from .utils import load_hic, log1p_hic, remove_nan_col
-from .build_graph import create_hierarchical_graph_1lvl
+# from .build_graph import create_hierarchical_graph_1lvl
 
 import warnings
 warnings.filterwarnings('ignore')
@@ -67,7 +67,7 @@ def hic_prepare_pooling(rawfile, chromosome, ratios, strides, remove_zero_col = 
     for h in hics:
         m = iced_normalization(h)
         norm_hics.append(m)
-    return norm_hics, ratios
+    return norm_hics
 
 def graphs_save(save_path, name, graphs):
     graph_path = os.path.join(save_path, name + '_dgl_graph.bin')
