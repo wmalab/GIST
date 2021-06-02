@@ -1,3 +1,4 @@
+import os
 import cooler
 import numpy as np
 from numpy import inf
@@ -5,6 +6,16 @@ from scipy.stats import percentileofscore
 from sklearn import mixture
 
 import torch
+import dgl
+
+def save_graph(g_list, output_path, output_file):
+    ''' g_list = [ top_graph, top_subgraphs, bottom_graph, inter_graph ] '''
+    dgl.data.utils.save_graphs(os.path.join(output_path, output_file), g_list )
+
+def load_graph(output_path, output_file):
+    ''' g_list = [ top_graph, top_subgraphs, bottom_graph, inter_graph ] '''
+    g_list, _ = dgl.data.utils.load_graphs(os.path.join(output_path, output_file))
+    return g_list
 
 def load_hic(name='Dixon2012-H1hESC-HindIII-allreps-filtered.500kb.cool', chromosome='chr1'):
     # data from ftp://cooler.csail.mit.edu/coolers/hg19/
