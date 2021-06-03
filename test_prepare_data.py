@@ -1,22 +1,24 @@
-import os
-import sys
-import shutil
-import json
-import pickle
+import os, sys, shutil
+import json, pickle
 import numpy as np
-
 import multiprocessing
 
-from feature.utils import feature_hic, save_feature
+from feature.utils import feature_hic, save_feature, load_feature
 from prepare.utils import log1p_hic, save_graph, load_graph
-
 from prepare.data_prepare import hic_prepare_pooling
 from prepare.build_graph import create_hierarchical_graph_2lvl
-
 from prepare.build_dataset import HiCDataset
+
 import torch
 
-def create_feature(ratio, stride, max_dim, chromosome, cool_path, cool_file, output_path, output_file):
+import warnings
+warnings.filterwarnings('ignore')
+
+def check_dim(dim, x):
+    assert dim <= int(x.shape[0]/2)-1
+    return int(dim)
+ 
+def create_feature(ratio, stride, dim, chromosome, cool_path, cool_file, output_path, output_file):
     ''' create Hi-C feature '''
     ratios = np.array([1, ratio])
     strides = np.array([1, stride])
@@ -33,8 +35,9 @@ def create_feature(ratio, stride, max_dim, chromosome, cool_path, cool_file, out
 
     log_hics = [log1p_hic(x) for x in norm_hics]
     idxs = [np.arange(len(hic)) for hic in norm_hics]
-    def d_model(x): return min(max_dim, int(x.shape[0]/2)-1)
-    feats = [feature_hic(x, d_model(x)) for x in log_hics]
+
+    # ! dim can't larger than int(x.shape[0]/2)-1
+    feats = [feature_hic(x, check_dim(dim[i], x)) for i, x in enumerate(log_hics)]
 
     features = []
     nrepeats = strides
@@ -76,7 +79,6 @@ if __name__ == '__main__':
 
     configuration_src_path = os.path.join(root, 'data')
     configuration_name = 'config.json'
-
     with open(os.path.join(configuration_src_path, configuration_name)) as f:
         config_data = json.load(f)
 
@@ -114,7 +116,7 @@ if __name__ == '__main__':
 
     ratio = config_data['hyper']['ratio']
     stride = config_data['hyper']['stride']
-    max_dim = config_data['parameter']['feature']['max_feature_dim']
+    dim = [ config_data['parameter']['feature']['in_dim']['h0'], config_data['parameter']['feature']['in_dim']['h1'] ]
     all_chromosome = config_data['all_chromosomes']
     train_chromosomes = config_data['train_chromosomes']
     valid_chromosomes = config_data['valid_chromosomes']
@@ -137,25 +139,26 @@ if __name__ == '__main__':
         all_chromosome)*2 else multiprocessing.cpu_count()
     pool = multiprocessing.Pool(pool_num)
     for chromosome in all_chromosome:
-
-        pool.apply_async(create_feature, args=(ratio, stride, max_dim, chromosome,
-                                               cool_data_path, cool_file,
-                                               feature_path, 'F_chr-{}.pkl'.format(chromosome)))
-
-        pool.apply_async(create_graph, args=(ratio, stride, num_clusters, chromosome,
-                                             cutoff_percents, cutoff_cluster,
-                                             cool_data_path, cool_file,
-                                             graph_path, 'G_chr-{}.bin'.format(chromosome)))
+        feat_args = (ratio, stride, dim, chromosome,
+                    cool_data_path, cool_file,
+                    feature_path, 'F_chr-{}.pkl'.format(chromosome))
+        pool.apply_async(create_feature, args=feat_args)
+        graph_args = (ratio, stride, num_clusters, chromosome,
+                    cutoff_percents, cutoff_cluster,
+                    cool_data_path, cool_file,
+                    graph_path, 'G_chr-{}.bin'.format(chromosome))
+        pool.apply_async(create_graph, args=graph_args)
     pool.close()
     pool.join()
 
     graph_dict = dict()
-    train_list = []
-    valid_list = []
-    test_list = []
+    feature_dict = dict()
+    train_list, valid_list, test_list = list(), list(), list()
     for chromosome in all_chromosome:
         # graph_dict[chromosome] = {top_graph, top_subgraphs, bottom_graph, inter_graph}
+        # feature_dict[chromosome] = {'hic_feat_h0', 'hic_feat_h1'}
         graph_dict[str(chromosome)] = load_graph(graph_path, 'G_chr-{}.bin'.format(chromosome))
+        feature_dict[str(chromosome)] = load_feature(feature_path, 'F_chr-{}.pkl'.format(chromosome))
         if str(chromosome) in train_chromosomes:
             train_list.append(str(chromosome))
         if str(chromosome) in valid_chromosomes:
@@ -163,19 +166,10 @@ if __name__ == '__main__':
         if str(chromosome) in test_chromosomes:
             test_list.append(str(chromosome))
     
-    HD = HiCDataset(graph_dict, train_list, valid_list, test_list, dataset_path, dataset_name)
-    # HD.save()
+    # create HiCDataset and save
+    HD = HiCDataset(graph_dict, feature_dict, train_list, valid_list, test_list, dataset_path, dataset_name)
     torch.save(HD, os.path.join( dataset_path, dataset_name))
-    load_HD = torch.load(os.path.join( dataset_path, dataset_name))
-    print(load_HD)
 
-    '''for chromosome in all_chromosome:
-        create_feature(ratio, stride, max_dim, chromosome, 
-                        cool_data_path, cool_file, 
-                        output_path=feature_path, output_file='F_chr-{}.pkl'.format(chromosome))'''
-
-    '''for chromosome in all_chromosome:
-        create_graph(ratio, stride, num_clusters, chromosome, 
-                        cutoff_percent=cutoff_percents, cutoff_cluster=3, 
-                        cool_path = cool_data_path, cool_file=cool_file,
-                        output_path=graph_path, output_file='G_chr-{}.bin'.format(chromosome))'''
+    '''load_HD = torch.load(os.path.join( dataset_path, dataset_name))
+    load_HD[0]
+    print(load_HD[0])'''

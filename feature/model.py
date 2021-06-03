@@ -5,6 +5,7 @@ import torch.nn.functional as F
 import numpy as np
 
 class embedding(nn.Module):
+    '''in_dim, out_dim'''
     def __init__(self, in_dim, out_dim):
         super(embedding, self).__init__()
         self.fc1 = nn.Linear(in_dim, out_dim, bias=True)

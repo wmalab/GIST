@@ -73,29 +73,6 @@ def graphs_save(save_path, name, graphs):
     graph_path = os.path.join(save_path, name + '_dgl_graph.bin')
     # print(graph_path)
     save_graphs(graph_path, graphs, {'label':torch.tensor(0), 'ratio':torch.tensor((1,2,2))})
-    
-    # save other information in python dict
-    # info_path = os.path.join(save_path, name + '_info.pkl')
-    # save_info(info_path, {norm_hics, nclusters, ratios, mat_hics, mat_probs})
-
 
 if __name__ == '__main__':
-    '''norm_hics, ratios = hic_prepare_block_reduce(
-        rawfile='Dixon2012-H1hESC-HindIII-allreps-filtered.500kb.cool', 
-        chromosome='chr20', ratios=[1])
-
-    for i, m in enumerate(norm_hics):
-        print('level id: {}, iced normalization Hi-C shape: {}'.format(i, m.shape))
-
-    graph = create_hierarchical_graph_1lvl(norm_hics[0], percentile=10)
-    # graphs_save('.', 'demo', [graph])'''
-
-    norm_hics, ratios = hic_prepare_pooling(
-        rawfile='Dixon2012-H1hESC-HindIII-allreps-filtered.500kb.cool', 
-        chromosome='chr20', ratios=[1,2,2], strides=[1,1,1], remove_zero_col=False)
-
-    for i, m in enumerate(norm_hics):
-        print('level id: {}, iced normalization Hi-C shape: {}'.format(i, m.shape))
-
-    # graph = create_hierarchical_graph_1lvl(norm_hics[0], percentile=10)
-    # graphs_save('.', 'demo', [graph])
+    pass

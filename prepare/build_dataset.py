@@ -3,8 +3,9 @@ import torch
 import os
 
 class HiCDataset(dgl.data.DGLDataset):
-    def __init__(self, graphs_dict, train, validation, test, path=None, name=None):
+    def __init__(self, graphs_dict, features_dict, train, validation, test, path=None, name=None):
         self.g_dict = graphs_dict
+        self.f_dict = features_dict
         self.train = train
         self.valid = validation
         self.test = test
@@ -17,12 +18,14 @@ class HiCDataset(dgl.data.DGLDataset):
 
     def process(self):
         self.graphs = []
+        self.features = []
         self.labels = []
         self.train_list = []
         self.valid_list = []
         self.test_list = []
         for i, (key, gs) in enumerate(self.g_dict.items()):
             self.graphs.append(gs)
+            self.features.append(self.f_dict[key])
             self.labels.append(key)
             if(key in self.train):
                 self.train_list.append(i)
@@ -33,7 +36,7 @@ class HiCDataset(dgl.data.DGLDataset):
 
 
     def __getitem__(self, i):
-        return self.graphs[i], self.labels[i]
+        return self.graphs[i], self.features[i], self.labels[i]
 
     def __len__(self):
         return len(self.graphs)

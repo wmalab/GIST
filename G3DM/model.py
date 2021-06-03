@@ -148,6 +148,7 @@ class encoder_union(torch.nn.Module):
         return res
 
 class decoder(torch.nn.Module):
+    ''' num_heads, num_clusters, ntype, etype '''
     def __init__(self, num_heads, num_clusters, ntype, etype):
         # True: increasing, Flase: decreasing
         super(decoder, self).__init__()
