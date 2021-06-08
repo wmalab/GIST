@@ -9,7 +9,7 @@ from .model import embedding, encoder_bead, encoder_chain, encoder_union, decode
 from .loss import nllLoss
 
 gpuIDs = GPUtil.getAvailable(order = 'first', limit = 1, maxLoad = 0.05, maxMemory = 0.05, includeNan=False, excludeID=[], excludeUUID=[])
-device =  'cpu' if gpuIDs.empty() else 'cuda:{}'.format(gpuIDs[0])
+device =  'cpu' if len(gpuIDs)==0 else 'cuda:{}'.format(gpuIDs[0])
 
 def load_dataset(path, name):
     '''graph_dict[chromosome] = {top_graph, top_subgraphs, bottom_graph, inter_graph}
