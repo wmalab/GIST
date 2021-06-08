@@ -3,10 +3,13 @@ import dgl
 import torch
 import torch_optimizer as optim
 import numpy as np
+import GPUtil
 
 from .model import embedding, encoder_bead, encoder_chain, encoder_union, decoder
 from .loss import nllLoss
-device = 'cpu'
+
+gpuIDs = GPUtil.getAvailable(order = 'first', limit = 1, maxLoad = 0.05, maxMemory = 0.05, includeNan=False, excludeID=[], excludeUUID=[])
+device =  'cpu' if gpuIDs.empty() else 'cuda:{}'.format(gpuIDs[0])
 
 def load_dataset(path, name):
     '''graph_dict[chromosome] = {top_graph, top_subgraphs, bottom_graph, inter_graph}
@@ -17,10 +20,10 @@ def load_dataset(path, name):
 
 def create_network(configuration, graph):
     config = configuration['parameter']
-    top_graph = graph['top_graph'].to(device)
-    top_subgraphs = graph['top_subgraphs'].to(device)
-    bottom_graph = graph['bottom_graph'].to(device)
-    inter_graph = graph['inter_graph'].to(device)
+    top_graph = graph['top_graph']
+    top_subgraphs = graph['top_subgraphs']
+    bottom_graph = graph['bottom_graph']
+    inter_graph = graph['inter_graph']
 
     sampling_num = config['G3DM']['sampling_num']
     sampler = dgl.dataloading.MultiLayerNeighborSampler([
@@ -56,7 +59,7 @@ def create_network(configuration, graph):
     de_center_net = decoder(nh1, nc1, 'h1_bead', 'interacts_1').to(device)
     de_bead_net = decoder(nhout, nc0, 'h0_bead', 'interacts_0').to(device)
 
-    nll = nllLoss()
+    nll = nllLoss().to(device)
 
     opt = optim.AdaBound(list(em_h0_bead.parameters()) + list(em_h1_bead.parameters()) +
                          list(en_chain_net.parameters()) + list(en_bead_net.parameters()) + list(en_union.parameters()) +
@@ -97,8 +100,7 @@ def fit_one_step(graphs, features, sampler, batch_size, em_networks, ae_networks
 
     loss_list = []
     for input_nodes, pair_graph, blocks in dataloader:
-        # print('input: ', input_nodes)
-        # print('output: ', pair_graph)
+        blocks = [b.to(device) for b in blocks]
         X1 = em_h1_bead(h1_feat)
         h_center = en_chain_net(top_subgraphs, X1, top_list, ['w'], ['h1_bead'])
 
