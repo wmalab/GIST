@@ -2,12 +2,17 @@ import time,os
 import json
 import dgl
 import torch
+import GPUtil
 
 import numpy as np
 from G3DM.train import load_dataset, create_network, setup_train,run_epoch
 
 import warnings
 warnings.filterwarnings('ignore')
+
+gpuIDs = GPUtil.getAvailable(order = 'first', limit = 1, maxLoad = 0.05, maxMemory = 0.05, includeNan=False, excludeID=[], excludeUUID=[])
+device =  'cpu' if len(gpuIDs)==0 else 'cuda:{}'.format(gpuIDs[0])
+print(device)
 
 if __name__ == '__main__':
 
@@ -59,9 +64,9 @@ if __name__ == '__main__':
     graphs, features, label = HiCDataset[0]
 
     # creat network model
-    sampler, em_networks, ae_networks, nll, opt = create_network(config_data, graphs)
+    sampler, em_networks, ae_networks, nll, opt = create_network(config_data, graphs, device)
 
     # setup and call train 
     itn, batch_size = setup_train(config_data)
-    run_epoch(HiCDataset, [em_networks, ae_networks], nll, opt, sampler, batch_size, itn)
+    run_epoch(HiCDataset, [em_networks, ae_networks], nll, opt, sampler, batch_size, itn, device)
     

@@ -3,13 +3,13 @@ import dgl
 import torch
 import torch_optimizer as optim
 import numpy as np
-import GPUtil
+# import GPUtil
 
 from .model import embedding, encoder_bead, encoder_chain, encoder_union, decoder
 from .loss import nllLoss
 
-gpuIDs = GPUtil.getAvailable(order = 'first', limit = 1, maxLoad = 0.05, maxMemory = 0.05, includeNan=False, excludeID=[], excludeUUID=[])
-device =  'cpu' if len(gpuIDs)==0 else 'cuda:{}'.format(gpuIDs[0])
+# gpuIDs = GPUtil.getAvailable(order = 'first', limit = 1, maxLoad = 0.05, maxMemory = 0.05, includeNan=False, excludeID=[], excludeUUID=[])
+# device =  'cpu' if len(gpuIDs)==0 else 'cuda:{}'.format(gpuIDs[0])
 
 def load_dataset(path, name):
     '''graph_dict[chromosome] = {top_graph, top_subgraphs, bottom_graph, inter_graph}
@@ -18,7 +18,7 @@ def load_dataset(path, name):
     HiCDataset = torch.load(os.path.join( path, name))
     return HiCDataset
 
-def create_network(configuration, graph):
+def create_network(configuration, graph, device):
     config = configuration['parameter']
     top_graph = graph['top_graph']
     top_subgraphs = graph['top_subgraphs']
@@ -79,7 +79,7 @@ def setup_train(configuration):
     batch_size = int(configuration['parameter']['G3DM']['batchsize'])
     return itn, batch_size
 
-def fit_one_step(graphs, features, sampler, batch_size, em_networks, ae_networks, loss_fc, optimizer):
+def fit_one_step(graphs, features, sampler, batch_size, em_networks, ae_networks, loss_fc, optimizer, device):
     top_graph= graphs['top_graph']
     top_subgraphs = graphs['top_subgraphs']
     bottom_graph = graphs['bottom_graph']
@@ -134,12 +134,12 @@ def fit_one_step(graphs, features, sampler, batch_size, em_networks, ae_networks
         return loss_list
 
 
-def run_epoch(dataset, model, loss_fc, optimizer, sampler, batch_size, iterations):
+def run_epoch(dataset, model, loss_fc, optimizer, sampler, batch_size, iterations, device):
     em_networks, ae_networks = model
     loss_list = []
     for i in np.arange(iterations):
         for data in dataset:
             graphs, features, _ = data
-            ll = fit_one_step(graphs, features, sampler, batch_size, em_networks, ae_networks, loss_fc, optimizer)
+            ll = fit_one_step(graphs, features, sampler, batch_size, em_networks, ae_networks, loss_fc, optimizer, device)
             loss_list.append(ll)
         print("epoch {:d} Loss {:f}".format(i, np.mean(loss_list)))
