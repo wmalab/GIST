@@ -204,6 +204,7 @@ class decoder(torch.nn.Module):
         f = (-1.0/2.0)*(((x-mean)/std)**2)
         #log norm probability
         # pdf = -torch.log(std*torch.sqrt(2*self.pi)) + f
+        print(std.device, self.pi.device, f.device)
         pdf = 1/(std*torch.sqrt(2*self.pi)) * torch.exp(f)
         # pdf = torch.nn.functional.normalize( pdf, p=2, dim=-1)
         return pdf
