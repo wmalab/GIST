@@ -177,6 +177,7 @@ class decoder(torch.nn.Module):
         self.etype = etype
         num_seq = ((2*num_clusters+3)*2+3)+2
         self.pi = torch.acos(torch.zeros(1)) * 2
+        self.register_buffer('pi_const', self.pi)
 
         self.w = torch.nn.Parameter(torch.empty( (self.num_heads)), requires_grad=True)
         self.register_parameter('w', self.w)
@@ -204,8 +205,8 @@ class decoder(torch.nn.Module):
         f = (-1.0/2.0)*(((x-mean)/std)**2)
         #log norm probability
         # pdf = -torch.log(std*torch.sqrt(2*self.pi)) + f
-        print(std.device, self.pi.device, f.device)
-        pdf = 1/(std*torch.sqrt(2*self.pi)) * torch.exp(f)
+        print(std.device, self.pi_const.device, f.device)
+        pdf = 1/(std*torch.sqrt(2*self.pi_const)) * torch.exp(f)
         # pdf = torch.nn.functional.normalize( pdf, p=2, dim=-1)
         return pdf
 
