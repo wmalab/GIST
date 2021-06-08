@@ -110,10 +110,10 @@ def create_hierarchical_graph_2lvl(norm_hics, num_clusters, ratios, strides, cut
         graph_data[('h{}_bead'.format(y), 'center_{}_{}'.format(y,x), 'h{}_bead'.format(x))] = (src, dst)
 
     num_nodes_dict = {'h0_bead': len(idxs[0]), 'h1_bead':len(idxs[1])}
-    g = dgl.heterograph(graph_data, num_nodes_dict, idtype=torch.int32)
+    g = dgl.heterograph(graph_data, num_nodes_dict, idtype=torch.long)
 
     for i, idx in enumerate(idxs):
-        g.nodes['h{}_bead'.format(str(i))].data['id'] = torch.tensor(idx.flatten(), dtype=torch.int32)
+        g.nodes['h{}_bead'.format(str(i))].data['id'] = torch.tensor(idx.flatten(), dtype=torch.long)
         # g.nodes['h{}_bead'.format(str(i))].data['feat'] = torch.tensor(features[i]).float()
 
     for i, (m_hic, log_hic) in enumerate(zip(mats_, log_hics)):
@@ -128,7 +128,7 @@ def create_hierarchical_graph_2lvl(norm_hics, num_clusters, ratios, strides, cut
             value = counts*matpbs_[key][x,y,i].reshape((-1,1))
             g.edges['interacts_{}_c{}'.format(str(key), str(i))].data['w'] = torch.tensor(value).float()
 
-    print(g)
+    # print(g)
     top_list = ['interacts_1_c{}'.format(i) for i in np.arange(cutoff_cluster)]
     top_list.append('bead_chain')
     top_subgraphs = g.edge_type_subgraph(top_list)
@@ -137,4 +137,6 @@ def create_hierarchical_graph_2lvl(norm_hics, num_clusters, ratios, strides, cut
     inter_graph = g.edge_type_subgraph(['center_1_0'])
     print(top_graph, top_subgraphs, bottom_graph, inter_graph, sep='\n')
     g_list = [top_graph, top_subgraphs, bottom_graph, inter_graph]
+
+    print("idtype: ", g.idtype, top_subgraphs.idtype, sep=' ')
     return g, g_list

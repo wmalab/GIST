@@ -4,7 +4,7 @@ import dgl
 import torch
 
 import numpy as np
-from G3DM.train import load_dataset, create_network, setup_train
+from G3DM.train import load_dataset, create_network, setup_train,run_epoch
 
 import warnings
 warnings.filterwarnings('ignore')
@@ -63,3 +63,5 @@ if __name__ == '__main__':
 
     # setup and call train 
     itn, batch_size = setup_train(config_data)
+    run_epoch(HiCDataset, [em_networks, ae_networks], nll, opt, sampler, batch_size, itn)
+    

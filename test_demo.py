@@ -1,14 +1,15 @@
-import time
+"""import time
 import dgl
 import torch
 import torch_optimizer as optim
 import numpy as np
-from G3DM.build_graph import create_hierarchical_graph_1lvl, create_hierarchical_graph_2lvl
+from prepare.build_graph import create_hierarchical_graph_2lvl
 
-from G3DM.utils import load_hic, log1p_hic
+from prepare.utils import load_hic, log1p_hic
 from G3DM.loss import nllLoss
-from G3DM.data_prepare import hic_prepare_pooling
-from embedding.model import embedding, tilt_hic
+from prepare.data_prepare import hic_prepare_pooling
+from feature.model import embedding
+from feature.utils import tilt_hic
 
 from G3DM.model import encoder_chain, encoder_bead, encoder_union, decoder
 
@@ -226,4 +227,4 @@ if __name__ == '__main__':
     num_clusters = np.array([10, 6])
     g = create_hierarchical_graph_2lvl(
         norm_hics, num_clusters, ratios, strides)
-    run_2lvl(g, None, None)
+    run_2lvl(g, None, None)"""

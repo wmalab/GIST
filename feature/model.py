@@ -1,4 +1,4 @@
-import torch
+"""import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
@@ -21,4 +21,4 @@ class embedding(nn.Module):
         X = self.fc2(X)
         X = torch.nn.functional.normalize(X, p=2.0, dim=1)
         # X = torch.nn.functional.leaky_relu(X)
-        return X
+        return X"""

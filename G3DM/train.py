@@ -4,14 +4,8 @@ import torch
 import torch_optimizer as optim
 import numpy as np
 
-from .model import *
-from .loss import *
-
-currentdir = os.path.dirname(os.path.realpath(__file__))
-parentdir = os.path.dirname(currentdir)
-sys.path.append(parentdir)
-from feature.model import embedding
-
+from .model import embedding, encoder_bead, encoder_chain, encoder_union, decoder
+from .loss import nllLoss
 device = 'cpu'
 
 def load_dataset(path, name):
@@ -38,7 +32,7 @@ def create_network(configuration, graph):
     outd0 = int(config['feature']['out_dim']['h0'])
     ind1 = int(config['feature']['in_dim']['h1'])
     outd1 = int(config['feature']['out_dim']['h1'])
-    em_h0_bead = embedding(ind0, outd0).to(device)
+    em_h0_bead = embedding(ind0+ind1, outd0).to(device)
     em_h1_bead = embedding(ind1, outd1).to(device)
     
     nh0 = int(config['G3DM']['num_heads']['0'])
@@ -60,7 +54,7 @@ def create_network(configuration, graph):
     nc0 = int(config['graph']['num_clusters']['0'])
     nc1 = int(config['graph']['num_clusters']['1'])
     de_center_net = decoder(nh1, nc1, 'h1_bead', 'interacts_1').to(device)
-    de_bead_net = decoder(nh0, nc0, 'h0_bead', 'interacts_0').to(device)
+    de_bead_net = decoder(nhout, nc0, 'h0_bead', 'interacts_0').to(device)
 
     nll = nllLoss()
 
@@ -83,9 +77,12 @@ def setup_train(configuration):
     return itn, batch_size
 
 def fit_one_step(graphs, features, sampler, batch_size, em_networks, ae_networks, loss_fc, optimizer):
-    top_graph, top_subgraphs, bottom_graph, inter_graph = graphs[0], graphs[1], graphs[2], graphs[3]
-    h0_feat = features[0]
-    h1_feat = features[1]
+    top_graph= graphs['top_graph']
+    top_subgraphs = graphs['top_subgraphs']
+    bottom_graph = graphs['bottom_graph']
+    inter_graph = graphs['inter_graph']
+    h0_feat = features['hic_feat_h0']
+    h1_feat = torch.tensor(features['hic_feat_h1'], dtype=torch.float).to(device)
 
     em_h0_bead, em_h1_bead = em_networks[0], em_networks[1]
     en_chain_net, en_bead_net = ae_networks[0], ae_networks[1]
@@ -95,7 +92,7 @@ def fit_one_step(graphs, features, sampler, batch_size, em_networks, ae_networks
     eid_dict = {etype: bottom_graph.edges(etype=etype, form='eid') for etype in bottom_graph.etypes}
     dataloader = dgl.dataloading.EdgeDataLoader(bottom_graph, {'interacts_0': eid_dict['interacts_0']}, sampler,
                                                 batch_size=batch_size, shuffle=True, drop_last=True)
-    top_list = [e for e in top_graph.etypes if 'interacts_1_c' in e]
+    top_list = [e for e in top_subgraphs.etypes if 'interacts_1_c' in e]
     top_list.append('bead_chain')
 
     loss_list = []
@@ -103,9 +100,9 @@ def fit_one_step(graphs, features, sampler, batch_size, em_networks, ae_networks
         # print('input: ', input_nodes)
         # print('output: ', pair_graph)
         X1 = em_h1_bead(h1_feat)
-        h_center = en_chain_net(top_graph, X1, top_list, ['w'], ['h1_bead'])
+        h_center = en_chain_net(top_subgraphs, X1, top_list, ['w'], ['h1_bead'])
 
-        inputs0 = h0_feat[:]  # ['h0_bead']
+        inputs0 = torch.tensor(h0_feat[input_nodes,:], dtype=torch.float).to(device)  # ['h0_bead']
         X0 = em_h0_bead(inputs0)
         h_bead = en_bead_net(blocks, X0, ['interacts_0'], ['w'])
 
@@ -115,21 +112,32 @@ def fit_one_step(graphs, features, sampler, batch_size, em_networks, ae_networks
         h1, _ = torch.sort(torch.unique(h1))
         inter = dgl.node_subgraph(inter_graph, {'h0_bead': h0, 'h1_bead': h1})
 
+
         c = h_center[h1, :, :]
         res = en_union(inter, c, h_bead)
 
-        xp1, _ = de_center_net(top_subgraphs, h_center)
-        # xp1 = xp1[('h1_bead', 'interacts_1', 'h1_bead')]
+        xp1, _ = de_center_net(top_graph, h_center)
         xp0, _ = de_bead_net(pair_graph, res)
 
-        xt1 = top_subgraphs.edges['interacts_1'].data['label']
+        xt1 = top_graph.edges['interacts_1'].data['label']
         xt0 = pair_graph.edges['interacts_0'].data['label']
 
         loss1 = loss_fc(xp1, xt1)
         loss0 = loss_fc(xp0, xt0)
-        loss = loss0 + loss1
+        loss = (loss0 + loss1)/2.0
         optimizer.zero_grad()
         loss.backward(retain_graph=True)  # retain_graph=False,
         optimizer.step()
         loss_list.append(loss.item())
-        print(" Loss {:f} {:f}".format(loss1.item(), loss0.item()))
+        return loss_list
+
+
+def run_epoch(dataset, model, loss_fc, optimizer, sampler, batch_size, iterations):
+    em_networks, ae_networks = model
+    loss_list = []
+    for i in np.arange(iterations):
+        for data in dataset:
+            graphs, features, _ = data
+            ll = fit_one_step(graphs, features, sampler, batch_size, em_networks, ae_networks, loss_fc, optimizer)
+            loss_list.append(ll)
+        print("epoch {:d} Loss {:f}".format(i, np.mean(loss_list)))
