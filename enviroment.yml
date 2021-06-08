@@ -16,7 +16,7 @@
     - cooler
     - scikit-learn
     - matplotlib
-    - dgl 
+    - dgl-cuda10.2
     - pip
     - scikit-image
     - pip:
