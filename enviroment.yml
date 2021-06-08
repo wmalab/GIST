@@ -18,6 +18,9 @@
     - matplotlib
     - dgl 
     - pip
+    - scikit-image
     - pip:
         - gputil
         - tensorboard
+        - iced
+        - torch_optimizer

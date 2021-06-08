@@ -10,9 +10,9 @@ import warnings
 warnings.filterwarnings('ignore')
 
 if __name__ == '__main__':
-    device = 'cpu'
 
-    root= os.path.join('.') # '/rhome/yhu/bigdata/proj/experiment_G3DM'
+    # root= os.path.join('.') # 
+    root = os.path.join('/rhome/yhu/bigdata/proj/experiment_G3DM')
     configuration_src_path = os.path.join(root, 'data')
     configuration_name = 'config.json'
     with open(os.path.join(configuration_src_path, configuration_name)) as f:
