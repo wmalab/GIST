@@ -80,10 +80,10 @@ def setup_train(configuration):
     return itn, batch_size
 
 def fit_one_step(graphs, features, sampler, batch_size, em_networks, ae_networks, loss_fc, optimizer, device):
-    top_graph= graphs['top_graph']
-    top_subgraphs = graphs['top_subgraphs']
+    top_graph= graphs['top_graph'].to(device)
+    top_subgraphs = graphs['top_subgraphs'].to(device)
     bottom_graph = graphs['bottom_graph']
-    inter_graph = graphs['inter_graph']
+    inter_graph = graphs['inter_graph'].to(device)
     h0_feat = features['hic_feat_h0']
     h1_feat = torch.tensor(features['hic_feat_h1'], dtype=torch.float).to(device)
 
