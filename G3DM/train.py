@@ -115,7 +115,7 @@ def fit_one_step(graphs, features, sampler, batch_size, em_networks, ae_networks
         inter = dgl.node_subgraph(inter_graph, {'h0_bead': h0, 'h1_bead': h1})
 
 
-        c = h_center[h1, :, :]
+        c = h_center[h1, :, :].to(device)
         res = en_union(inter, c, h_bead)
 
         xp1, _ = de_center_net(top_graph, h_center)
