@@ -93,7 +93,7 @@ def fit_one_step(graphs, features, sampler, batch_size, em_networks, ae_networks
     de_center_net, de_bead_net = ae_networks[3], ae_networks[4]
 
     eid_dict = {etype: bottom_graph.edges(etype=etype, form='eid') for etype in bottom_graph.etypes}
-    dataloader = dgl.dataloading.EdgeDataLoader(bottom_graph, {'interacts_0': eid_dict['interacts_0']}, sampler,
+    dataloader = dgl.dataloading.EdgeDataLoader(bottom_graph, {'interacts_0': eid_dict['interacts_0']}, sampler, device=device,
                                                 batch_size=batch_size, shuffle=True, drop_last=True)
     top_list = [e for e in top_subgraphs.etypes if 'interacts_1_c' in e]
     top_list.append('bead_chain')
