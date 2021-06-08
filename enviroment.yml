@@ -1,0 +1,23 @@
+ name: env_G3DM
+ channels:
+    - pytorch
+    - defaults
+    - anaconda
+    - conda-forge
+    - bioconda
+    - dglteam
+ dependencies:
+    - pytorch
+    - torchvision
+    - torchaudio
+    - cudatoolkit=10.2
+    - numpy
+    - scipy
+    - cooler
+    - scikit-learn
+    - matplotlib
+    - dgl 
+    - pip
+    - pip:
+        - gputil
+        - tensorboard
