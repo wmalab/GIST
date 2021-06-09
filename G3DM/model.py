@@ -120,19 +120,22 @@ class encoder_bead(torch.nn.Module):
         edge_weights = [sub.edata[efeat[0]] for  sub in blocks]
         norm_edge_weights = [ self.norm(blocks[i], w) for i, w in enumerate(edge_weights)]
         
-        block = blocks[0].edge_type_subgraph([etypes[0]])
-        block = dgl.to_homogeneous(block)
-        block = dgl.to_block(block)
+        # block = blocks[0].edge_type_subgraph([etypes[0]])
+        # block = dgl.to_homogeneous(block)
+        # block = dgl.to_block(block)
+        block = blocks[0]
         h = self.layer1(block, x, edge_weight=norm_edge_weights[0])
 
-        block = blocks[1].edge_type_subgraph([etypes[0]])
-        block = dgl.to_homogeneous(block)
-        block = dgl.to_block(block)
+        # block = blocks[1].edge_type_subgraph([etypes[0]])
+        # block = dgl.to_homogeneous(block)
+        # block = dgl.to_block(block)
+        block = blocks[1]
         h = self.layer2(block, h, edge_weight=norm_edge_weights[1])
 
-        block = blocks[2].edge_type_subgraph([etypes[0]])
-        block = dgl.to_homogeneous(block)
-        block = dgl.to_block(block)
+        # block = blocks[2].edge_type_subgraph([etypes[0]])
+        # block = dgl.to_homogeneous(block)
+        # lock = dgl.to_block(block)
+        block = blocks[2]
         res = self.layer3(block, h, edge_weight=norm_edge_weights[2])
 
         return res

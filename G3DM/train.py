@@ -30,10 +30,12 @@ def create_network(configuration, graph, device):
     inter_graph = graph['inter_graph']
 
     sampling_num = config['G3DM']['sampling_num']
-    sampler = dgl.dataloading.MultiLayerNeighborSampler([
+    sampler = dgl.dataloading.MultiLayerNeighborSampler(
+        [ int(sampling_num['l0']), int(sampling_num['l1']),int(sampling_num['l2'])] )
+    '''sampler = dgl.dataloading.MultiLayerNeighborSampler([
         {('h0_bead', 'interacts_0', 'h0_bead'): int(sampling_num['l0'])},
         {('h0_bead', 'interacts_0', 'h0_bead'): int(sampling_num['l1'])},
-        {('h0_bead', 'interacts_0', 'h0_bead'): int(sampling_num['l2'])}])  # ,('h1_bead', 'center_1_0', 'h0_bead'):0
+        {('h0_bead', 'interacts_0', 'h0_bead'): int(sampling_num['l2'])}])'''  # ,('h1_bead', 'center_1_0', 'h0_bead'):0
 
     ind0 = int(config['feature']['in_dim']['h0'])
     outd0 = int(config['feature']['out_dim']['h0'])
@@ -65,7 +67,8 @@ def create_network(configuration, graph, device):
     nc0 = int(config['graph']['num_clusters']['0'])
     nc1 = int(config['graph']['num_clusters']['1'])
     de_center_net = decoder(nh1, nc1, 'h1_bead', 'interacts_1').to(device)
-    de_bead_net = decoder(nhout, nc0, 'h0_bead', 'interacts_0').to(device)
+    # de_bead_net = decoder(nhout, nc0, 'h0_bead', 'interacts_0').to(device)
+    de_bead_net = decoder(nhout, nc0, '_N', '_E').to(device)
 
     nll = nllLoss().to(device)
 
@@ -93,7 +96,7 @@ def setup_train(configuration):
 def fit_one_step(graphs, features, sampler, batch_size, em_networks, ae_networks, loss_fc, optimizer, device):
     top_graph = graphs['top_graph'].to(device)
     top_subgraphs = graphs['top_subgraphs'].to(device)
-    bottom_graph = graphs['bottom_graph']
+    bottom_graph = dgl.to_homogeneous(graphs['bottom_graph'], edata=['w', 'label'], store_type=True)
     inter_graph = graphs['inter_graph'].to(device)
 
     h0_feat = features[0]
@@ -104,9 +107,10 @@ def fit_one_step(graphs, features, sampler, batch_size, em_networks, ae_networks
     en_union = ae_networks[2]
     de_center_net, de_bead_net = ae_networks[3], ae_networks[4]
 
-    eid_dict = {etype: bottom_graph.edges(
-        etype=etype, form='eid') for etype in bottom_graph.etypes}
-    dataloader = dgl.dataloading.EdgeDataLoader(bottom_graph, {'interacts_0': eid_dict['interacts_0']}, sampler, device=device,
+    # eid_dict = {etype: bottom_graph.edges( etype=etype, form='eid') for etype in bottom_graph.etypes}
+    # dataloader = dgl.dataloading.EdgeDataLoader(bottom_graph, {'interacts_0': eid_dict['interacts_0']}, sampler, device=device,
+    #                                             batch_size=batch_size, shuffle=True, drop_last=True)
+    dataloader = dgl.dataloading.EdgeDataLoader(bottom_graph, bottom_graph.nodes(), sampler, device=device,
                                                 batch_size=batch_size, shuffle=True, drop_last=True)
     top_list = [e for e in top_subgraphs.etypes if 'interacts_1_c' in e]
     top_list.append('bead_chain')
@@ -123,11 +127,9 @@ def fit_one_step(graphs, features, sampler, batch_size, em_networks, ae_networks
         X0 = em_h0_bead(inputs0)
         h_bead = en_bead_net(blocks, X0, ['interacts_0'], ['w'])
 
-        h0 = dgl.in_subgraph(inter_graph, {'h0_bead': blocks[2].dstnodes()}).edges()[
-            1]  # dst
+        h0 = dgl.in_subgraph(inter_graph, {'h0_bead': blocks[2].dstnodes()}).edges()[1]  # dst
         h0, _ = torch.sort(torch.unique(h0))
-        h1 = dgl.in_subgraph(inter_graph, {'h0_bead': blocks[2].dstnodes()}).edges()[
-            0]  # src
+        h1 = dgl.in_subgraph(inter_graph, {'h0_bead': blocks[2].dstnodes()}).edges()[0]  # src
         h1, _ = torch.sort(torch.unique(h1))
         inter = dgl.node_subgraph(inter_graph, {'h0_bead': h0, 'h1_bead': h1})
 
@@ -138,7 +140,8 @@ def fit_one_step(graphs, features, sampler, batch_size, em_networks, ae_networks
         xp0, _ = de_bead_net(pair_graph, res)
 
         xt1 = top_graph.edges['interacts_1'].data['label']
-        xt0 = pair_graph.edges['interacts_0'].data['label']
+        # xt0 = pair_graph.edges['interacts_0'].data['label']
+        xt0 = pair_graph.edges['_E'].data['label']
 
         loss1 = loss_fc(xp1, xt1)
         loss0 = loss_fc(xp0, xt0)
@@ -148,17 +151,14 @@ def fit_one_step(graphs, features, sampler, batch_size, em_networks, ae_networks
         optimizer.step()
         loss_list.append(loss.item())
 
-        # for debuging
-        if len(loss_list) >=10:
-            break
-
-    return loss_list
+    ll = np.array(loss_list)
+    return np.nan if len(ll)==0 else np.mean(ll)
 
 
 def inference(graphs, features, num_heads, em_networks, ae_networks, device):
     top_graph = graphs['top_graph'].to(device)
     top_subgraphs = graphs['top_subgraphs'].to(device)
-    bottom_graph = graphs['bottom_graph']
+    bottom_graph = dgl.to_homogeneous(graphs['bottom_graph'], edata=['w'])
     inter_graph = graphs['inter_graph'].to(device)
 
     h0_feat = features[0]
@@ -169,7 +169,7 @@ def inference(graphs, features, num_heads, em_networks, ae_networks, device):
     en_union = ae_networks[2]
     de_center_net, de_bead_net = ae_networks[3], ae_networks[4]
 
-    eid_dict = {etype: bottom_graph.edges(etype=etype, form='eid') for etype in bottom_graph.etypes}
+    # eid_dict = {etype: bottom_graph.edges(etype=etype, form='eid') for etype in bottom_graph.etypes}
             
     sampler = dgl.dataloading.MultiLayerFullNeighborSampler(3)
     batch_size = bottom_graph.number_of_nodes()
@@ -193,7 +193,6 @@ def inference(graphs, features, num_heads, em_networks, ae_networks, device):
 
             inputs0 = torch.tensor(h0_feat[input_nodes.cpu().detach(), :], dtype=torch.float).to(device)  # ['h0_bead']
             X0 = em_h0_bead(inputs0)
-            print('X0: {}, X1: {}'.format(X0.shape, X1.shape))
             h_bead = en_bead_net(blocks, X0, ['interacts_0'], ['w'])
 
             h0 = dgl.in_subgraph(inter_graph, {'h0_bead': blocks[2].dstnodes()}).edges()[1]  # dst
@@ -204,7 +203,7 @@ def inference(graphs, features, num_heads, em_networks, ae_networks, device):
 
             c = h_center[h1, :, :].to(device)
             res = en_union(inter, c, h_bead)
-            result[out_nodes] = res
+            result[output_nodes,:,:] = res
 
         xp1, _ = de_center_net(top_graph, h_center)
         xp0, _ = de_bead_net(bottom_graph, result)
@@ -225,8 +224,8 @@ def run_epoch(dataset, model, loss_fc, optimizer, sampler, batch_size, iteration
             h1_p = features['hic_h1']['pos']
             h1_feat = torch.tensor(h1_f + h1_p, dtype=torch.float).to(device)
 
-            # ll = fit_one_step(graphs, [h0_feat, h1_feat], sampler, batch_size, em_networks, ae_networks, loss_fc, optimizer, device)
-            # loss_list.append(ll)
+            ll = fit_one_step(graphs, [h0_feat, h1_feat], sampler, batch_size, em_networks, ae_networks, loss_fc, optimizer, device)
+            loss_list.append(ll)
 
             if i == 0 and j == 0 and writer is not None:
                 plot_feature(h0_f, h0_p, writer, 'features/h0')
@@ -235,8 +234,7 @@ def run_epoch(dataset, model, loss_fc, optimizer, sampler, batch_size, iteration
             if i%5==0 and j == 0 and writer is not None and config is not None:
                 num_heads = int(config['parameter']['G3DM']['num_heads']['out'])
                 X = inference(graphs, [h0_feat, h1_feat], num_heads, em_networks, ae_networks, device)
-                print(X.shape, X.type)
-                X = X.cpu().detach().numpy() 
-                print(X.shape, X.type)
+                X = X.cpu().detach().numpy()
 
-        print("epoch {:d} Loss {:f}".format(i, np.mean(loss_list)))
+        print("epoch {:d} Loss {:f}".format(i, np.nanmean(np.array(loss_list))))
+
