@@ -181,7 +181,7 @@ def inference(graphs, features, num_heads, em_networks, ae_networks, device):
     top_list.append('bead_chain')
 
     loss_list = []
-    result = torch.tensor(torch.empty((bottom_graph.number_of_nodes(), num_heads, 3)))
+    result = torch.tensor(torch.empty((bottom_graph.number_of_nodes(), num_heads, 3))).to(device)
 
     with torch.no_grad():
 
