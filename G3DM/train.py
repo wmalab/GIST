@@ -160,6 +160,7 @@ def run_epoch(dataset, model, loss_fc, optimizer, sampler, batch_size, iteration
             graphs, features, _ = data
             h0_f = features['hic_h0']['feat']
             h0_p = features['hic_h0']['pos']
+            print(h0_f.shape, h0_p.shape)
             h0_feat = torch.tensor(h0_f + h0_p, dtype=torch.float)
             h1_f = features['hic_h1']['feat']
             h1_p = features['hic_h1']['pos']

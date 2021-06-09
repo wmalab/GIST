@@ -48,6 +48,7 @@ def create_feature(ratio, stride, dim, chromosome, cool_path, cool_file, output_
         f1 = np.repeat(features[0], nrepeats[i+1], axis=0)[0:f0.shape[0], :]
         f = np.concatenate((f0, f1), axis=1)
         features.insert(0, f)
+
     positions = []
     for f in features:
         positions.append(position_hic(f, f.shape[1]))
