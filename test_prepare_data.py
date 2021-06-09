@@ -51,7 +51,8 @@ def create_feature(ratio, stride, dim, chromosome, cool_path, cool_file, output_
 
     positions = []
     for f in features:
-        positions.append(position_hic(f, f.shape[1]))
+        pe = np.array(position_hic(f, f.shape[1]))
+        positions.append(pe)
 
     f_dict = {'hic_h0': {'feat':features[0], 'pos': positions[0]}, 'hic_h1': {'feat':features[1], 'pos': positions[1]}}
     save_feature(output_path, output_file, f_dict)
