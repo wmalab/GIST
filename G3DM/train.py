@@ -233,7 +233,7 @@ def run_epoch(dataset, model, loss_fc, optimizer, sampler, batch_size, iteration
                 plot_feature(h1_f, h1_p, writer, 'features/h1')
             
             if i%5==0 and j == 0 and writer is not None and config is not None:
-                num_heads = int(config['G3DM']['num_heads']['out'])
+                num_heads = int(config['parameter']['G3DM']['num_heads']['out'])
                 X = inference(graphs, [h0_feat, h1_feat], num_heads, em_networks, ae_networks, device)
                 print(X.shape, X.type)
                 X = X.cpu().detach().numpy() 
