@@ -146,6 +146,7 @@ def fit_one_step(graphs, features, sampler, batch_size, em_networks, ae_networks
         optimizer.zero_grad()
         loss.backward(retain_graph=True)  # retain_graph=False,
         optimizer.step()
+        print(loss.item(), sep=' ')
         loss_list.append(loss.item())
 
     return loss_list
@@ -203,8 +204,7 @@ def inference(graphs, features, num_heads, em_networks, ae_networks, device):
 
         xp1, _ = de_center_net(top_graph, h_center)
         xp0, _ = de_bead_net(bottom_graph, result)
-
-    return result
+        return result
 
 
 def run_epoch(dataset, model, loss_fc, optimizer, sampler, batch_size, iterations, device, writer=None, config=None):
