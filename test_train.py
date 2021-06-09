@@ -3,6 +3,7 @@ import os
 import json
 import dgl
 import torch
+from torch.utils import tensorboard
 import GPUtil
 
 import numpy as np
@@ -81,7 +82,7 @@ if __name__ == '__main__':
     log_dir = config_data['log_dir'] if config_data['log_dir'] else os.path.join(
         root, 'log', cell, hyper)
     os.makedirs(log_dir, exist_ok=True)
-    writer = torch.utils.tensorboard.SummaryWriter(log_dir)
+    writer = tensorboard.SummaryWriter(log_dir)
     run_epoch(HiCDataset, [em_networks, ae_networks],
               nll, opt, sampler,
               batch_size, itn, device, writer)
