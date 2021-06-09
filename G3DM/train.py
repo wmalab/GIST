@@ -174,7 +174,7 @@ def inference(graphs, features, num_heads, em_networks, ae_networks, device):
     sampler = dgl.dataloading.MultiLayerFullNeighborSampler(3)
     batch_size = bottom_graph.number_of_nodes()
     dataloader = dgl.dataloading.NodeDataLoader(bottom_graph, 
-                                                bottom_graph.nodes(), 
+                                                torch.arange(bottom_graph.number_of_nodes()), 
                                                 sampler, device=device,
                                                 batch_size=batch_size, shuffle=False, drop_last=False)
     top_list = [e for e in top_subgraphs.etypes if 'interacts_1_c' in e]
@@ -193,7 +193,7 @@ def inference(graphs, features, num_heads, em_networks, ae_networks, device):
 
             inputs0 = torch.tensor(h0_feat[input_nodes.cpu().detach(), :], dtype=torch.float).to(device)  # ['h0_bead']
             X0 = em_h0_bead(inputs0)
-            print('X0: ', X0.shape)
+            print('X0: {}, X1: {}'.format(X0.shape, X1.shape))
             h_bead = en_bead_net(blocks, X0, ['interacts_0'], ['w'])
 
             h0 = dgl.in_subgraph(inter_graph, {'h0_bead': blocks[2].dstnodes()}).edges()[1]  # dst
