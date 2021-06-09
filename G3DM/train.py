@@ -146,8 +146,11 @@ def fit_one_step(graphs, features, sampler, batch_size, em_networks, ae_networks
         optimizer.zero_grad()
         loss.backward(retain_graph=True)  # retain_graph=False,
         optimizer.step()
-        print(loss.item(), sep=' ')
         loss_list.append(loss.item())
+
+        # for debuging
+        if len(loss_list >=10):
+            break
 
     return loss_list
 
