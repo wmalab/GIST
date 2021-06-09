@@ -4,12 +4,13 @@ import numpy as np
 import torch
 import torchvision
 
-def plot_feature(feats, position, writer):
+def plot_feature(feats, position, writer, item_dir):
     fig = plt.figure()
-    c1 = plt.Circle((0.2, 0.5), 0.2, color='r')
-    c2 = plt.Circle((0.8, 0.5), 0.2, color='r')
-    ax = plt.gca()
-    ax.add_patch(c1)
-    ax.add_patch(c2)
-    plt.axis('scaled')
-    writer.add_figure('matplotlib', fig)
+    fig, axs = plt.subplots(1, 2)
+    cmaps = ['RdBu_r', 'viridis']
+    for col in range(2):
+        ax = axs[0, col]
+        pcm = ax.pcolormesh(np.random.random((20, 20)) * (col + 1),
+                            cmap=cmaps[col])
+        fig.colorbar(pcm, ax=ax)
+    writer.add_figure(item_dir, fig)

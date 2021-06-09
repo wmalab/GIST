@@ -168,6 +168,7 @@ def run_epoch(dataset, model, loss_fc, optimizer, sampler, batch_size, iteration
                               em_networks, ae_networks, loss_fc, optimizer, device)
             loss_list.append(ll)
 
-            if i % 5 == 0 and j == 0 and writer is not None:
-                plot_feature(None, None, writer)
+            if i == 0 and j == 0 and writer is not None:
+                plot_feature(h0_f, h0_p, writer, 'features/h0')
+                plot_feature(h1_f, h1_p, writer, 'features/h1')
         print("epoch {:d} Loss {:f}".format(i, np.mean(loss_list)))
