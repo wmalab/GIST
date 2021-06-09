@@ -31,7 +31,7 @@ def position_hic(hic_feat, dim):
     #add constant to embedding
     seq_len = x.shape[1]
     # x = x + pe[:,:seq_len]
-    return x, pe[:,:seq_len]
+    return pe[:,:seq_len]
 
 
 def save_feature(path, file, feature_dict):
