@@ -4,8 +4,8 @@ import os, pickle
 
 def feature_hic(hic, dim):
     t_hic = tilt_hic(hic, dim)
-    p_hic = add_position_hic(t_hic, dim)
-    return p_hic
+    # t_hic, p_hic = position_hic(t_hic, dim)
+    return t_hic
 
 def tilt_hic(hic, dim):
     featrues = np.zeros((hic.shape[0], dim))
@@ -20,7 +20,7 @@ def tilt_hic(hic, dim):
                     featrues[i,l-1] = hic[i, i-l]
     return featrues
 
-def add_position_hic(hic_feat, dim):
+def position_hic(hic_feat, dim):
     max_seq_len, d_model = hic_feat.shape[0], dim
     pe = np.zeros((max_seq_len, d_model))
     for pos in range(max_seq_len):
@@ -30,8 +30,8 @@ def add_position_hic(hic_feat, dim):
     x = hic_feat * math.sqrt(d_model)
     #add constant to embedding
     seq_len = x.shape[1]
-    x = x + pe[:,:seq_len]
-    return x
+    # x = x + pe[:,:seq_len]
+    return x, pe[:,:seq_len]
 
 
 def save_feature(path, file, feature_dict):

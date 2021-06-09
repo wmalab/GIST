@@ -3,7 +3,7 @@ import json, pickle
 import numpy as np
 import multiprocessing
 
-from feature.utils import feature_hic, save_feature, load_feature
+from feature.utils import feature_hic, position_hic, save_feature, load_feature
 from prepare.utils import log1p_hic, save_graph, load_graph
 from prepare.data_prepare import hic_prepare_pooling
 from prepare.build_graph import create_hierarchical_graph_2lvl
@@ -48,8 +48,11 @@ def create_feature(ratio, stride, dim, chromosome, cool_path, cool_file, output_
         f1 = np.repeat(features[0], nrepeats[i+1], axis=0)[0:f0.shape[0], :]
         f = np.concatenate((f0, f1), axis=1)
         features.insert(0, f)
+    positions = []
+    for f in features:
+        positions.append(position_hic(f, f.shape[1]))
 
-    f_dict = {'hic_feat_h0': features[0], 'hic_feat_h1': features[1]}
+    f_dict = {'hic_h0': {'feat':features[0], 'pos': positions[0]}, 'hic_h1': {'feat':features[1], 'pos': positions[1]}}
     save_feature(output_path, output_file, f_dict)
 
 def create_graph(ratio, stride, num_clusters, chromosome, cutoff_percent, cutoff_cluster, cool_path, cool_file, output_path, output_file):

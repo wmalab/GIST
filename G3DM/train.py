@@ -3,11 +3,12 @@ import dgl
 import torch
 import torch_optimizer as optim
 import numpy as np
-# import GPUtil
 
 from .model import embedding, encoder_bead, encoder_chain, encoder_union, decoder
 from .loss import nllLoss
+from .visualize import plot_feature
 
+# import GPUtil
 # gpuIDs = GPUtil.getAvailable(order = 'first', limit = 1, maxLoad = 0.05, maxMemory = 0.05, includeNan=False, excludeID=[], excludeUUID=[])
 # device =  'cpu' if len(gpuIDs)==0 else 'cuda:{}'.format(gpuIDs[0])
 
@@ -84,8 +85,9 @@ def fit_one_step(graphs, features, sampler, batch_size, em_networks, ae_networks
     top_subgraphs = graphs['top_subgraphs'].to(device)
     bottom_graph = graphs['bottom_graph']
     inter_graph = graphs['inter_graph'].to(device)
-    h0_feat = features['hic_feat_h0']
-    h1_feat = torch.tensor(features['hic_feat_h1'], dtype=torch.float).to(device)
+
+    h0_feat = features[0]
+    h1_feat = features[1]
 
     em_h0_bead, em_h1_bead = em_networks[0], em_networks[1]
     en_chain_net, en_bead_net = ae_networks[0], ae_networks[1]
@@ -137,9 +139,23 @@ def fit_one_step(graphs, features, sampler, batch_size, em_networks, ae_networks
 def run_epoch(dataset, model, loss_fc, optimizer, sampler, batch_size, iterations, device):
     em_networks, ae_networks = model
     loss_list = []
+
+    writer = torch.utils.tensorboard.SummaryWriter()
     for i in np.arange(iterations):
-        for data in dataset:
+        for j, data in enumerate(dataset):
             graphs, features, _ = data
-            ll = fit_one_step(graphs, features, sampler, batch_size, em_networks, ae_networks, loss_fc, optimizer, device)
+            h0_f = features['hic_h0']['feat']
+            h0_p = features['hic_h0']['pos']
+            h0_feat = torch.tensor(h0_f + h0_p, dtype=torch.float)
+            h1_f = features['hic_h1']['feat']
+            h1_p = features['hic_h1']['pos']
+            h1_feat = torch.tensor(h1_f + h1_p, dtype=torch.float).to(device)
+            
+            ll = fit_one_step(graphs, [h0_feat, h1_feat], sampler, batch_size, em_networks, ae_networks, loss_fc, optimizer, device)
             loss_list.append(ll)
+
+            if i%5 == 0 and j==0:
+                plot_feature(None, None, writer)
         print("epoch {:d} Loss {:f}".format(i, np.mean(loss_list)))
+    writer.close()
+
