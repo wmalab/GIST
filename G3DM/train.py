@@ -149,7 +149,7 @@ def fit_one_step(graphs, features, sampler, batch_size, em_networks, ae_networks
         loss_list.append(loss.item())
 
         # for debuging
-        if len(loss_list >=10):
+        if len(loss_list) >=10:
             break
 
     return loss_list
