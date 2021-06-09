@@ -12,6 +12,7 @@
     "feature_path":"",
     "dataset_path":{"path": "", "name": ""},
     "output_path":"",
+    "log_dir":"",
     "saved_model": {"path": "", "name": ""},
     "hyper": {"ratio": 8, "stride": 2},
     "parameter": {
