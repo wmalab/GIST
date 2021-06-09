@@ -98,7 +98,6 @@ def fit_one_step(graphs, features, sampler, batch_size, em_networks, ae_networks
 
     h0_feat = features[0]
     h1_feat = features[1]
-    print(h0_feat.shape, h1_feat.shape)
 
     em_h0_bead, em_h1_bead = em_networks[0], em_networks[1]
     en_chain_net, en_bead_net = ae_networks[0], ae_networks[1]
