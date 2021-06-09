@@ -86,5 +86,5 @@ if __name__ == '__main__':
     writer = tensorboard.SummaryWriter(log_dir)
     run_epoch(HiCDataset, [em_networks, ae_networks],
               nll, opt, sampler,
-              batch_size, itn, device, writer)
+              batch_size, itn, device, writer=writer, config=config_data)
     writer.close()
