@@ -172,7 +172,7 @@ def inference(graphs, features, num_heads, em_networks, ae_networks, device):
     eid_dict = {etype: bottom_graph.edges(etype=etype, form='eid') for etype in bottom_graph.etypes}
             
     sampler = dgl.dataloading.MultiLayerFullNeighborSampler(3)
-    batch_size = 100
+    batch_size = bottom_graph.number_of_nodes()
     dataloader = dgl.dataloading.NodeDataLoader(bottom_graph, 
                                                 bottom_graph.nodes(), 
                                                 sampler, device=device,
@@ -193,6 +193,7 @@ def inference(graphs, features, num_heads, em_networks, ae_networks, device):
 
             inputs0 = torch.tensor(h0_feat[input_nodes.cpu().detach(), :], dtype=torch.float).to(device)  # ['h0_bead']
             X0 = em_h0_bead(inputs0)
+            print('X0: ', X0.shape)
             h_bead = en_bead_net(blocks, X0, ['interacts_0'], ['w'])
 
             h0 = dgl.in_subgraph(inter_graph, {'h0_bead': blocks[2].dstnodes()}).edges()[1]  # dst
@@ -224,9 +225,8 @@ def run_epoch(dataset, model, loss_fc, optimizer, sampler, batch_size, iteration
             h1_p = features['hic_h1']['pos']
             h1_feat = torch.tensor(h1_f + h1_p, dtype=torch.float).to(device)
 
-            ll = fit_one_step(graphs, [h0_feat, h1_feat], sampler, batch_size,
-                              em_networks, ae_networks, loss_fc, optimizer, device)
-            loss_list.append(ll)
+            # ll = fit_one_step(graphs, [h0_feat, h1_feat], sampler, batch_size, em_networks, ae_networks, loss_fc, optimizer, device)
+            # loss_list.append(ll)
 
             if i == 0 and j == 0 and writer is not None:
                 plot_feature(h0_f, h0_p, writer, 'features/h0')

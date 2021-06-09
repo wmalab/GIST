@@ -31,7 +31,7 @@ def create_feature(ratio, stride, dim, chromosome, cool_path, cool_file, output_
         remove_zero_col=False)
 
     for i, m in enumerate(norm_hics):
-        print('chromosome {} level {}, iced normalization Hi-C shape: {}'.format(chromosome, i, m.shape))
+        print('create featrue chromosome {} level {}, iced normalization Hi-C shape: {}'.format(chromosome, i, m.shape))
 
     log_hics = [log1p_hic(x) for x in norm_hics]
     idxs = [np.arange(len(hic)) for hic in norm_hics]
@@ -71,7 +71,7 @@ def create_graph(ratio, stride, num_clusters, chromosome, cutoff_percent, cutoff
         remove_zero_col=False)
 
     for i, m in enumerate(norm_hics):
-        print('chromosome {} level {}, iced normalization Hi-C shape: {}'.format(chromosome, i, m.shape))
+        print('create graph chromosome {} level {}, iced normalization Hi-C shape: {}'.format(chromosome, i, m.shape))
 
     g, g_list = create_hierarchical_graph_2lvl(
         norm_hics, num_clusters, ratios, strides, cutoff_percent=cutoff_percent, cutoff_cluster=cutoff_cluster)
