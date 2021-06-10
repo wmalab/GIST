@@ -158,7 +158,7 @@ def fit_one_step(graphs, features, sampler, batch_size, em_networks, ae_networks
 def inference(graphs, features, num_heads, em_networks, ae_networks, device):
     top_graph = graphs['top_graph'].to(device)
     top_subgraphs = graphs['top_subgraphs'].to(device)
-    bottom_graph = (dgl.to_homogeneous(graphs['bottom_graph'], edata=['w'])).to(device)
+    bottom_graph = (dgl.to_homogeneous(graphs['bottom_graph'], edata=['w']))
     inter_graph = graphs['inter_graph'].to(device)
 
     h0_feat = features[0]
@@ -208,7 +208,7 @@ def inference(graphs, features, num_heads, em_networks, ae_networks, device):
             result[output_nodes.cpu().detach(),:,:] = res.cpu().detach()
 
         xp1, _ = de_center_net(top_graph, h_center)
-        xp0, _ = de_bead_net(bottom_graph, result.to(device))
+        xp0, _ = de_bead_net(bottom_graph.to(device), result.to(device))
         return result
 
 
