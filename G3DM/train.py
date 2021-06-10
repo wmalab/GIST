@@ -215,11 +215,11 @@ def inference(graphs, features, num_heads, em_networks, ae_networks, device):
         p1 = xp1.cpu().detach().numpy()
         center_X = h_center.cpu().detach().numpy()
         center_cluster_mat = np.ones((center_X.shape[0], center_X.shape[0]))*p1.max()
-        center_cluster_mat[graphs['top_graph'].edges(etpye='interacts_1', form='uv')[0], graphs['top_graph'].edges(etype='interacts_1', form='uv')[1]] = p1
+        center_cluster_mat[graphs['top_graph'].edges(etype='interacts_1', form='uv')[0], graphs['top_graph'].edges(etype='interacts_1', form='uv')[1]] = np.argmax(p1, axis=1)
         p0 = xp0.cpu().detach().numpy()
         bead_X = result.cpu().detach().numpy()
         bead_cluster_mat = np.ones((bead_X.shape[0], bead_X.shape[0]))*p0.max()
-        center_cluster_mat[bottom_graph.edges()[0], bottom_graph.edges()[1]] = p0
+        center_cluster_mat[bottom_graph.edges()[0], bottom_graph.edges()[1]] = np.argmax(p0, axis=1)
 
         return center_X, bead_X, center_cluster_mat, bead_cluster_mat
 
