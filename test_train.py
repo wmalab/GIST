@@ -74,16 +74,16 @@ if __name__ == '__main__':
     graphs, features, label = HiCDataset[0]
 
     # creat network model
-    sampler, em_networks, ae_networks, nll, opt = create_network(
-        config_data, graphs, device)
+    sampler, em_networks, ae_networks, nll, opt = create_network(config_data, graphs, device)
 
     # setup and call train
     itn, batch_size = setup_train(config_data)
     log_fie = time.strftime("%Y%m%d-%H%M%S")
-    log_dir = config_data['log_dir'] if config_data['log_dir'] else os.path.join(
-        root, 'log', cell, hyper, log_fie)
+    log_dir = config_data['log_dir'] if config_data['log_dir'] else os.path.join( root, 'log', cell, hyper, log_fie)
     os.makedirs(log_dir, exist_ok=True)
     writer = tensorboard.SummaryWriter(log_dir)
+    writer.add_graph(em_networks, input_to_model=None, verbose=False)
+    writer.add_graph(ae_networks, input_to_model=None, verbose=False)
     run_epoch(HiCDataset, [em_networks, ae_networks],
               nll, opt, sampler,
               batch_size, itn, device, writer=writer, config=config_data)
