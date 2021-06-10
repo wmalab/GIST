@@ -193,7 +193,7 @@ def inference(graphs, features, num_heads, em_networks, ae_networks, device):
             X1 = em_h1_bead(h1_feat)
             h_center = en_chain_net( top_subgraphs, X1, top_list, ['w'], ['h1_bead'])
 
-            inputs0 = torch.tensor(h0_feat[input_nodes.cpu().detach(), :], dtype=torch.float).to(device)  # ['h0_bead']
+            inputs0 = torch.tensor(h0_feat[input_nodes.detach(), :], dtype=torch.float).to(device)  # ['h0_bead']
             X0 = em_h0_bead(inputs0)
             h_bead = en_bead_net(blocks, X0, ['interacts_0'], ['w'])
 
