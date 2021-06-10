@@ -181,13 +181,13 @@ def inference(graphs, features, num_heads, em_networks, ae_networks, device):
     top_list.append('bead_chain')
 
     loss_list = []
-    result = torch.tensor(torch.empty((bottom_graph.number_of_nodes(), num_heads, 3))).to(device)
+    result = torch.tensor(torch.empty((bottom_graph.number_of_nodes(), num_heads, 3)))
 
     with torch.no_grad():
 
         for input_nodes, output_nodes, blocks in dataloader:
-            input_nodes = input_nodes.to(device)
-            output_nodes = input_nodes.to(device)
+            # input_nodes = input_nodes.to(device)
+            # output_nodes = input_nodes.to(device)
             blocks = [b.to(device) for b in blocks]
 
             X1 = em_h1_bead(h1_feat)
@@ -205,10 +205,10 @@ def inference(graphs, features, num_heads, em_networks, ae_networks, device):
 
             c = h_center[h1, :, :].to(device)
             res = en_union(inter, c, h_bead)
-            result[output_nodes.cpu().detach(),:,:] = res
+            result[output_nodes.cpu().detach(),:,:] = res.cpu().detach()
 
         xp1, _ = de_center_net(top_graph, h_center)
-        xp0, _ = de_bead_net(bottom_graph, result)
+        xp0, _ = de_bead_net(bottom_graph, result.to(device))
         return result
 
 
