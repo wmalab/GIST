@@ -172,7 +172,7 @@ def inference(graphs, features, num_heads, em_networks, ae_networks, device):
     # eid_dict = {etype: bottom_graph.edges(etype=etype, form='eid') for etype in bottom_graph.etypes}
             
     sampler = dgl.dataloading.MultiLayerFullNeighborSampler(3)
-    batch_size = bottom_graph.number_of_nodes()
+    batch_size = 20 # bottom_graph.number_of_nodes()
     dataloader = dgl.dataloading.NodeDataLoader(bottom_graph, 
                                                 torch.arange(bottom_graph.number_of_nodes()), 
                                                 sampler, device=device,
@@ -209,6 +209,7 @@ def inference(graphs, features, num_heads, em_networks, ae_networks, device):
 
         xp1, _ = de_center_net(top_graph, h_center)
         xp0, _ = de_bead_net(bottom_graph.to(device), result.to(device))
+        print(xp1.shape, xp0.shape, result.shape)
         return result
 
 
