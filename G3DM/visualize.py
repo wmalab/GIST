@@ -20,7 +20,7 @@ def plot_X(X, writer, item_dir, step):
     fig = plt.figure()
     for i in np.arange(4):
         data = X[:,i,:]
-        ax = fig.add_subplot(2,2,i, projection='3d')
+        ax = fig.add_subplot(2,2,i+1, projection='3d')
         cmap = cm.get_cmap(plt.get_cmap('RdBu_r'))
         ax.scatter(data[:,0], data[:,1], data[:,2], c = np.arange(data.shape[0]), cmap=cmap, marker='o')
         ax.set_xlabel('X Label')
