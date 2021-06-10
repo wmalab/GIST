@@ -158,7 +158,7 @@ def fit_one_step(graphs, features, sampler, batch_size, em_networks, ae_networks
 def inference(graphs, features, num_heads, em_networks, ae_networks, device):
     top_graph = graphs['top_graph'].to(device)
     top_subgraphs = graphs['top_subgraphs'].to(device)
-    bottom_graph = dgl.to_homogeneous(graphs['bottom_graph'], edata=['w'])
+    bottom_graph = dgl.to_homogeneous(graphs['bottom_graph'], edata=['w']).to(device)
     inter_graph = graphs['inter_graph'].to(device)
 
     h0_feat = features[0]
