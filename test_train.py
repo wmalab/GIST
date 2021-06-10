@@ -82,8 +82,8 @@ if __name__ == '__main__':
     log_dir = config_data['log_dir'] if config_data['log_dir'] else os.path.join( root, 'log', cell, hyper, log_fie)
     os.makedirs(log_dir, exist_ok=True)
     writer = tensorboard.SummaryWriter(log_dir)
-    writer.add_graph(em_networks[0], input_to_model=None, verbose=False)
-    writer.add_graph(ae_networks[0], input_to_model=None, verbose=False)
+    writer.add_graph(em_networks[0], input_to_model=torch.randn(40,30), verbose=False)
+    writer.add_graph(em_networks[1], input_to_model=torch.randn(40,10), verbose=False)
     run_epoch(HiCDataset, [em_networks, ae_networks],
               nll, opt, sampler,
               batch_size, itn, device, writer=writer, config=config_data)
