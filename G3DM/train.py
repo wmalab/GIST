@@ -158,7 +158,7 @@ def fit_one_step(graphs, features, sampler, batch_size, em_networks, ae_networks
 def inference(graphs, features, num_heads, em_networks, ae_networks, device):
     top_graph = graphs['top_graph'].to(device)
     top_subgraphs = graphs['top_subgraphs'].to(device)
-    bottom_graph = dgl.to_homogeneous(graphs['bottom_graph'], edata=['w']).to(device)
+    bottom_graph = (dgl.to_homogeneous(graphs['bottom_graph'], edata=['w'])).to(device)
     inter_graph = graphs['inter_graph'].to(device)
 
     h0_feat = features[0]
@@ -186,6 +186,8 @@ def inference(graphs, features, num_heads, em_networks, ae_networks, device):
     with torch.no_grad():
 
         for input_nodes, output_nodes, blocks in dataloader:
+            input_nodes = input_nodes.to(device)
+            output_nodes = input_nodes.to(device)
             blocks = [b.to(device) for b in blocks]
 
             X1 = em_h1_bead(h1_feat)
