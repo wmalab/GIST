@@ -16,7 +16,7 @@ def plot_feature(feats, position, writer, item_dir):
         fig.colorbar(pcm, ax=ax)
     writer.add_figure(item_dir, fig)
 
-def plot_X(X, writer, item_dir):
+def plot_X(X, writer, item_dir, step):
     data = X[:,0,:]
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
@@ -25,5 +25,5 @@ def plot_X(X, writer, item_dir):
     ax.set_xlabel('X Label')
     ax.set_ylabel('Y Label')
     ax.set_zlabel('Z Label')
-
-    writer.add_figure(item_dir, fig)
+    step = 0 if step is None else step
+    writer.add_figure(item_dir, fig, global_step=step)

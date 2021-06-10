@@ -249,8 +249,8 @@ def run_epoch(dataset, model, loss_fc, optimizer, sampler, batch_size, iteration
                 num_heads = int(config['parameter']['G3DM']['num_heads']['out'])
                 center_X, bead_X, center_cluster_mat, bead_cluster_mat = inference(graphs, [h0_feat, h1_feat], num_heads, em_networks, ae_networks, device)
                 print(center_X.shape, bead_X.shape, center_cluster_mat.shape, bead_cluster_mat.shape, sep='\n')
-                plot_X(center_X, writer, '3D/center')
-                plot_X(bead_X, writer, '3D/bead')
+                plot_X(center_X, writer, '3D/center', step=i)
+                plot_X(bead_X, writer, '3D/bead', step=i)
 
 
         print("epoch {:d} Loss {:f}".format(i, np.nanmean(np.array(loss_list))))
