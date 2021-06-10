@@ -17,7 +17,7 @@ def plot_feature(feats, position, writer, item_dir):
     writer.add_figure(item_dir, fig)
 
 def plot_X(X, writer, item_dir):
-    data = np.squeeze(X[:,0,:], axis=1)
+    data = X[:,0,:]
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     cmap = cm.get_cmap(plt.get_cmap('RdBu_r'))
