@@ -195,7 +195,8 @@ def inference(graphs, features, num_heads, em_networks, ae_networks, device):
 
             inputs0 = torch.tensor(h0_feat[input_nodes.cpu().detach(), :], dtype=torch.float).to(device)  # ['h0_bead']
             X0 = em_h0_bead(inputs0)
-            h_bead = en_bead_net(blocks, X0, ['interacts_0'], ['w'])
+            # h_bead = en_bead_net(blocks, X0, ['interacts_0'], ['w'])
+            h_bead = en_bead_net(blocks, X0, [], ['w'])
 
             h0 = dgl.in_subgraph(inter_graph, {'h0_bead': blocks[2].dstnodes()}).edges()[1]  # dst
             h0, _ = torch.sort(torch.unique(h0))
@@ -210,7 +211,17 @@ def inference(graphs, features, num_heads, em_networks, ae_networks, device):
         xp1, _ = de_center_net(top_graph, h_center)
         xp0, _ = de_bead_net(bottom_graph.to(device), result.to(device))
         print(xp1.shape, xp0.shape, result.shape)
-        return result
+
+        p1 = xp1.cpu().detach().numpy()
+        center_X = h_center.cpu().detach().numpy()
+        center_cluster_mat = np.ones((center_X.shape[0], center_X.shape[0]))*p1.max()
+        center_cluster_mat[graphs['top_graph'].edges('interacts_1')[0], graphs['top_graph'].edges('interacts_1')[1]] = p1
+        p0 = xp0.cpu().detach().numpy()
+        bead_X = result.cpu().detach().numpy()
+        bead_cluster_mat = np.ones((bead_X.shape[0], bead_X.shape[0]))*p0.max()
+        center_cluster_mat[bottom_graph.edges()[0], bottom_graph.edges()[1]] = p0
+
+        return center_X, bead_X, center_cluster_mat, bead_cluster_mat
 
 
 def run_epoch(dataset, model, loss_fc, optimizer, sampler, batch_size, iterations, device, writer=None, config=None):
@@ -236,8 +247,8 @@ def run_epoch(dataset, model, loss_fc, optimizer, sampler, batch_size, iteration
             
             if i%5==0 and j == 0 and writer is not None and config is not None:
                 num_heads = int(config['parameter']['G3DM']['num_heads']['out'])
-                X = inference(graphs, [h0_feat, h1_feat], num_heads, em_networks, ae_networks, device)
-                X = X.cpu().detach().numpy()
+                center_X, bead_X, center_cluster_mat, bead_cluster_mat = inference(graphs, [h0_feat, h1_feat], num_heads, em_networks, ae_networks, device)
+                print(center_X.shape, bead_X.shape, center_cluster_mat.shape, bead_cluster_mat.shape, sep='\n')
 
         print("epoch {:d} Loss {:f}".format(i, np.nanmean(np.array(loss_list))))
 
