@@ -7,7 +7,7 @@ import numpy as np
 
 from .model import embedding, encoder_bead, encoder_chain, encoder_union, decoder
 from .loss import nllLoss
-from .visualize import plot_feature, plot_X
+from .visualize import plot_feature, plot_X, plot_cluster
 
 # import GPUtil
 # gpuIDs = GPUtil.getAvailable(order = 'first', limit = 1, maxLoad = 0.05, maxMemory = 0.05, includeNan=False, excludeID=[], excludeUUID=[])
@@ -242,15 +242,18 @@ def run_epoch(dataset, model, loss_fc, optimizer, sampler, batch_size, iteration
             loss_list.append(ll)
 
             if i == 0 and j == 0 and writer is not None:
-                plot_feature(h0_f, h0_p, writer, 'features/h0')
-                plot_feature(h1_f, h1_p, writer, 'features/h1')
+                plot_feature(h0_f, h0_p, writer, '0, features/h0')
+                plot_feature(h1_f, h1_p, writer, '0, features/h1')
             
             if i%5==0 and j == 0 and writer is not None and config is not None:
                 num_heads = int(config['parameter']['G3DM']['num_heads']['out'])
                 center_X, bead_X, center_cluster_mat, bead_cluster_mat = inference(graphs, [h0_feat, h1_feat], num_heads, em_networks, ae_networks, device)
                 print(center_X.shape, bead_X.shape, center_cluster_mat.shape, bead_cluster_mat.shape, sep='\n')
-                plot_X(center_X, writer, '3D/center', step=i)
-                plot_X(bead_X, writer, '3D/bead', step=i)
+                plot_X(center_X, writer, '1, 3D/center', step=i)
+                plot_X(bead_X, writer, '1, 3D/bead', step=i)
+
+                plot_cluster(center_cluster_mat, writer, '2, cluster/center', step=i)
+                plot_cluster(bead_cluster_mat, writer, '2, cluster/bead', step=i)
 
 
         print("epoch {:d} Loss {:f}".format(i, np.nanmean(np.array(loss_list))))
