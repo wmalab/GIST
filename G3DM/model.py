@@ -22,6 +22,7 @@ class embedding(torch.nn.Module):
         torch.nn.init.xavier_normal_(self.conv1d_2.weight, gain=gain)
 
     def forward(self, h):
+        print(h.shape)
         X = torch.nn.functional.normalize(h, p=2.0, dim=-1)
         X = self.conv1d_1(X)
         X = torch.nn.functional.leaky_relu(X)
