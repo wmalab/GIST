@@ -208,7 +208,7 @@ class decoder(torch.nn.Module):
 
         self.b = torch.nn.Parameter(torch.empty((1)), requires_grad=True)
         self.register_parameter('b',self.b) 
-        torch.nn.init.uniform_(self.b, a=0.0, b=0.001)
+        torch.nn.init.uniform_(self.b, a=1.0e-7, b=1.0e-4)
 
         # self.std_dist = torch.nn.Parameter(torch.empty((1,num_seq)), requires_grad=True)
         # self.register_parameter('std_dist',self.std_dist) 
