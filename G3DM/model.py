@@ -11,6 +11,10 @@ class embedding(torch.nn.Module):
         self.fc1 = torch.nn.Linear(in_dim, out_dim, bias=True)
         self.fc2 = torch.nn.Linear(out_dim, out_dim, bias=True)
         self.pool = torch.nn.MaxPool1d(3, stride=1, padding=1)
+        
+        self.reset()
+
+    def reset(self):
         gain = torch.nn.init.calculate_gain('leaky_relu', 0.2)
         torch.nn.init.xavier_normal_(self.fc1.weight, gain=gain)
         torch.nn.init.xavier_normal_(self.fc2.weight, gain=gain)
@@ -23,7 +27,7 @@ class embedding(torch.nn.Module):
         X = torch.nn.functional.leaky_relu(X)
         X = self.conv1d_2(X)
         X = torch.nn.functional.leaky_relu(X)
-
+        print(X.shape)
         X = self.pool(X)
         print(X.shape)
         X = self.fc1(X)
