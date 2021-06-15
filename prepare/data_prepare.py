@@ -69,10 +69,10 @@ def hic_prepare_pooling(rawfile, chromosome, ratios, strides, remove_zero_col = 
         norm_hics.append(m)
     return norm_hics
 
-def graphs_save(save_path, name, graphs):
+def graphs_save(save_path, name, graphs, cweights):
     graph_path = os.path.join(save_path, name + '_dgl_graph.bin')
     # print(graph_path)
-    save_graphs(graph_path, graphs, {'label':torch.tensor(0), 'ratio':torch.tensor((1,2,2))})
+    save_graphs(graph_path, graphs, {'label':torch.tensor(0), 'cluster_weights_0':torch.tensor(cweights[0]), 'cluster_weights_1':torch.tensor(cweights[1])})
 
 if __name__ == '__main__':
     pass

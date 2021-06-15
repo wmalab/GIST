@@ -52,8 +52,8 @@ def plot_confusion_mat(y_pred, y_true, writer, item_dir, step):
     pcm = axs.pcolormesh(cm, cmap=cmaps[0])
     fig.colorbar(pcm, ax=axs)
     print(cm)
-    axs.set_xlabel('True')
-    axs.set_ylabel('Prediction')
+    axs.set_ylabel('True') # row of cm
+    axs.set_xlabel('Prediction') # col of cm
     step = 0 if step is None else step
     writer.add_figure(item_dir, fig, global_step=step)
     
