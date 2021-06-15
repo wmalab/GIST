@@ -206,9 +206,9 @@ class decoder(torch.nn.Module):
         torch.nn.init.uniform_(self.r_dist, a=0.0, b=0.1)
         self.mean_dist = torch.nn.Parameter(torch.cumsum(torch.abs(self.r_dist)+1e-4, dim=1))
 
-        self.std_dist = torch.nn.Parameter(torch.empty((1,num_seq)), requires_grad=True)
-        self.register_parameter('std_dist',self.std_dist) 
-        torch.nn.init.uniform_(self.std_dist, a=0.0, b=1.0)
+        # self.std_dist = torch.nn.Parameter(torch.empty((1,num_seq)), requires_grad=True)
+        # self.register_parameter('std_dist',self.std_dist) 
+        # torch.nn.init.uniform_(self.std_dist, a=0.0, b=1.0)
 
         self.conv1d_dist_0 = torch.nn.Conv1d(in_channels=1, out_channels=8, kernel_size=7, stride=1, padding=0, padding_mode='replicate', bias=True)
         self.conv1d_dist_1 = torch.nn.Conv1d(in_channels=8, out_channels=1, kernel_size=5, stride=2, padding=0)
@@ -227,13 +227,18 @@ class decoder(torch.nn.Module):
         # pdf = torch.nn.functional.normalize( pdf, p=2, dim=-1)
         return pdf
 
+    def aritficial_fc(self, mean, x):
+        score = 1.0/((x - mean)**2 + 10e-7)
+        return score
+
     def edge_distance(self, edges):
         n2 = torch.norm((edges.dst['z'] - edges.src['z']), dim=-1)
         weight = torch.nn.functional.softmax(self.w, dim=0)
         dist = torch.sum(n2*weight, dim=-1, keepdim=True)
 
-        std = torch.min(torch.abs(self.std_dist), torch.abs(self.r_dist)/4)
-        outputs_dist = self.norm_prob(self.mean_dist, std, dist)
+        # std = torch.min(torch.abs(self.std_dist), torch.abs(self.r_dist)/4)
+        # outputs_dist = self.norm_prob(self.mean_dist, std, dist)
+        outputs_dist = self.aritficial_fc(self.mean_dist, dist)
         outputs_dist = torch.unsqueeze(outputs_dist, dim=1)
         outputs_dist = self.conv1d_dist_0(outputs_dist)
         outputs_dist = self.conv1d_dist_1(outputs_dist)

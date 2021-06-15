@@ -210,7 +210,7 @@ def inference(graphs, features, num_heads, em_networks, ae_networks, device):
 
         xp1, _ = de_center_net(top_graph, h_center)
         xp0, _ = de_bead_net(bottom_graph.to(device), result.to(device))
-        print(xp1.shape, xp0.shape, result.shape)
+        # print(xp1.shape, xp0.shape, result.shape)
 
         p1 = xp1.cpu().detach().numpy()
         tp1 = graphs['top_graph'].edges['interacts_1'].data['label'].cpu().detach().numpy()
