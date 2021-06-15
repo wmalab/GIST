@@ -247,7 +247,7 @@ def run_epoch(dataset, model, loss_fc, optimizer, sampler, batch_size, iteration
                                     dim=1).to(device)
             h1_f = features['hic_h1']['feat']
             h1_p = features['hic_h1']['pos']
-            h1_feat = torch.tensor( [torch.tensor(h1_f, dtype=torch.float),
+            h1_feat = torch.stack( [torch.tensor(h1_f, dtype=torch.float),
                                     torch.tensor(h1_p, dtype=torch.float)], 
                                     dim=1).to(device)
 
