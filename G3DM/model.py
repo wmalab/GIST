@@ -31,11 +31,12 @@ class embedding(torch.nn.Module):
         print(X.shape)
         print(self.fc1)
         X = self.pool(X)
+        X = torch.squeeze(X, dim=1)
         print(X.shape)
         X = self.fc1(X)
         X = torch.nn.functional.leaky_relu(X)
         X = self.fc1(X)
-        X = torch.squeeze(X, dim=1)
+        
         X = torch.nn.functional.normalize(X, p=2.0, dim=-1)
         # X = torch.nn.functional.leaky_relu(X)
         return X
