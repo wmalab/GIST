@@ -31,12 +31,12 @@ def plot_X(X, writer, item_dir, step):
     step = 0 if step is None else step
     writer.add_figure(item_dir, fig, global_step=step)
 
-def plot_cluster(mat, writer, item_dir, step):
+def plot_cluster(mat, writer, ncluster, item_dir, step):
     fig = plt.figure()
     data = mat
     cmaps = ['RdBu_r']
     fig, axs = plt.subplots(1, 1)
-    pcm = axs.pcolormesh(data, cmap=cmaps[0])
+    pcm = axs.pcolormesh(data, cmap=cmaps[0], vmin=0, vmax=ncluster)
     fig.colorbar(pcm, ax=axs)
     step = 0 if step is None else step
     writer.add_figure(item_dir, fig, global_step=step)
@@ -49,8 +49,10 @@ def plot_confusion_mat(y_pred, y_true, writer, item_dir, step):
     fig = plt.figure()
     cmaps = ['RdBu_r']
     fig, axs = plt.subplots(1, 1)
-    pcm = axs.pcolor(cm, cmap=cmaps[0])
+    pcm = axs.pcolormesh(cm, cmap=cmaps[0])
     fig.colorbar(pcm, ax=axs)
+    axs.set_xlabel('True')
+    axs.set_ylabel('Prediction')
     step = 0 if step is None else step
     writer.add_figure(item_dir, fig, global_step=step)
     

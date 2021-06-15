@@ -267,8 +267,8 @@ def run_epoch(dataset, model, loss_fc, optimizer, sampler, batch_size, iteration
                 plot_X(center_X, writer, '1, 3D/center', step=i)
                 plot_X(bead_X, writer, '1, 3D/bead', step=i)
 
-                plot_cluster(center_cluster_mat, writer, '2,1 cluster/center', step=i)
-                plot_cluster(bead_cluster_mat, writer, '2,1 cluster/bead', step=i)
+                plot_cluster(center_cluster_mat, writer, int(config['parameter']['graph']['num_clusters']['1']),'2,1 cluster/center', step=i)
+                plot_cluster(bead_cluster_mat, writer, int(config['parameter']['graph']['num_clusters']['0']), '2,1 cluster/bead', step=i)
                 plot_confusion_mat(center_cluster_mat, center_true,  writer, '2,2 confusion matrix/center', step=i)
                 plot_confusion_mat(bead_cluster_mat, bead_true, writer, '2,2 confusion matrix/bead', step=i)
 
