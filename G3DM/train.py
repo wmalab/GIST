@@ -140,7 +140,6 @@ def fit_one_step(graphs, features, sampler, batch_size, em_networks, ae_networks
         xp0, _ = de_bead_net(pair_graph, res)
 
         xt1 = top_graph.edges['interacts_1'].data['label']
-        # xt0 = pair_graph.edges['interacts_0'].data['label']
         xt0 = pair_graph.edges['_E'].data['label']
 
         loss1 = loss_fc(xp1, xt1)
@@ -210,7 +209,6 @@ def inference(graphs, features, num_heads, em_networks, ae_networks, device):
 
         xp1, _ = de_center_net(top_graph, h_center)
         xp0, _ = de_bead_net(bottom_graph.to(device), result.to(device))
-        # print(xp1.shape, xp0.shape, result.shape)
 
         p1 = xp1.cpu().detach().numpy()
         tp1 = graphs['top_graph'].edges['interacts_1'].data['label'].cpu().detach().numpy()
@@ -220,7 +218,8 @@ def inference(graphs, features, num_heads, em_networks, ae_networks, device):
         center_cluster_mat[xs, ys] = np.argmax(p1, axis=1)
         true_center = np.ones((center_X.shape[0], center_X.shape[0]))*tp1.max()
         true_center[xs, ys] = tp1
-        
+        print(p1.shape, tp1.shape, tp1.max(), p1.max())
+
         p0 = xp0.cpu().detach().numpy()
         tp0 = bottom_graph.edges['_E'].data['label'].cpu().detach().numpy()
         bead_X = result.cpu().detach().numpy()
