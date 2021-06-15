@@ -242,10 +242,14 @@ def run_epoch(dataset, model, loss_fc, optimizer, sampler, batch_size, iteration
             graphs, features, _ = data
             h0_f = features['hic_h0']['feat']
             h0_p = features['hic_h0']['pos']
-            h0_feat = torch.tensor(h0_f + h0_p, dtype=torch.float)
+            h0_feat = torch.stack( [torch.tensor(h0_f, dtype=torch.float), 
+                                    torch.tensor(h0_p, dtype=torch.float)], 
+                                    dim=1).to(device)
             h1_f = features['hic_h1']['feat']
             h1_p = features['hic_h1']['pos']
-            h1_feat = torch.tensor(h1_f + h1_p, dtype=torch.float).to(device)
+            h1_feat = torch.tensor( [torch.tensor(h1_f, dtype=torch.float),
+                                    torch.tensor(h1_p, dtype=torch.float)], 
+                                    dim=1).to(device)
 
             ll = fit_one_step(graphs, [h0_feat, h1_feat], sampler, batch_size, em_networks, ae_networks, loss_fc, optimizer, device)
             loss_list.append(ll)
@@ -257,7 +261,6 @@ def run_epoch(dataset, model, loss_fc, optimizer, sampler, batch_size, iteration
             if i%5==0 and j == 0 and writer is not None and config is not None:
                 num_heads = int(config['parameter']['G3DM']['num_heads']['out'])
                 center_X, bead_X, center_cluster_mat, bead_cluster_mat, center_true, bead_true = inference(graphs, [h0_feat, h1_feat], num_heads, em_networks, ae_networks, device)
-                print(center_X.shape, bead_X.shape, center_cluster_mat.shape, bead_cluster_mat.shape, sep='\n')
                 plot_X(center_X, writer, '1, 3D/center', step=i)
                 plot_X(bead_X, writer, '1, 3D/bead', step=i)
 

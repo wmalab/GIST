@@ -6,18 +6,31 @@ class embedding(torch.nn.Module):
     '''in_dim, out_dim'''
     def __init__(self, in_dim, out_dim):
         super(embedding, self).__init__()
+        self.conv1d_1 = torch.nn.Conv1d(2, 8, 3, stride=1, padding=1, padding_mode='replicate')
+        self.conv1d_2 = torch.nn.Conv1d(8, 1, 5, stride=1, padding=2, padding_mode='replicate')
         self.fc1 = torch.nn.Linear(in_dim, out_dim, bias=True)
         self.fc2 = torch.nn.Linear(out_dim, out_dim, bias=True)
-
+        self.pool = torch.nn.MaxPool1d(3, stride=1, padding=1, padding_mode='replicate')
         gain = torch.nn.init.calculate_gain('leaky_relu', 0.2)
         torch.nn.init.xavier_normal_(self.fc1.weight, gain=gain)
         torch.nn.init.xavier_normal_(self.fc2.weight, gain=gain)
+        torch.nn.init.xavier_normal_(self.conv1d_1.weight, gain=gain)
+        torch.nn.init.xavier_normal_(self.conv1d_2.weight, gain=gain)
 
     def forward(self, h):
-        X = self.fc1(h)
+        X = torch.nn.functional.normalize(h, p=2.0, dim=-1)
+        X = self.conv1d_1(X)
         X = torch.nn.functional.leaky_relu(X)
-        X = self.fc2(X)
-        X = torch.nn.functional.normalize(X, p=2.0, dim=1)
+        X = self.conv1d_2(X)
+        X = torch.nn.functional.leaky_relu(X)
+
+        X = self.pool(X)
+
+        X = self.fc1(X)
+        X = torch.nn.functional.leaky_relu(X)
+        X = self.fc1(X)
+        X = torch.squeeze(X, dim=1)
+        X = torch.nn.functional.normalize(X, p=2.0, dim=-1)
         # X = torch.nn.functional.leaky_relu(X)
         return X
 
