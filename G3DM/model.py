@@ -22,23 +22,18 @@ class embedding(torch.nn.Module):
         torch.nn.init.xavier_normal_(self.conv1d_2.weight, gain=gain)
 
     def forward(self, h):
-        print(h.shape)
         X = torch.nn.functional.normalize(h, p=2.0, dim=-1)
         X = self.conv1d_1(X)
         X = torch.nn.functional.leaky_relu(X)
         X = self.conv1d_2(X)
         X = torch.nn.functional.leaky_relu(X)
-        print(X.shape)
-        print(self.fc1)
         X = self.pool(X)
-        X = torch.squeeze(X, dim=1)
-        print(X.shape)
         X = self.fc1(X)
         X = torch.nn.functional.leaky_relu(X)
-        X = self.fc1(X)
-        
+        X = self.fc2(X)
         X = torch.nn.functional.normalize(X, p=2.0, dim=-1)
         # X = torch.nn.functional.leaky_relu(X)
+        X = torch.squeeze(X, dim=1)
         return X
 
 class constrainLayer(torch.nn.Module):
