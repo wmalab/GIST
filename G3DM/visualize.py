@@ -45,7 +45,7 @@ def plot_confusion_mat(y_pred, y_true, writer, item_dir, step):
     pred = y_pred.flatten()
     true = y_true.flatten()
     cm = metrics.confusion_matrix(true, pred)
-
+    print('cm shape: {}'.format(cm.shape))
     fig = plt.figure()
     cmaps = ['RdBu_r']
     fig, axs = plt.subplots(1, 1)
