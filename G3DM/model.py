@@ -244,9 +244,9 @@ class decoder(torch.nn.Module):
         # outputs_dist = self.norm_prob(self.mean_dist, std, dist)
         outputs_dist = self.aritficial_fc(self.mean_dist, dist)
         outputs_dist = torch.unsqueeze(outputs_dist, dim=1)
-        outputs_dist = self.conv1d_dist_0(outputs_dist)
-        outputs_dist = self.conv1d_dist_1(outputs_dist)
-        # outputs_dist = self.avgP1d_5_2(outputs_dist)
+        # outputs_dist = self.conv1d_dist_0(outputs_dist)
+        # outputs_dist = self.conv1d_dist_1(outputs_dist)
+        outputs_dist = self.avgP1d_5_2(outputs_dist)
         outputs_dist = self.avgP1d_5_2(outputs_dist)
         outputs_dist = torch.squeeze(outputs_dist, dim=1)
 
