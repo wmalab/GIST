@@ -206,6 +206,10 @@ class decoder(torch.nn.Module):
         torch.nn.init.uniform_(self.r_dist, a=0.0, b=0.1)
         self.mean_dist = torch.nn.Parameter(torch.cumsum(torch.abs(self.r_dist)+1e-4, dim=1))
 
+        self.b = torch.nn.Parameter(torch.empty((1)), requires_grad=True)
+        self.register_parameter('b',self.b) 
+        torch.nn.init.uniform_(self.b, a=0.0, b=0.001)
+
         # self.std_dist = torch.nn.Parameter(torch.empty((1,num_seq)), requires_grad=True)
         # self.register_parameter('std_dist',self.std_dist) 
         # torch.nn.init.uniform_(self.std_dist, a=0.0, b=1.0)
@@ -228,7 +232,7 @@ class decoder(torch.nn.Module):
         return pdf
 
     def aritficial_fc(self, mean, x):
-        score = 1.0/((x - mean)**2 + 10e-7)
+        score = 1.0/((x - mean)**2 + self.b)
         return score
 
     def edge_distance(self, edges):
