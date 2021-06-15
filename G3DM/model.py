@@ -10,7 +10,7 @@ class embedding(torch.nn.Module):
         self.conv1d_2 = torch.nn.Conv1d(8, 1, 5, stride=1, padding=2, padding_mode='replicate')
         self.fc1 = torch.nn.Linear(in_dim, out_dim, bias=True)
         self.fc2 = torch.nn.Linear(out_dim, out_dim, bias=True)
-        self.pool = torch.nn.MaxPool1d(3, stride=1, padding=1, padding_mode='replicate')
+        self.pool = torch.nn.MaxPool1d(3, stride=1, padding=1)
         gain = torch.nn.init.calculate_gain('leaky_relu', 0.2)
         torch.nn.init.xavier_normal_(self.fc1.weight, gain=gain)
         torch.nn.init.xavier_normal_(self.fc2.weight, gain=gain)
