@@ -193,9 +193,12 @@ class decoder(torch.nn.Module):
         self.num_clusters = num_clusters
         self.ntype = ntype
         self.etype = etype
-        num_seq = ((2*num_clusters+3)*2+3)+2
-        self.pi = torch.acos(torch.zeros(1)) * 2
-        self.register_buffer('pi_const', self.pi)
+
+        x = lambda a : (a-1)*2+5
+        num_seq = x(x(num_clusters))
+        # num_seq = ((2*num_clusters+3)*2+3)+2
+        # self.pi = torch.acos(torch.zeros(1)) * 2
+        # self.register_buffer('pi_const', self.pi)
 
         self.w = torch.nn.Parameter(torch.empty( (self.num_heads)), requires_grad=True)
         self.register_parameter('w', self.w)
@@ -221,6 +224,7 @@ class decoder(torch.nn.Module):
         torch.nn.init.xavier_normal_(self.conv1d_dist_1.weight, gain=gain)
 
         self.avgP1d_5_2 = torch.nn.AvgPool1d(5, stride=2)
+        self.maxP1d_5_2 = torch.nn.MaxPool1d(5, stride=2)
 
 
     def norm_prob(self, mean, std, x):
