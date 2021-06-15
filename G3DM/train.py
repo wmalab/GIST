@@ -154,7 +154,7 @@ def fit_one_step(graphs, features, sampler, batch_size, em_networks, ae_networks
     return np.nan if len(ll)==0 else np.mean(ll)
 
 
-def inference(graphs, features, num_heads, em_networks, ae_networks, device):
+def inference(graphs, features, num_heads, num_clusters, em_networks, ae_networks, device):
     top_graph = graphs['top_graph'].to(device)
     top_subgraphs = graphs['top_subgraphs'].to(device)
     bottom_graph = (dgl.to_homogeneous(graphs['bottom_graph'], edata=['w', 'label']))
@@ -213,22 +213,23 @@ def inference(graphs, features, num_heads, em_networks, ae_networks, device):
         p1 = xp1.cpu().detach().numpy()
         tp1 = graphs['top_graph'].edges['interacts_1'].data['label'].cpu().detach().numpy()
         center_X = h_center.cpu().detach().numpy()
-        center_cluster_mat = np.ones((center_X.shape[0], center_X.shape[0]))*tp1.max()
+        center_cluster_mat = np.ones((center_X.shape[0], center_X.shape[0]))*(num_clusters[1]-1)
         xs,ys = graphs['top_graph'].edges(etype='interacts_1', form='uv')[0], graphs['top_graph'].edges(etype='interacts_1', form='uv')[1]
         center_cluster_mat[xs, ys] = np.argmax(p1, axis=1)
-        true_center = np.ones((center_X.shape[0], center_X.shape[0]))*tp1.max()
+        true_center = np.ones((center_X.shape[0], center_X.shape[0]))*(num_clusters[1]-1)
         true_center[xs, ys] = tp1
+
         print(p1.shape, tp1.shape, tp1.max(), p1.max())
 
         p0 = xp0.cpu().detach().numpy()
         tp0 = bottom_graph.edges['_E'].data['label'].cpu().detach().numpy()
         bead_X = result.cpu().detach().numpy()
-        bead_cluster_mat = np.ones((bead_X.shape[0], bead_X.shape[0]))*tp0.max()
+        bead_cluster_mat = np.ones((bead_X.shape[0], bead_X.shape[0]))*(num_clusters[0]-1)
         xs, ys = bottom_graph.edges()[0], bottom_graph.edges()[1]
         bead_cluster_mat[xs, ys] = np.argmax(p0, axis=1)
-
-        true_bead = np.ones((bead_X.shape[0], bead_X.shape[0]))*tp0.max()
+        true_bead = np.ones((bead_X.shape[0], bead_X.shape[0]))*(num_clusters[0]-1)
         true_bead[xs, ys] = tp0
+
         return center_X, bead_X, center_cluster_mat, bead_cluster_mat, true_center, true_bead
 
 
@@ -259,7 +260,10 @@ def run_epoch(dataset, model, loss_fc, optimizer, sampler, batch_size, iteration
             
             if i%5==0 and j == 0 and writer is not None and config is not None:
                 num_heads = int(config['parameter']['G3DM']['num_heads']['out'])
-                center_X, bead_X, center_cluster_mat, bead_cluster_mat, center_true, bead_true = inference(graphs, [h0_feat, h1_feat], num_heads, em_networks, ae_networks, device)
+                center_X, bead_X, center_cluster_mat, bead_cluster_mat, center_true, bead_true = inference(graphs, [h0_feat, h1_feat], num_heads, 
+                                                                                                            [int(config['parameter']['graph']['num_clusters']['0']), 
+                                                                                                             int(config['parameter']['graph']['num_clusters']['1'])], 
+                                                                                                            em_networks, ae_networks, device)
                 plot_X(center_X, writer, '1, 3D/center', step=i)
                 plot_X(bead_X, writer, '1, 3D/bead', step=i)
 
@@ -267,7 +271,6 @@ def run_epoch(dataset, model, loss_fc, optimizer, sampler, batch_size, iteration
                 plot_cluster(bead_cluster_mat, writer, '2,1 cluster/bead', step=i)
                 plot_confusion_mat(center_cluster_mat, center_true,  writer, '2,2 confusion matrix/center', step=i)
                 plot_confusion_mat(bead_cluster_mat, bead_true, writer, '2,2 confusion matrix/bead', step=i)
-
 
         print("epoch {:d} Loss {:f}".format(i, np.nanmean(np.array(loss_list))))
 
