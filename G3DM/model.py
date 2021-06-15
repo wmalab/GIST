@@ -29,6 +29,7 @@ class embedding(torch.nn.Module):
         X = self.conv1d_2(X)
         X = torch.nn.functional.leaky_relu(X)
         print(X.shape)
+        print(self.fc1)
         X = self.pool(X)
         print(X.shape)
         X = self.fc1(X)
