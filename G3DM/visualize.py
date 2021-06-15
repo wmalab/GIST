@@ -5,6 +5,8 @@ import numpy as np
 import torch
 import torchvision
 
+from sklearn import metrics
+
 def plot_feature(feats, position, writer, item_dir):
     data = [feats, position, feats+position]
     fig = plt.figure()
@@ -38,3 +40,17 @@ def plot_cluster(mat, writer, item_dir, step):
     fig.colorbar(pcm, ax=axs)
     step = 0 if step is None else step
     writer.add_figure(item_dir, fig, global_step=step)
+
+def plot_confusion_mat(y_pred, y_true, writer, item_dir, step):
+    pred = y_pred.flatten()
+    true = y_true.flatten()
+    cm = metrics.confusion_matrix(true, pred)
+
+    fig = plt.figure()
+    cmaps = ['RdBu_r']
+    fig, axs = plt.subplots(1, 1, 1)
+    pcm = axs.pcolormesh(cm, cmap=cmaps[0])
+    fig.colorbar(pcm, ax=axs)
+    step = 0 if step is None else step
+    writer.add_figure(item_dir, fig, global_step=step)
+    
