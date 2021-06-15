@@ -49,7 +49,7 @@ def plot_confusion_mat(y_pred, y_true, writer, item_dir, step):
     fig = plt.figure()
     cmaps = ['RdBu_r']
     fig, axs = plt.subplots(1, 1)
-    pcm = axs.pcolormesh(cm, cmap=cmaps[0])
+    pcm = axs.pcolor(cm, cmap=cmaps[0])
     fig.colorbar(pcm, ax=axs)
     step = 0 if step is None else step
     writer.add_figure(item_dir, fig, global_step=step)
