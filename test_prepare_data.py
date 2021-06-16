@@ -175,7 +175,7 @@ if __name__ == '__main__':
             test_list.append(str(chromosome))
     
     # create HiCDataset and save
-    HD = HiCDataset(graph_dict, feature_dict, train_list, valid_list, test_list, dataset_path, dataset_name)
+    HD = HiCDataset(graph_dict, feature_dict, cluster_weight_dict, train_list, valid_list, test_list, dataset_path, dataset_name)
     torch.save(HD, os.path.join( dataset_path, dataset_name))
 
     '''load_HD = torch.load(os.path.join( dataset_path, dataset_name))
