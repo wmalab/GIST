@@ -173,7 +173,7 @@ if __name__ == '__main__':
     for chromosome in all_chromosome:
         # graph_dict[chromosome] = {top_graph, top_subgraphs, bottom_graph, inter_graph}
         # feature_dict[chromosome] = {'hic_feat_h0', 'hic_feat_h1'}
-        g = load_graph(graph_path, 'G_chr-{}'.format(chromosome))
+        g, _ = load_graph(graph_path, 'G_chr-{}'.format(chromosome))
         graph_dict[str(chromosome)] = g
         c = load_feature(graph_path, 'cw_G_chr-{}'.format(chromosome))
         cluster_weight_dict[str(chromosome)] = c
