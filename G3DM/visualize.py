@@ -18,7 +18,7 @@ def plot_feature(feats, position, writer, item_dir):
         fig.colorbar(pcm, ax=ax)
     writer.add_figure(item_dir, fig)
 
-def plot_X(X, writer, item_dir, step):
+def plot_X(X, writer, item_dir, step=None):
     fig = plt.figure()
     for i in np.arange(4):
         data = X[:,i,:]
@@ -31,7 +31,7 @@ def plot_X(X, writer, item_dir, step):
     step = 0 if step is None else step
     writer.add_figure(item_dir, fig, global_step=step)
 
-def plot_cluster(mat, writer, ncluster, item_dir, step):
+def plot_cluster(mat, writer, ncluster, item_dir, step=None):
     fig = plt.figure()
     data = mat
     cmaps = ['RdBu_r']
@@ -41,7 +41,7 @@ def plot_cluster(mat, writer, ncluster, item_dir, step):
     step = 0 if step is None else step
     writer.add_figure(item_dir, fig, global_step=step)
 
-def plot_confusion_mat(y_pred, y_true, writer, item_dir, step):
+def plot_confusion_mat(y_pred, y_true, writer, item_dir, step=None):
     pred = y_pred.flatten()
     true = y_true.flatten()
     cm = metrics.confusion_matrix(true, pred)
