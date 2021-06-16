@@ -99,8 +99,8 @@ def fit_one_step(graphs, features, cluster_weights, sampler, batch_size, em_netw
     bottom_graph = dgl.to_homogeneous(graphs['bottom_graph'], edata=['w', 'label'], store_type=True)
     inter_graph = graphs['inter_graph'].to(device)
 
-    cw0 = cluster_weights[0].to(device)
-    cw1 = cluster_weights[1].to(device)
+    cw0 = cluster_weights[0]
+    cw1 = cluster_weights[1]
 
     h0_feat = features[0]
     h1_feat = features[1]
@@ -246,8 +246,8 @@ def run_epoch(dataset, model, loss_fc, optimizer, sampler, batch_size, iteration
             graphs, features, _, cluster_weights = data
 
             # 1 over density of cluster
-            cw0 = cluster_weights['0']
-            cw1 = cluster_weights['1']
+            cw0 = torch.tensor(cluster_weights['0']).to(device)
+            cw1 = torch.tensor(cluster_weights['1']).to(device)
 
             h0_f = features['hic_h0']['feat']
             h0_p = features['hic_h0']['pos']
