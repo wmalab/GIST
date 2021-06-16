@@ -204,17 +204,17 @@ class decoder(torch.nn.Module):
         # self.pi = torch.acos(torch.zeros(1)) * 2
         # self.register_buffer('pi_const', self.pi)
 
-        self.w = torch.nn.Parameter(torch.empty( (self.num_heads)), requires_grad=False)
+        self.w = torch.nn.Parameter(torch.empty( (self.num_heads)), requires_grad=True)
         self.register_parameter('w', self.w)
         torch.nn.init.uniform_(self.w, a=0.0, b=1.0)
 
-        self.r_dist = torch.nn.Parameter(torch.empty((1,num_seq)), requires_grad=False)
+        self.r_dist = torch.nn.Parameter(torch.empty((1,num_seq)), requires_grad=True)
         self.register_parameter('r_dist',self.r_dist) 
         torch.nn.init.uniform_(self.r_dist, a=0.3, b=0.5)
         '''self.mean_dist = torch.nn.Parameter(torch.cumsum(torch.abs(self.r_dist)+1e-4, dim=1))
         self.register_parameter('mean_dist',self.mean_dist)''' 
 
-        self.b = torch.nn.Parameter(torch.empty((1)), requires_grad=False)
+        self.b = torch.nn.Parameter(torch.empty((1)), requires_grad=True)
         self.register_parameter('b',self.b) 
         torch.nn.init.uniform_(self.b, a=1.0e-7, b=1.0e-4)
 

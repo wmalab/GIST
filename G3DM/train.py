@@ -86,7 +86,7 @@ def create_network(configuration, graph, device):
                          )'''
                          
     opt = optim.AdaBound(list(em_h1_bead.parameters()) +
-                         list(en_chain_net.parameters()),
+                         list(en_chain_net.parameters())+ list(de_center_net.parameters()),
                          lr=1e-3, betas=(0.9, 0.999),
                          final_lr=0.1, gamma=1e-3,
                          eps=1e-8, weight_decay=0,
