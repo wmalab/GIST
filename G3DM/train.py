@@ -101,6 +101,7 @@ def fit_one_step(graphs, features, cluster_weights, sampler, batch_size, em_netw
 
     cw0 = cluster_weights[0]
     cw1 = cluster_weights[1]
+    print(cw0, cw1)
 
     h0_feat = features[0]
     h1_feat = features[1]

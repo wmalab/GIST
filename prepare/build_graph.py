@@ -56,6 +56,7 @@ def create_hierarchical_graph_2lvl(norm_hics, num_clusters, ratios, strides, cut
         cluster_weight.append(1.0)
         cluster_weight = (1.0/(cluster_weight+10e-7)).astype(np.float) # 1/density
         cweights_.append(cluster_weight)
+        print(cluster_weight)
 
     # log_hics, features, mats_, matpbs_, 
     # [0, 1] from low to high level
