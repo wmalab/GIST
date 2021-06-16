@@ -58,8 +58,8 @@ def plot_confusion_mat(y_pred, y_true, writer, item_dir, step=None):
 def plot_lines(x, writer, item_dir, step=None):
     y = np.ones_like(x.flatten())
     fig, axs = plt.subplots(1, 1)
-    cmaps = ['RdBu_r']
-    axs.scatter(y, x.flatten(), cmap=cmaps[0])
-    axs.plot(y, x.flatten())
+    cmaps = ['tab20']
+    axs.scatter(x.flatten(),y, cmap=cmaps[0])
+    axs.plot(x.flatten(), y)
     step = 0 if step is None else step
     writer.add_figure(item_dir, fig, global_step=step)

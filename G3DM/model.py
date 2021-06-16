@@ -238,7 +238,8 @@ class decoder(torch.nn.Module):
         return pdf
 
     def aritficial_fc(self, mean, x):
-        score = 1.0/((x - mean)**2 + self.b)
+        m = torch.relu(mean)
+        score = 1.0/((x - m)**2 + self.b)
         return score
 
     def edge_distance(self, edges):
