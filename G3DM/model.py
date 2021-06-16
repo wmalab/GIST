@@ -209,7 +209,7 @@ class decoder(torch.nn.Module):
 
         self.r_dist = torch.nn.Parameter(torch.empty((1,num_seq)), requires_grad=False)
         self.register_parameter('r_dist',self.r_dist) 
-        torch.nn.init.uniform_(self.r_dist, a=0.7, b=0.9)
+        torch.nn.init.uniform_(self.r_dist, a=0.3, b=0.5)
         '''self.mean_dist = torch.nn.Parameter(torch.cumsum(torch.abs(self.r_dist)+1e-4, dim=1))
         self.register_parameter('mean_dist',self.mean_dist)''' 
 
@@ -250,7 +250,7 @@ class decoder(torch.nn.Module):
 
         # std = torch.min(torch.abs(self.std_dist), torch.abs(self.r_dist)/4)
         # outputs_dist = self.norm_prob(self.mean_dist, std, dist)
-        mean_dist = torch.cumsum(torch.abs(self.r_dist+1e-2)+1e-2, dim=1)
+        mean_dist = torch.cumsum(torch.abs(self.r_dist+1e-4)+1e-4, dim=1)
         outputs_dist = self.aritficial_fc(mean_dist, dist)
         # outputs_dist = torch.unsqueeze(outputs_dist, dim=1)
         # outputs_dist = self.conv1d_dist_0(outputs_dist)

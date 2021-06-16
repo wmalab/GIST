@@ -71,8 +71,11 @@ def create_network(configuration, graph, device):
     de_bead_net = decoder(nhout, nc0, '_N', '_E').to(device)
 
     nll = nllLoss().to(device)
-
-    opt = optim.AdaBound(list(em_h0_bead.parameters()) + list(em_h1_bead.parameters()) +
+    opt = torch.optim.Adam(list(em_h0_bead.parameters()) + list(em_h1_bead.parameters()) +
+                            list(en_chain_net.parameters()) + list(en_bead_net.parameters()) + list(en_union.parameters()) +
+                            list(de_center_net.parameters()) +
+                            list(de_bead_net.parameters()))
+    '''opt = optim.AdaBound(list(em_h0_bead.parameters()) + list(em_h1_bead.parameters()) +
                          list(en_chain_net.parameters()) + list(en_bead_net.parameters()) + list(en_union.parameters()) +
                          list(de_center_net.parameters()) +
                          list(de_bead_net.parameters()),
@@ -80,7 +83,7 @@ def create_network(configuration, graph, device):
                          final_lr=0.1, gamma=1e-3,
                          eps=1e-8, weight_decay=0,
                          amsbound=False,
-                         )
+                         )'''
     em_networks = [em_h0_bead, em_h1_bead]
     ae_networks = [en_chain_net, en_bead_net,
                    en_union, de_center_net, de_bead_net]
@@ -149,7 +152,7 @@ def fit_one_step(graphs, features, cluster_weights, sampler, batch_size, em_netw
         # loss = (loss0 + loss1)/2.0
         loss = loss1
         optimizer.zero_grad()
-        loss.backward(retain_graph=True)  # retain_graph=False,
+        loss.backward(retain_graph=False)  # retain_graph=False,
         optimizer.step()
         loss_list.append(loss.item())
 
@@ -297,7 +300,7 @@ def run_epoch(dataset, model, loss_fc, optimizer, sampler, batch_size, iteration
                     if name == 'r_dist':
                         x0 = param.to('cpu').detach().numpy()
                 # print(x1, x0)
-                plot_lines(np.cumsum(np.abs(x0+1e-2)+1e-2), writer, '2,3 hop_dist/bead', step=i)
-                plot_lines(np.cumsum(np.abs(x1+1e-2)+1e-2), writer, '2,3 hop_dist/center', step=i)
+                plot_lines(np.cumsum(np.abs(x0+1e-4)+1e-4), writer, '2,3 hop_dist/bead', step=i)
+                plot_lines(np.cumsum(np.abs(x1+1e-4)+1e-4), writer, '2,3 hop_dist/center', step=i)
         print("epoch {:d} Loss {:f}".format(i, np.nanmean(np.array(loss_list))))
 
