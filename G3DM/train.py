@@ -260,8 +260,8 @@ def run_epoch(dataset, model, loss_fc, optimizer, sampler, batch_size, iteration
             if i == 0 and j == 0 and writer is not None:
                 plot_feature(h0_f, h0_p, writer, '0, features/h0')
                 plot_feature(h1_f, h1_p, writer, '0, features/h1')
-                plot_cluster(m0, writer, int(config['parameter']['graph']['num_clusters']['1']),'0 cluster/center', step=None)
-                plot_cluster(m1, writer, int(config['parameter']['graph']['num_clusters']['0']), '0 cluster/bead', step=None)
+                plot_cluster(m1, writer, int(config['parameter']['graph']['num_clusters']['1']),'0 cluster/center', step=None)
+                plot_cluster(m0, writer, int(config['parameter']['graph']['num_clusters']['0']), '0 cluster/bead', step=None)
             
             if i%5==0 and j == 0 and writer is not None and config is not None:
                 num_heads = int(config['parameter']['G3DM']['num_heads']['out'])
