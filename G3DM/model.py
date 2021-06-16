@@ -207,9 +207,9 @@ class decoder(torch.nn.Module):
         self.register_parameter('w', self.w)
         torch.nn.init.uniform_(self.w, a=0.0, b=1.0)
 
-        self.r_dist = torch.nn.Parameter(torch.empty((1,num_seq)), requires_grad=True)
+        self.r_dist = torch.nn.Parameter(torch.empty((1,num_seq)), requires_grad=False)
         self.register_parameter('r_dist',self.r_dist) 
-        torch.nn.init.uniform_(self.r_dist, a=0.0, b=0.1)
+        torch.nn.init.uniform_(self.r_dist, a=0.7, b=0.9)
         '''self.mean_dist = torch.nn.Parameter(torch.cumsum(torch.abs(self.r_dist)+1e-4, dim=1))
         self.register_parameter('mean_dist',self.mean_dist)''' 
 
