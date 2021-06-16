@@ -86,6 +86,8 @@ def create_graph(ratio, stride, num_clusters, chromosome, cutoff_percent, cutoff
 
     with open(os.path.join(output_path, 'cw_'+output_file + '.pkl'), 'wb') as f:
         pickle.dump(cluster_weight_dict, f, pickle.HIGHEST_PROTOCOL)
+    
+    print('Done graphs saved in {}'.format(output_path))
 
 
 if __name__ == '__main__':
