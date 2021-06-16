@@ -158,11 +158,14 @@ if __name__ == '__main__':
 
     graph_dict = dict()
     feature_dict = dict()
+    cluster_weight_dict = dict()
     train_list, valid_list, test_list = list(), list(), list()
     for chromosome in all_chromosome:
         # graph_dict[chromosome] = {top_graph, top_subgraphs, bottom_graph, inter_graph}
         # feature_dict[chromosome] = {'hic_feat_h0', 'hic_feat_h1'}
-        graph_dict[str(chromosome)] = load_graph(graph_path, 'G_chr-{}.bin'.format(chromosome))
+        g, c = load_graph(graph_path, 'G_chr-{}.bin'.format(chromosome))
+        graph_dict[str(chromosome)] = g
+        cluster_weight_dict[str(chromosome)] = c
         feature_dict[str(chromosome)] = load_feature(feature_path, 'F_chr-{}.pkl'.format(chromosome))
         if str(chromosome) in train_chromosomes:
             train_list.append(str(chromosome))

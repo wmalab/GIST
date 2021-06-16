@@ -14,9 +14,9 @@ def save_graph(g_list, output_path, output_file):
 
 def load_graph(output_path, output_file) -> dict() :
     ''' g_list = [ top_graph, top_subgraphs, bottom_graph, inter_graph ] '''
-    g_list, _ = dgl.data.utils.load_graphs(os.path.join(output_path, output_file))
+    g_list, labels = dgl.data.utils.load_graphs(os.path.join(output_path, output_file))
     res = {'top_graph':g_list[0], 'top_subgraphs': g_list[1], 'bottom_graph': g_list[2], 'inter_graph': g_list[3]}
-    return res
+    return res, labels
 
 def load_hic(name='Dixon2012-H1hESC-HindIII-allreps-filtered.500kb.cool', chromosome='chr1'):
     # data from ftp://cooler.csail.mit.edu/coolers/hg19/
