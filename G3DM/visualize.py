@@ -59,7 +59,7 @@ def plot_lines(x, writer, item_dir, step=None):
     y = np.ones_like(x.flatten())
     fig, axs = plt.subplots(1, 1)
     cmaps = ['RdBu_r']
-    axs.scatter(x.flatten(), y, camp=cmaps[0])
-    axs.plot(x.flatten(), y)
+    axs.scatter(y, x.flatten(), cmap=cmaps[0])
+    axs.plot(y, x.flatten())
     step = 0 if step is None else step
     writer.add_figure(item_dir, fig, global_step=step)
