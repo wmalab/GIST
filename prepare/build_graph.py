@@ -122,7 +122,7 @@ def create_hierarchical_graph_2lvl(norm_hics, num_clusters, ratios, strides, cut
         # g.nodes['h{}_bead'.format(str(i))].data['feat'] = torch.tensor(features[i]).float()
 
     for i, (m_hic, log_hic) in enumerate(zip(mats_, log_hics)):
-        g.edges['interacts_{}'.format(i)].data['label'] = m_hic[tuple(fid_interacts[i])].clone().detach().flatten().type(torch.int8)
+        g.edges['interacts_{}'.format(i)].data['label'] = m_hic[tuple(fid_interacts[i])].clone().detach().flatten().type(torch.ByteTensor)
         g.edges['interacts_{}'.format(i)].data['w'] = torch.tensor(log_hic[tuple(fid_interacts[i])]).clone().detach().flatten().float()
 
     for key, c_list in c_lists.items():
