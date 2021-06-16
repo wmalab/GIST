@@ -75,7 +75,7 @@ def create_network(configuration, graph, device):
                             list(en_chain_net.parameters()) + list(en_bead_net.parameters()) + list(en_union.parameters()) +
                             list(de_center_net.parameters()) +
                             list(de_bead_net.parameters()))'''
-    opt = optim.AdaBound(list(em_h0_bead.parameters()) + list(em_h1_bead.parameters()) +
+    '''opt = optim.AdaBound(list(em_h0_bead.parameters()) + list(em_h1_bead.parameters()) +
                          list(en_chain_net.parameters()) + list(en_bead_net.parameters()) + list(en_union.parameters()) +
                          list(de_center_net.parameters()) +
                          list(de_bead_net.parameters()),
@@ -83,7 +83,16 @@ def create_network(configuration, graph, device):
                          final_lr=0.1, gamma=1e-3,
                          eps=1e-8, weight_decay=0,
                          amsbound=False,
+                         )'''
+                         
+    opt = optim.AdaBound(list(em_h1_bead.parameters()) +
+                         list(en_chain_net.parameters()),
+                         lr=1e-3, betas=(0.9, 0.999),
+                         final_lr=0.1, gamma=1e-3,
+                         eps=1e-8, weight_decay=0,
+                         amsbound=False,
                          )
+
     em_networks = [em_h0_bead, em_h1_bead]
     ae_networks = [en_chain_net, en_bead_net,
                    en_union, de_center_net, de_bead_net]
