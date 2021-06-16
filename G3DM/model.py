@@ -53,13 +53,14 @@ class constrainLayer(torch.nn.Module):
         h = g.ndata['h']
         l = torch.norm(h, p=2, dim=-1, keepdim=True) + 1e-7
         h = (h/l)
-        ha = self.alpha_fc(h)
+        '''ha = self.alpha_fc(h)
         hb = self.beta_fc(h)
         x = r * torch.sin(ha) * torch.cos(hb)
         y = r * torch.sin(ha) * torch.sin(hb)
         z = r * torch.cos(ha)
         dh = torch.cat([x,y,z], dim=-1)
-        return dh
+        return dh'''
+        return h
 
 class encoder_chain(torch.nn.Module):
     def __init__(self, in_dim, hidden_dim, out_dim, num_heads, etypes):
@@ -104,15 +105,15 @@ class encoder_chain(torch.nn.Module):
 
         subg_chain = g.edge_type_subgraph([etypes[1]])
         radius = torch.clamp(self.r, min=10e-3, max=3)
-        dh = self.chain(subg_chain, h[ntype[0]], radius)
-        conh = torch.cumsum(dh, dim=-2)
+        conh = self.chain(subg_chain, h[ntype[0]], radius)
+        # conh = torch.cumsum(dh, dim=-2)
 
         h = self.layerMHs(subg_interacts, {ntype[0]: conh })
 
         res = list()
         for i in torch.arange(self.num_heads):
-            ds = self.chain(subg_chain, h[ntype[0]][:,i,:], radius)
-            s = torch.cumsum(ds, dim=-2)
+            s = self.chain(subg_chain, h[ntype[0]][:,i,:], radius)
+            # s = torch.cumsum(ds, dim=-2)
             res.append(s)
         res = torch.stack(res, dim=1)
         return res
