@@ -99,6 +99,9 @@ def fit_one_step(graphs, features, cluster_weights, sampler, batch_size, em_netw
     bottom_graph = dgl.to_homogeneous(graphs['bottom_graph'], edata=['w', 'label'], store_type=True)
     inter_graph = graphs['inter_graph'].to(device)
 
+    cw0 = cluster_weights[0].to(device)
+    cw1 = cluster_weights[1].to(device)
+
     h0_feat = features[0]
     h1_feat = features[1]
 
@@ -143,9 +146,8 @@ def fit_one_step(graphs, features, cluster_weights, sampler, batch_size, em_netw
         xt1 = top_graph.edges['interacts_1'].data['label']
         xt0 = pair_graph.edges['_E'].data['label']
 
-        cws = cluster_weights.to(device)
-        loss1 = loss_fc(xp1, xt1, cws[1])
-        loss0 = loss_fc(xp0, xt0, cws[0])
+        loss1 = loss_fc(xp1, xt1, cw1)
+        loss0 = loss_fc(xp0, xt0, cw0)
         loss = (loss0 + loss1)/2.0
         optimizer.zero_grad()
         loss.backward(retain_graph=True)  # retain_graph=False,
@@ -258,7 +260,7 @@ def run_epoch(dataset, model, loss_fc, optimizer, sampler, batch_size, iteration
                                     torch.tensor(h1_p, dtype=torch.float)], 
                                     dim=1).to(device)
 
-            ll = fit_one_step(graphs, [h0_feat, h1_feat], sampler, batch_size, em_networks, ae_networks, loss_fc, optimizer, device)
+            ll = fit_one_step(graphs, [h0_feat, h1_feat], [cw0, cw1], sampler, batch_size, em_networks, ae_networks, loss_fc, optimizer, device)
             loss_list.append(ll)
 
             if i == 0 and j == 0 and writer is not None:
