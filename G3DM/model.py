@@ -267,5 +267,5 @@ class decoder(torch.nn.Module):
             g.nodes[self.ntype].data['z'] = h
             g.apply_edges(self.edge_distance, etype=self.etype)
             # return g.edata.pop('dist_pred'), g.edata.pop('count_pred'), self.mean_dist, self.mean_count
-            return g.edata.pop('dist_pred'), self.mean_dist
+            return g.edata.pop('dist_pred'), mean_dist
 
