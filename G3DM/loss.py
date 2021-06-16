@@ -19,8 +19,7 @@ class nllLoss(torch.nn.Module):
         loss = F.nll_loss(logp, target.long(), reduce=True, reduction='mean')
         if weights is not None:
             w = weights/weights.sum()
-            print(target.type())
-            loss = loss*w[target.byte()]
+            loss = loss*w[target.int8()]
         return loss
 
 class crossNllLoss(nn.Module):
