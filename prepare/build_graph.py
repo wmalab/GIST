@@ -54,7 +54,7 @@ def create_hierarchical_graph_2lvl(norm_hics, num_clusters, ratios, strides, cut
         matpbs_.append(pb)
         cluster_weight, _ = np.histogram(m.view(-1,1), bins=np.arange(num_clusters[i]), density=True)
         cluster_weight = np.append(cluster_weight, [1.0])
-        cluster_weight = (1.0/(cluster_weight+10e-7).type(np.double)) # 1/density
+        cluster_weight = (1.0/(cluster_weight+10e-7).astype(np.double)) # 1/density
         cweights_.append(cluster_weight)
         print(cluster_weight)
 
