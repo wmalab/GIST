@@ -290,14 +290,14 @@ def run_epoch(dataset, model, loss_fc, optimizer, sampler, batch_size, iteration
                 plot_confusion_mat(center_cluster_mat, center_true,  writer, '2,2 confusion matrix/center', step=i)
                 plot_confusion_mat(bead_cluster_mat, bead_true, writer, '2,2 confusion matrix/bead', step=i)
                 for name, param in ae_networks[3].named_parameters():
-                    if name == 'mean_dist':
+                    if name == 'r_dist':
                         x1 = param.to('cpu').detach().numpy()
 
                 for name, param in ae_networks[4].named_parameters():
-                    if name == 'mean_dist':
+                    if name == 'r_dist':
                         x0 = param.to('cpu').detach().numpy()
                 # print(x1, x0)
-                plot_lines(x0, writer, '2,3 hop_dist/bead', step=i)
-                plot_lines(x1, writer, '2,3 hop_dist/center', step=i)
+                plot_lines(np.cumsum(x0), writer, '2,3 hop_dist/bead', step=i)
+                plot_lines(np.cumsum(x1), writer, '2,3 hop_dist/center', step=i)
         print("epoch {:d} Loss {:f}".format(i, np.nanmean(np.array(loss_list))))
 
