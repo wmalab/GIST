@@ -68,15 +68,21 @@ class encoder_chain(torch.nn.Module):
 
         l1 = dict()
         for et in etypes:
-            l1[et] = dgl.nn.GraphConv( in_dim, hidden_dim, 
-            norm='right', weight=True, allow_zero_in_degree=True)
+            '''l1[et] = dgl.nn.GraphConv( in_dim, hidden_dim, 
+            norm='right', weight=True, allow_zero_in_degree=True)'''
+            l1[et] = dgl.nn.GATConv( in_dim, hidden_dim, 
+                                    num_heads=1, residual=False, 
+                                    allow_zero_in_degree=True)
         self.layer1 = dgl.nn.HeteroGraphConv( l1, aggregate = 'mean')
         
         l2 = dict()
         for et in etypes:
-            l2[et] = dgl.nn.GraphConv( hidden_dim, out_dim, 
+            '''l2[et] = dgl.nn.GraphConv( hidden_dim, out_dim, 
                                         norm='right', weight=True, 
-                                        allow_zero_in_degree=True)
+                                        allow_zero_in_degree=True)'''
+            l2[et] = dgl.nn.GATConv( hidden_dim, out_dim, 
+                                    num_heads=1, residual=False, 
+                                    allow_zero_in_degree=True)
         self.layer2 = dgl.nn.HeteroGraphConv( l2, aggregate = 'mean')
         
         lMH = dict()
@@ -97,10 +103,12 @@ class encoder_chain(torch.nn.Module):
     def forward(self, g, x, etypes, efeat, ntype):
 
         subg_interacts = g.edge_type_subgraph(etypes[:-1])
-        edge_weight = subg_interacts.edata[efeat[0]]
+        # edge_weight = subg_interacts.edata[efeat[0]]
 
-        h = self.layer1(subg_interacts, {ntype[0]: x }, {'edge_weight':edge_weight})
-        h = self.layer2(subg_interacts, {ntype[0]: h }, {'edge_weight':edge_weight})
+        '''h = self.layer1(subg_interacts, {ntype[0]: x }, {'edge_weight':edge_weight})
+        h = self.layer2(subg_interacts, h, {'edge_weight':edge_weight})'''
+        h = self.layer1(subg_interacts, {ntype[0]: x })
+        h = self.layer2(subg_interacts, h)
 
         subg_chain = g.edge_type_subgraph([etypes[1]])
         radius = torch.clamp(self.r, min=10e-3, max=3)
