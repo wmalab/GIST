@@ -105,15 +105,15 @@ class encoder_chain(torch.nn.Module):
 
         subg_chain = g.edge_type_subgraph([etypes[1]])
         radius = torch.clamp(self.r, min=10e-3, max=3)
-        conh = self.chain(subg_chain, h[ntype[0]], radius)
-        # conh = torch.cumsum(dh, dim=-2)
+        dh = self.chain(subg_chain, h[ntype[0]], radius)
+        conh = torch.cumsum(dh, dim=-2)
 
         h = self.layerMHs(subg_interacts, {ntype[0]: conh })
 
         res = list()
         for i in torch.arange(self.num_heads):
-            s = self.chain(subg_chain, h[ntype[0]][:,i,:], radius)
-            # s = torch.cumsum(ds, dim=-2)
+            ds = self.chain(subg_chain, h[ntype[0]][:,i,:], radius)
+            s = torch.cumsum(ds, dim=-2)
             res.append(s)
         res = torch.stack(res, dim=1)
         return res
