@@ -73,14 +73,17 @@ def create_graph(ratio, stride, num_clusters, chromosome, cutoff_percent, cutoff
     for i, m in enumerate(norm_hics):
         print('create graph chromosome {} level {}, iced normalization Hi-C shape: {}'.format(chromosome, i, m.shape))
 
-    g, g_list, cw_list = create_hierarchical_graph_2lvl(
+    g, g_list, cw_list, mats_list = create_hierarchical_graph_2lvl(
         norm_hics, num_clusters, ratios, strides, 
-        cutoff_percent=cutoff_percent, cutoff_cluster=cutoff_cluster)
+        cutoff_percent=cutoff_percent, 
+        cutoff_cluster=cutoff_cluster)
     save_graph(g_list, output_path, output_file)
     
-    cluster_weight_dict = {}
+    cluster_weight_dict = dict()
     for i, cw in enumerate(cw_list):
         cluster_weight_dict[str(i)] = cw
+        cluster_weight_dict['mat_{}'.format(i)] = mats_list[i]
+
     with open(os.path.join(output_path, 'cw_'+output_file + '.pkl'), 'wb') as f:
         pickle.dump(cluster_weight_dict, f, pickle.HIGHEST_PROTOCOL)
 

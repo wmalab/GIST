@@ -143,4 +143,4 @@ def create_hierarchical_graph_2lvl(norm_hics, num_clusters, ratios, strides, cut
     g_list = [top_graph, top_subgraphs, bottom_graph, inter_graph]
 
     print("idtype: ", g.idtype, top_subgraphs.idtype, sep=' ')
-    return g, g_list, cweights_
+    return g, g_list, cweights_, mats_
