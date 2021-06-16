@@ -41,7 +41,7 @@ def create_network(configuration, graph, device):
     outd0 = int(config['feature']['out_dim']['h0'])
     ind1 = int(config['feature']['in_dim']['h1'])
     outd1 = int(config['feature']['out_dim']['h1'])
-    em_h0_bead = embedding(ind0+ind1, outd0).to(device)
+    em_h0_bead = embedding(ind0, outd0).to(device)
     em_h1_bead = embedding(ind1, outd1).to(device)
 
     nh0 = int(config['G3DM']['num_heads']['0'])
@@ -241,8 +241,8 @@ def run_epoch(dataset, model, loss_fc, optimizer, sampler, batch_size, iteration
     for i in np.arange(iterations):
         for j, data in enumerate(dataset):
             graphs, features, _, cluster_weights = data
-            m0 = cluster_weights['mat_0']
-            m1 = cluster_weights['mat_1']
+
+            # 1 over density of cluster
             cw0 = cluster_weights['0']
             cw1 = cluster_weights['1']
 
@@ -261,6 +261,8 @@ def run_epoch(dataset, model, loss_fc, optimizer, sampler, batch_size, iteration
             loss_list.append(ll)
 
             if i == 0 and j == 0 and writer is not None:
+                m0 = cluster_weights['mat_0']
+                m1 = cluster_weights['mat_1']
                 plot_feature(h0_f, h0_p, writer, '0, features/h0')
                 plot_feature(h1_f, h1_p, writer, '0, features/h1')
                 plot_cluster(m1, writer, int(config['parameter']['graph']['num_clusters']['1']),'0 cluster/center', step=None)

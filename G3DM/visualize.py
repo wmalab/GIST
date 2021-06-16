@@ -8,7 +8,7 @@ import torchvision
 from sklearn import metrics
 
 def plot_feature(feats, position, writer, item_dir):
-    data = [feats, position, feats+position]
+    data = [feats, position]
     fig = plt.figure()
     fig, axs = plt.subplots(1, len(data))
     cmaps = ['RdBu_r', 'viridis', 'RdBu_r']
@@ -59,7 +59,8 @@ def plot_lines(x, writer, item_dir, step=None):
     y = np.ones_like(x.flatten())
     fig, axs = plt.subplots(1, 1)
     cmaps = ['tab20']
-    axs.scatter(x.flatten(),y, cmap=cmaps[0])
+    z = np.arange(len(x))
+    axs.scatter(x.flatten(),y, c=z, cmap=cmaps[0])
     axs.plot(x.flatten(), y)
     step = 0 if step is None else step
     writer.add_figure(item_dir, fig, global_step=step)

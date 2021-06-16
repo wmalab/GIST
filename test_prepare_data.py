@@ -37,9 +37,9 @@ def create_feature(ratio, stride, dim, chromosome, cool_path, cool_file, output_
     idxs = [np.arange(len(hic)) for hic in norm_hics]
 
     #! dim can't larger than int(x.shape[0]/2)-1
-    feats = [feature_hic(x, check_dim(dim[i], x)) for i, x in enumerate(log_hics)]
+    features = [ feature_hic(x, check_dim(dim[i], x)) for i, x in enumerate(log_hics) ]
 
-    features = []
+    '''features = []
     nrepeats = strides
     nrepeats = nrepeats.astype(int)
     features.append(feats[-1])
@@ -47,7 +47,7 @@ def create_feature(ratio, stride, dim, chromosome, cool_path, cool_file, output_
         f0 = feats[i]
         f1 = np.repeat(features[0], nrepeats[i+1], axis=0)[0:f0.shape[0], :]
         f = np.concatenate((f0, f1), axis=1)
-        features.insert(0, f)
+        features.insert(0, f)'''
 
     positions = []
     for f in features:
