@@ -35,9 +35,11 @@ def position_hic(hic_feat, dim):
 
 
 def save_feature(path, file, feature_dict):
+    file = file+'.pkl'
     with open(os.path.join(path, file), 'wb') as f:
         pickle.dump(feature_dict, f, pickle.HIGHEST_PROTOCOL)
 
 def load_feature(path, file):
+    file = file+'.pkl'
     with open(os.path.join(path, file), 'rb') as f:
         return pickle.load(f)

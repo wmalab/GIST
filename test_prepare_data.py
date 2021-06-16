@@ -73,9 +73,16 @@ def create_graph(ratio, stride, num_clusters, chromosome, cutoff_percent, cutoff
     for i, m in enumerate(norm_hics):
         print('create graph chromosome {} level {}, iced normalization Hi-C shape: {}'.format(chromosome, i, m.shape))
 
-    g, g_list = create_hierarchical_graph_2lvl(
-        norm_hics, num_clusters, ratios, strides, cutoff_percent=cutoff_percent, cutoff_cluster=cutoff_cluster)
+    g, g_list, cw_list = create_hierarchical_graph_2lvl(
+        norm_hics, num_clusters, ratios, strides, 
+        cutoff_percent=cutoff_percent, cutoff_cluster=cutoff_cluster)
     save_graph(g_list, output_path, output_file)
+    
+    cluster_weight_dict = {}
+    for i, cw in enumerate(cw_list):
+        cluster_weight_dict[str(i)] = cw
+    with open(os.path.join(output_path, 'cw_'+output_file + '.pkl'), 'wb') as f:
+        pickle.dump(cluster_weight_dict, f, pickle.HIGHEST_PROTOCOL)
 
 
 if __name__ == '__main__':
@@ -146,12 +153,12 @@ if __name__ == '__main__':
     for chromosome in all_chromosome:
         feat_args = (ratio, stride, dim, chromosome,
                     cool_data_path, cool_file,
-                    feature_path, 'F_chr-{}.pkl'.format(chromosome))
+                    feature_path, 'F_chr-{}'.format(chromosome))
         pool.apply_async(create_feature, args=feat_args)
         graph_args = (ratio, stride, num_clusters, chromosome,
                     cutoff_percents, cutoff_cluster,
                     cool_data_path, cool_file,
-                    graph_path, 'G_chr-{}.bin'.format(chromosome))
+                    graph_path, 'G_chr-{}'.format(chromosome))
         pool.apply_async(create_graph, args=graph_args)
     pool.close()
     pool.join()
@@ -163,10 +170,11 @@ if __name__ == '__main__':
     for chromosome in all_chromosome:
         # graph_dict[chromosome] = {top_graph, top_subgraphs, bottom_graph, inter_graph}
         # feature_dict[chromosome] = {'hic_feat_h0', 'hic_feat_h1'}
-        g, c = load_graph(graph_path, 'G_chr-{}.bin'.format(chromosome))
+        g = load_graph(graph_path, 'G_chr-{}'.format(chromosome))
         graph_dict[str(chromosome)] = g
+        c = load_feature(graph_path, 'cw_G_chr-{}'.format(chromosome))
         cluster_weight_dict[str(chromosome)] = c
-        feature_dict[str(chromosome)] = load_feature(feature_path, 'F_chr-{}.pkl'.format(chromosome))
+        feature_dict[str(chromosome)] = load_feature(feature_path, 'F_chr-{}'.format(chromosome))
         if str(chromosome) in train_chromosomes:
             train_list.append(str(chromosome))
         if str(chromosome) in valid_chromosomes:

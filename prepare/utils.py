@@ -10,10 +10,12 @@ import dgl
 
 def save_graph(g_list, output_path, output_file):
     ''' g_list = [ top_graph, top_subgraphs, bottom_graph, inter_graph ] '''
+    output_file = output_file + '.bin'
     dgl.data.utils.save_graphs(os.path.join(output_path, output_file), g_list )
 
 def load_graph(output_path, output_file) -> dict() :
     ''' g_list = [ top_graph, top_subgraphs, bottom_graph, inter_graph ] '''
+    output_file = output_file + '.bin'
     g_list, labels = dgl.data.utils.load_graphs(os.path.join(output_path, output_file))
     res = {'top_graph':g_list[0], 'top_subgraphs': g_list[1], 'bottom_graph': g_list[2], 'inter_graph': g_list[3]}
     return res, labels
