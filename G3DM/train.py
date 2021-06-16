@@ -138,8 +138,8 @@ def fit_one_step(graphs, features, cluster_weights, sampler, batch_size, em_netw
         c = h_center[h1, :, :].to(device)
         # res = en_union(inter, c, h_bead)
 
-        xp1, _ = de_center_net(top_graph, h_center)
-        # xp0, _ = de_bead_net(pair_graph, res)
+        xp1 = de_center_net(top_graph, h_center)
+        # xp0 = de_bead_net(pair_graph, res)
 
         xt1 = top_graph.edges['interacts_1'].data['label']
         xt0 = pair_graph.edges['_E'].data['label']
@@ -210,8 +210,8 @@ def inference(graphs, features, num_heads, num_clusters, em_networks, ae_network
             res = en_union(inter, c, h_bead)
             result[output_nodes.cpu().detach(),:,:] = res.cpu().detach()
 
-        xp1, _ = de_center_net(top_graph, h_center)
-        xp0, _ = de_bead_net(bottom_graph.to(device), result.to(device))
+        xp1 = de_center_net(top_graph, h_center)
+        xp0 = de_bead_net(bottom_graph.to(device), result.to(device))
 
         p1 = xp1.cpu().detach().numpy()
         tp1 = graphs['top_graph'].edges['interacts_1'].data['label'].cpu().detach().numpy()
