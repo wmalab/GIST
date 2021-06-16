@@ -193,7 +193,7 @@ class decoder(torch.nn.Module):
         self.num_clusters = num_clusters
         self.ntype = ntype
         self.etype = etype
-        
+
         num_seq = num_clusters
         # x = lambda a : (a-1)*2+5
         # num_seq = x(x(num_clusters))
@@ -250,6 +250,7 @@ class decoder(torch.nn.Module):
 
         # std = torch.min(torch.abs(self.std_dist), torch.abs(self.r_dist)/4)
         # outputs_dist = self.norm_prob(self.mean_dist, std, dist)
+        self.mean_dist = torch.cumsum(torch.abs(self.r_dist)+1e-4, dim=1)
         outputs_dist = self.aritficial_fc(self.mean_dist, dist)
         # outputs_dist = torch.unsqueeze(outputs_dist, dim=1)
         # outputs_dist = self.conv1d_dist_0(outputs_dist)
