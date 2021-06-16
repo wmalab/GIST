@@ -59,7 +59,7 @@ def plot_lines(x, writer, item_dir, step=None):
     y = np.ones_like(x.flatten())
     fig, axs = plt.subplots(1, 1)
     cmaps = ['tab20']
-    z = np.arange(len(x))
+    z = np.arange(len(x.flatten()))
     axs.scatter(x.flatten(),y, c=z, cmap=cmaps[0])
     axs.plot(x.flatten(), y)
     step = 0 if step is None else step

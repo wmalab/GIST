@@ -93,7 +93,7 @@ def setup_train(configuration):
     return itn, batch_size
 
 
-def fit_one_step(graphs, features, sampler, batch_size, em_networks, ae_networks, loss_fc, optimizer, device):
+def fit_one_step(graphs, features, cluster_weights, sampler, batch_size, em_networks, ae_networks, loss_fc, optimizer, device):
     top_graph = graphs['top_graph'].to(device)
     top_subgraphs = graphs['top_subgraphs'].to(device)
     bottom_graph = dgl.to_homogeneous(graphs['bottom_graph'], edata=['w', 'label'], store_type=True)
@@ -143,8 +143,9 @@ def fit_one_step(graphs, features, sampler, batch_size, em_networks, ae_networks
         xt1 = top_graph.edges['interacts_1'].data['label']
         xt0 = pair_graph.edges['_E'].data['label']
 
-        loss1 = loss_fc(xp1, xt1)
-        loss0 = loss_fc(xp0, xt0)
+        cws = cluster_weights.to(device)
+        loss1 = loss_fc(xp1, xt1, cws[1])
+        loss0 = loss_fc(xp0, xt0, cws[0])
         loss = (loss0 + loss1)/2.0
         optimizer.zero_grad()
         loss.backward(retain_graph=True)  # retain_graph=False,

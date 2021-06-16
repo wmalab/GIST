@@ -14,9 +14,13 @@ class nllLoss(torch.nn.Module):
     def __init__(self):
         super(nllLoss, self).__init__()
     
-    def forward(self, pred, target):
+    def forward(self, pred, target, weights=None):
         logp = F.log_softmax(pred, 1)
-        return F.nll_loss(logp, target.long(), reduce=True, reduction='mean')
+        loss = F.nll_loss(logp, target.long(), reduce=True, reduction='mean')
+        if weights is not None:
+            w = weights/weights.sum()
+            loss = loss*w[target]
+        return loss
 
 class crossNllLoss(nn.Module):
     def __init__(self):
