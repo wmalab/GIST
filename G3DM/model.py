@@ -103,7 +103,7 @@ class encoder_chain(torch.nn.Module):
 
 
         subg_chain = g.edge_type_subgraph([etypes[1]])
-        radius = torch.clamp(torch.abs(self.r), max=10)+1e-1
+        radius = torch.clamp(self.r, min=10e-3, max=3)
         dh = self.chain(subg_chain, h[ntype[0]], radius)
         conh = torch.cumsum(dh, dim=-2)
 

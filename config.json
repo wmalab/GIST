@@ -26,7 +26,7 @@
             "out_dim":{"h0":15, "h1":15}
         },
         "G3DM":{
-            "iteration": 60,
+            "iteration": 2000,
             "batchsize": 100,
             "num_heads": {"0": 5, "1": 6, "out": 8},
             "graph_chain_dim":{"in_dim":15, "hidden_dim":6, "out_dim": 3},
