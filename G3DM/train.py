@@ -7,7 +7,7 @@ import numpy as np
 
 from .model import embedding, encoder_bead, encoder_chain, encoder_union, decoder
 from .loss import nllLoss
-from .visualize import plot_feature, plot_X, plot_cluster, plot_confusion_mat
+from .visualize import plot_feature, plot_X, plot_cluster, plot_confusion_mat, plot_lines
 
 # import GPUtil
 # gpuIDs = GPUtil.getAvailable(order = 'first', limit = 1, maxLoad = 0.05, maxMemory = 0.05, includeNan=False, excludeID=[], excludeUUID=[])
@@ -122,8 +122,8 @@ def fit_one_step(graphs, features, sampler, batch_size, em_networks, ae_networks
         h_center = en_chain_net(
             top_subgraphs, X1, top_list, ['w'], ['h1_bead'])
 
-        inputs0 = torch.tensor(h0_feat[input_nodes.cpu().detach(
-        ), :], dtype=torch.float).to(device)  # ['h0_bead']
+        inputs0 = torch.tensor(h0_feat[input_nodes.cpu().detach(), :], 
+                                dtype=torch.float).to(device)  # ['h0_bead']
         X0 = em_h0_bead(inputs0)
         h_bead = en_bead_net(blocks, X0, ['interacts_0'], ['w'])
 
@@ -242,6 +242,8 @@ def run_epoch(dataset, model, loss_fc, optimizer, sampler, batch_size, iteration
             graphs, features, _, cluster_weights = data
             m0 = cluster_weights['mat_0']
             m1 = cluster_weights['mat_1']
+            cw0 = cluster_weights['0']
+            cw1 = cluster_weights['1']
 
             h0_f = features['hic_h0']['feat']
             h0_p = features['hic_h0']['pos']
@@ -262,20 +264,35 @@ def run_epoch(dataset, model, loss_fc, optimizer, sampler, batch_size, iteration
                 plot_feature(h1_f, h1_p, writer, '0, features/h1')
                 plot_cluster(m1, writer, int(config['parameter']['graph']['num_clusters']['1']),'0 cluster/center', step=None)
                 plot_cluster(m0, writer, int(config['parameter']['graph']['num_clusters']['0']), '0 cluster/bead', step=None)
-            
+
             if i%5==0 and j == 0 and writer is not None and config is not None:
                 num_heads = int(config['parameter']['G3DM']['num_heads']['out'])
-                center_X, bead_X, center_cluster_mat, bead_cluster_mat, center_true, bead_true = inference(graphs, [h0_feat, h1_feat], num_heads, 
-                                                                                                            [int(config['parameter']['graph']['num_clusters']['0']), 
-                                                                                                             int(config['parameter']['graph']['num_clusters']['1'])], 
-                                                                                                            em_networks, ae_networks, device)
+                [center_X, bead_X, 
+                center_cluster_mat, bead_cluster_mat, 
+                center_true, bead_true] = inference(graphs, [h0_feat, h1_feat], num_heads, 
+                                                    [int(config['parameter']['graph']['num_clusters']['0']), 
+                                                        int(config['parameter']['graph']['num_clusters']['1'])], 
+                                                    em_networks, ae_networks, device)
                 plot_X(center_X, writer, '1, 3D/center', step=i)
                 plot_X(bead_X, writer, '1, 3D/bead', step=i)
 
-                plot_cluster(center_cluster_mat, writer, int(config['parameter']['graph']['num_clusters']['1']),'2,1 cluster/center', step=i)
-                plot_cluster(bead_cluster_mat, writer, int(config['parameter']['graph']['num_clusters']['0']), '2,1 cluster/bead', step=i)
+                plot_cluster(center_cluster_mat, writer, 
+                            int(config['parameter']['graph']['num_clusters']['1']),
+                            '2,1 cluster/center', step=i)
+                plot_cluster(bead_cluster_mat, writer, 
+                            int(config['parameter']['graph']['num_clusters']['0']), 
+                            '2,1 cluster/bead', step=i)
                 plot_confusion_mat(center_cluster_mat, center_true,  writer, '2,2 confusion matrix/center', step=i)
                 plot_confusion_mat(bead_cluster_mat, bead_true, writer, '2,2 confusion matrix/bead', step=i)
+                for name, param in ae_networks[3].named_parameters():
+                    if name == 'mean_dist':
+                        x1 = param 
 
+                for name, param in ae_networks[4].named_parameters():
+                    if name == 'mean_dist':
+                        x0 = param 
+                print(x1, x0)
+                # plot_lines(x0, writer, '2,3 hop_dist/bead', step=i)
+                # plot_lines(x1, writer, '2,3 hop_dist/center', step=i)
         print("epoch {:d} Loss {:f}".format(i, np.nanmean(np.array(loss_list))))
 

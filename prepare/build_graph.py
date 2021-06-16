@@ -52,8 +52,9 @@ def create_hierarchical_graph_2lvl(norm_hics, num_clusters, ratios, strides, cut
         m, pb = cluster_hic(hic, hic, n_cluster=num_clusters[i])
         mats_.append(m)
         matpbs_.append(pb)
-        print('mat: ', m.max(), num_clusters[i])
-        cluster_weight, _ = np.histogram(m.view(-1,1), bins=np.arange(num_clusters[i]+1), density=True)
+        cluster_weight, _ = np.histogram(m.view(-1,1), bins=np.arange(num_clusters[i]), density=True)
+        cluster_weight.append(1.0)
+        cluster_weight = (1.0/(cluster_weight+10e-7)).astype(np.float)
         cweights_.append(cluster_weight)
 
     # log_hics, features, mats_, matpbs_, 

@@ -36,7 +36,7 @@ def create_feature(ratio, stride, dim, chromosome, cool_path, cool_file, output_
     log_hics = [log1p_hic(x) for x in norm_hics]
     idxs = [np.arange(len(hic)) for hic in norm_hics]
 
-    # ! dim can't larger than int(x.shape[0]/2)-1
+    #! dim can't larger than int(x.shape[0]/2)-1
     feats = [feature_hic(x, check_dim(dim[i], x)) for i, x in enumerate(log_hics)]
 
     features = []

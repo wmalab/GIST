@@ -45,15 +45,21 @@ def plot_confusion_mat(y_pred, y_true, writer, item_dir, step=None):
     pred = y_pred.flatten()
     true = y_true.flatten()
     cm = metrics.confusion_matrix(true, pred)
-    print('cm shape: {}'.format(cm.shape))
     fig = plt.figure()
     cmaps = ['RdBu_r']
     fig, axs = plt.subplots(1, 1)
     pcm = axs.pcolormesh(cm, cmap=cmaps[0])
     fig.colorbar(pcm, ax=axs)
-    print(cm)
     axs.set_ylabel('True') # row of cm
     axs.set_xlabel('Prediction') # col of cm
     step = 0 if step is None else step
     writer.add_figure(item_dir, fig, global_step=step)
-    
+
+def plot_lines(x, writer, item_dir, step=None):
+    y = np.ones_like(x)
+    fig, axs = plt.subplots(1, 1)
+    cmaps = ['RdBu_r']
+    axs.scatter(x, y, camp=cmaps[0])
+    axs.plot(x, y)
+    step = 0 if step is None else step
+    writer.add_figure(item_dir, fig, global_step=step)
