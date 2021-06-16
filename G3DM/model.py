@@ -220,14 +220,14 @@ class decoder(torch.nn.Module):
         # self.register_parameter('std_dist',self.std_dist) 
         # torch.nn.init.uniform_(self.std_dist, a=0.0, b=1.0)
 
-        self.conv1d_dist_0 = torch.nn.Conv1d(in_channels=1, out_channels=8, kernel_size=7, stride=1, padding=0, padding_mode='replicate', bias=True)
+        '''self.conv1d_dist_0 = torch.nn.Conv1d(in_channels=1, out_channels=8, kernel_size=7, stride=1, padding=0, padding_mode='replicate', bias=True)
         self.conv1d_dist_1 = torch.nn.Conv1d(in_channels=8, out_channels=1, kernel_size=5, stride=2, padding=0)
         gain = torch.nn.init.calculate_gain('relu')
         torch.nn.init.xavier_normal_(self.conv1d_dist_0.weight, gain=gain)
         torch.nn.init.xavier_normal_(self.conv1d_dist_1.weight, gain=gain)
 
         self.avgP1d_5_2 = torch.nn.AvgPool1d(5, stride=2)
-        self.maxP1d_5_2 = torch.nn.MaxPool1d(5, stride=2)
+        self.maxP1d_5_2 = torch.nn.MaxPool1d(5, stride=2)'''
 
     def norm_prob(self, mean, std, x):
         f = (-1.0/2.0)*(((x-mean)/std)**2)
@@ -250,12 +250,12 @@ class decoder(torch.nn.Module):
         # std = torch.min(torch.abs(self.std_dist), torch.abs(self.r_dist)/4)
         # outputs_dist = self.norm_prob(self.mean_dist, std, dist)
         outputs_dist = self.aritficial_fc(self.mean_dist, dist)
-        outputs_dist = torch.unsqueeze(outputs_dist, dim=1)
+        # outputs_dist = torch.unsqueeze(outputs_dist, dim=1)
         # outputs_dist = self.conv1d_dist_0(outputs_dist)
         # outputs_dist = self.conv1d_dist_1(outputs_dist)
-        outputs_dist = self.avgP1d_5_2(outputs_dist)
-        outputs_dist = self.maxP1d_5_2(outputs_dist)
-        outputs_dist = torch.squeeze(outputs_dist, dim=1)
+        # outputs_dist = self.avgP1d_5_2(outputs_dist)
+        # outputs_dist = self.maxP1d_5_2(outputs_dist)
+        # outputs_dist = torch.squeeze(outputs_dist, dim=1)
 
         # return {'dist_pred': outputs_dist, 'count_pred':outputs_count}
         return {'dist_pred': outputs_dist}
