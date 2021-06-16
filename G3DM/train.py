@@ -110,6 +110,7 @@ def fit_one_step(graphs, features, sampler, batch_size, em_networks, ae_networks
     # eid_dict = {etype: bottom_graph.edges( etype=etype, form='eid') for etype in bottom_graph.etypes}
     # dataloader = dgl.dataloading.EdgeDataLoader(bottom_graph, {'interacts_0': eid_dict['interacts_0']}, sampler, device=device,
     #                                             batch_size=batch_size, shuffle=True, drop_last=True)
+
     dataloader = dgl.dataloading.EdgeDataLoader(bottom_graph, bottom_graph.nodes(), sampler, device=device,
                                                 batch_size=batch_size, shuffle=True, drop_last=True)
     top_list = [e for e in top_subgraphs.etypes if 'interacts_1_c' in e]
@@ -219,7 +220,7 @@ def inference(graphs, features, num_heads, num_clusters, em_networks, ae_network
         true_center = np.ones((center_X.shape[0], center_X.shape[0]))*(num_clusters[1]-1)
         true_center[xs, ys] = tp1
 
-        print(p1.shape, tp1.shape, tp1.max(), p1.max())
+        # print(p1.shape, tp1.shape, tp1.max(), p1.max())
 
         p0 = xp0.cpu().detach().numpy()
         tp0 = bottom_graph.edges['_E'].data['label'].cpu().detach().numpy()
@@ -291,8 +292,8 @@ def run_epoch(dataset, model, loss_fc, optimizer, sampler, batch_size, iteration
                 for name, param in ae_networks[4].named_parameters():
                     if name == 'mean_dist':
                         x0 = param 
-                print(x1, x0)
-                # plot_lines(x0, writer, '2,3 hop_dist/bead', step=i)
-                # plot_lines(x1, writer, '2,3 hop_dist/center', step=i)
+                # print(x1, x0)
+                plot_lines(x0, writer, '2,3 hop_dist/bead', step=i)
+                plot_lines(x1, writer, '2,3 hop_dist/center', step=i)
         print("epoch {:d} Loss {:f}".format(i, np.nanmean(np.array(loss_list))))
 

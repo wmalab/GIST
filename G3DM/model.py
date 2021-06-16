@@ -196,7 +196,7 @@ class decoder(torch.nn.Module):
 
         x = lambda a : (a-1)*2+5
         num_seq = x(x(num_clusters))
-        print('num_cluster: {}, mun_seq: {}'.format(num_clusters, num_seq))
+        # print('num_cluster: {}, mun_seq: {}'.format(num_clusters, num_seq))
 
         # num_seq = ((2*num_clusters+3)*2+3)+2
         # self.pi = torch.acos(torch.zeros(1)) * 2
