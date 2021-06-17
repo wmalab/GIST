@@ -116,7 +116,7 @@ class encoder_chain(torch.nn.Module):
         conh = torch.cumsum(dh, dim=-2)
         h = self.layerMHs(subg_interacts, {ntype[0]: conh })'''
 
-        h = self.layerMHs(subg_interacts, {ntype[0]: h })
+        h = self.layerMHs(subg_interacts, h) #{ntype[0]: h })
 
         res = list()
         for i in torch.arange(self.num_heads):
