@@ -44,14 +44,11 @@ def plot_cluster(mat, writer, ncluster, item_dir, step=None):
 def plot_confusion_mat(y_pred, y_true, writer, item_dir, step=None):
     pred = y_pred.flatten()
     true = y_true.flatten()
-    cm = metrics.confusion_matrix(true, pred)
+    cm = metrics.confusion_matrix(true, pred, normalize='true')
     fig = plt.figure()
     cmaps = ['RdBu_r']
     fig, axs = plt.subplots(1, 1)
-    k, _ = np.histogram(y_true, bins=np.arange(y_true.max()+1))
-    kmat = np.tile(k.reshape(-1,1), (1, len(k)))
-    rcm = cm/kmat
-    pcm = axs.pcolormesh(rcm, cmap=cmaps[0])
+    pcm = axs.pcolormesh(cm, cmap=cmaps[0])
     fig.colorbar(pcm, ax=axs)
     axs.set_ylabel('True') # row of cm
     axs.set_xlabel('Prediction') # col of cm
