@@ -75,7 +75,7 @@ def create_network(configuration, graph, device):
                             list(en_chain_net.parameters()) + list(en_bead_net.parameters()) + list(en_union.parameters()) +
                             list(de_center_net.parameters()) +
                             list(de_bead_net.parameters()))'''
-    '''opt = optim.AdaBound(list(em_h0_bead.parameters()) + list(em_h1_bead.parameters()) +
+    opt = optim.AdaBound(list(em_h0_bead.parameters()) + list(em_h1_bead.parameters()) +
                          list(en_chain_net.parameters()) + list(en_bead_net.parameters()) + list(en_union.parameters()) +
                          list(de_center_net.parameters()) +
                          list(de_bead_net.parameters()),
@@ -83,15 +83,15 @@ def create_network(configuration, graph, device):
                          final_lr=0.1, gamma=1e-3,
                          eps=1e-8, weight_decay=0,
                          amsbound=False,
-                         )'''
+                         )
                          
-    opt = optim.AdaBound(list(em_h1_bead.parameters()) +
+    '''opt = optim.AdaBound(list(em_h1_bead.parameters()) +
                          list(en_chain_net.parameters())+ list(de_center_net.parameters()),
                          lr=1e-3, betas=(0.9, 0.999),
                          final_lr=0.1, gamma=1e-3,
                          eps=1e-8, weight_decay=0,
                          amsbound=False,
-                         )
+                         )'''
 
     em_networks = [em_h0_bead, em_h1_bead]
     ae_networks = [en_chain_net, en_bead_net,
@@ -137,29 +137,29 @@ def fit_one_step(graphs, features, cluster_weights, sampler, batch_size, em_netw
         X1 = em_h1_bead(h1_feat)
         h_center = en_chain_net(top_subgraphs, X1, top_list, ['w'], ['h1_bead'])
 
-        # inputs0 = torch.tensor(h0_feat[input_nodes.cpu().detach(), :], dtype=torch.float).to(device)  # ['h0_bead']
-        # X0 = em_h0_bead(inputs0)
-        # h_bead = en_bead_net(blocks, X0, ['interacts_0'], ['w'])
+        inputs0 = torch.tensor(h0_feat[input_nodes.cpu().detach(), :], dtype=torch.float).to(device)  # ['h0_bead']
+        X0 = em_h0_bead(inputs0)
+        h_bead = en_bead_net(blocks, X0, ['interacts_0'], ['w'])
 
-        # h0 = dgl.in_subgraph(inter_graph, {'h0_bead': blocks[2].dstnodes()}).edges()[1]  # dst
-        # h0, _ = torch.sort(torch.unique(h0))
+        h0 = dgl.in_subgraph(inter_graph, {'h0_bead': blocks[2].dstnodes()}).edges()[1]  # dst
+        h0, _ = torch.sort(torch.unique(h0))
         h1 = dgl.in_subgraph(inter_graph, {'h0_bead': blocks[2].dstnodes()}).edges()[0]  # src
         h1, _ = torch.sort(torch.unique(h1))
-        # inter = dgl.node_subgraph(inter_graph, {'h0_bead': h0, 'h1_bead': h1})
+        inter = dgl.node_subgraph(inter_graph, {'h0_bead': h0, 'h1_bead': h1})
 
         c = h_center[h1, :, :].to(device)
-        # res = en_union(inter, c, h_bead)
+        res = en_union(inter, c, h_bead)
 
         xp1 = de_center_net(top_graph, h_center)
-        # xp0 = de_bead_net(pair_graph, res)
+        xp0 = de_bead_net(pair_graph, res)
 
         xt1 = top_graph.edges['interacts_1'].data['label']
         xt0 = pair_graph.edges['_E'].data['label']
 
         loss1 = loss_fc(xp1, xt1, cw1)
-        # loss0 = loss_fc(xp0, xt0, cw0)
-        # loss = (loss0 + loss1)/2.0
-        loss = loss1
+        loss0 = loss_fc(xp0, xt0, cw0)
+        loss = (loss0 + loss1)/2.0
+        # loss = loss1
         optimizer.zero_grad()
         loss.backward(retain_graph=False)  # retain_graph=False,
         optimizer.step()

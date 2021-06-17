@@ -23,7 +23,7 @@ def plot_X(X, writer, item_dir, step=None):
     for i in np.arange(4):
         data = X[:,i,:]
         ax = fig.add_subplot(2,2,i+1, projection='3d')
-        cmap = cm.get_cmap(plt.get_cmap('RdBu_r'))
+        cmap = cm.get_cmap(plt.get_cmap('autumn')) # RdBu_r
         ax.scatter(data[:,0], data[:,1], data[:,2], c = np.arange(data.shape[0]), cmap=cmap, marker='o')
         ax.set_xlabel('X Label')
         ax.set_ylabel('Y Label')
@@ -49,6 +49,8 @@ def plot_confusion_mat(y_pred, y_true, writer, item_dir, step=None):
     cmaps = ['RdBu_r']
     fig, axs = plt.subplots(1, 1)
     pcm = axs.pcolormesh(cm, cmap=cmaps[0])
+    for (i, j), z in np.ndenumerate(cm):
+        axs.text(j, i, '{:0.1f}'.format(z), ha='center', va='center')
     fig.colorbar(pcm, ax=axs)
     axs.set_ylabel('True') # row of cm
     axs.set_xlabel('Prediction') # col of cm
