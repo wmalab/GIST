@@ -50,7 +50,7 @@ def plot_confusion_mat(y_pred, y_true, writer, item_dir, step=None):
     fig, axs = plt.subplots(1, 1)
     k, _ = np.histogram(y_true, bins=np.arange(y_true.max()+1))
     kmat = np.tile(k.reshape(-1,1), (1, len(k)))
-    rcm = rcm/kmat
+    rcm = cm/kmat
     pcm = axs.pcolormesh(rcm, cmap=cmaps[0])
     fig.colorbar(pcm, ax=axs)
     axs.set_ylabel('True') # row of cm
