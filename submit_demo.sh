@@ -9,8 +9,8 @@
 #SBATCH --job-name=G3DM
 #SBATCH --output=submit-%J.log
 
-# Change to HOME dir to give access to all folders within Jupyter-Lab
-cd $HOME
-
+date
+hostname
 source activate env_G3DM
+echo python test_train.py
 python test_train.py
