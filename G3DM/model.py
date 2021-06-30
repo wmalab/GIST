@@ -304,11 +304,10 @@ class decoder(torch.nn.Module):
         self.register_parameter('w', self.w)
         torch.nn.init.uniform_(self.w, a=0.0, b=1.0)
 
-        #self.r_dist = torch.nn.Parameter(torch.empty((1,num_seq)), requires_grad=True)
-        self.r_dist = torch.nn.Parameter(torch.arange(num_seq).float()*0.1 + 0.1, requires_grad=True)
+        self.r_dist = torch.nn.Parameter(torch.empty((1,num_seq)), requires_grad=True)
         self.register_parameter('r_dist',self.r_dist) 
         print(self.r_dist)
-        # torch.nn.init.uniform_(self.r_dist, a=0.05, b=0.5)
+        torch.nn.init.uniform_(self.r_dist, a=0.05, b=0.3)
         '''self.mean_dist = torch.nn.Parameter(torch.cumsum(torch.abs(self.r_dist)+1e-4, dim=1))
         self.register_parameter('mean_dist',self.mean_dist)''' 
 
@@ -364,7 +363,7 @@ class decoder(torch.nn.Module):
     def forward(self, g, h):
         with g.local_scope():
             g.nodes[self.ntype].data['z'] = h
-            self.mean_dist = torch.abs(self.r_dist+1e-4)
+            self.mean_dist = torch.cumsum(torch.abs(self.r_dist+1e-4)+1e-4, dim=1)
             # self.mean_dist, _ = torch.sort(torch.abs(self.r_dist+1e-4)) 
             g.apply_edges(self.edge_distance, etype=self.etype)
             # return g.edata.pop('dist_pred'), g.edata.pop('count_pred'), self.mean_dist, self.mean_count
