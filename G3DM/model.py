@@ -127,7 +127,7 @@ class encoder_chain(torch.nn.Module):
         res = torch.stack(res, dim=1)
         return res
 
-class encoder_bead(torch.nn.Module):
+class encoder_bead(torch.nn.Module): 
     def __init__(self, in_dim, hidden_dim, out_dim):
         super(encoder_bead, self).__init__()
         self.layer1 = dgl.nn.GraphConv( in_dim, hidden_dim, 
@@ -347,7 +347,8 @@ class decoder(torch.nn.Module):
 
         # std = torch.min(torch.abs(self.std_dist), torch.abs(self.r_dist)/4)
         # outputs_dist = self.norm_prob(self.mean_dist, std, dist)
-        mean_dist = torch.cumsum(torch.abs(self.r_dist+1e-4)+1e-4, dim=1)
+        # torch.cumsum(torch.abs(self.r_dist+1e-4)+1e-4, dim=1)
+        mean_dist, indices = torch.sort(torch.abs(self.r_dist+1e-4)) 
         outputs_dist = self.aritficial_fc(mean_dist, dist)
         # outputs_dist = torch.unsqueeze(outputs_dist, dim=1)
         # outputs_dist = self.conv1d_dist_0(outputs_dist)
