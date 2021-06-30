@@ -364,7 +364,8 @@ class decoder(torch.nn.Module):
     def forward(self, g, h):
         with g.local_scope():
             g.nodes[self.ntype].data['z'] = h
-            self.mean_dist, _ = torch.sort(torch.abs(self.r_dist+1e-4)) 
+            self.mean_dist = torch.abs(self.r_dist+1e-4)
+            # self.mean_dist, _ = torch.sort(torch.abs(self.r_dist+1e-4)) 
             g.apply_edges(self.edge_distance, etype=self.etype)
             # return g.edata.pop('dist_pred'), g.edata.pop('count_pred'), self.mean_dist, self.mean_count
             return g.edata.pop('dist_pred')
