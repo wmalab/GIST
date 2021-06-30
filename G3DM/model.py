@@ -349,8 +349,7 @@ class decoder(torch.nn.Module):
         # std = torch.min(torch.abs(self.std_dist), torch.abs(self.r_dist)/4)
         # outputs_dist = self.norm_prob(self.mean_dist, std, dist)
         # torch.cumsum(torch.abs(self.r_dist+1e-4)+1e-4, dim=1)
-        mean_dist, indices = torch.sort(torch.abs(self.r_dist+1e-4)) 
-        outputs_dist = self.aritficial_fc(mean_dist, dist)
+        outputs_dist = self.aritficial_fc(self.mean_dist, dist)
         # outputs_dist = torch.unsqueeze(outputs_dist, dim=1)
         # outputs_dist = self.conv1d_dist_0(outputs_dist)
         # outputs_dist = self.conv1d_dist_1(outputs_dist)
@@ -364,6 +363,7 @@ class decoder(torch.nn.Module):
     def forward(self, g, h):
         with g.local_scope():
             g.nodes[self.ntype].data['z'] = h
+            self.mean_dist, _ = torch.sort(torch.abs(self.r_dist+1e-4)) 
             g.apply_edges(self.edge_distance, etype=self.etype)
             # return g.edata.pop('dist_pred'), g.edata.pop('count_pred'), self.mean_dist, self.mean_count
             return g.edata.pop('dist_pred')
