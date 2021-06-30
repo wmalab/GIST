@@ -76,15 +76,22 @@ def create_network(configuration, graph, device):
                             list(en_chain_net.parameters()) + list(en_bead_net.parameters()) + list(en_union.parameters()) +
                             list(de_center_net.parameters()) +
                             list(de_bead_net.parameters()))'''
-    opt = optim.AdaBound(list(em_h0_bead.parameters()) + list(em_h1_bead.parameters()) +
-                         list(en_chain_net.parameters()) + list(en_bead_net.parameters()) + list(en_union.parameters()) +
-                         list(de_center_net.parameters()) +
+    opt0 = optim.AdaBound(list(em_h0_bead.parameters()) +
+                         list(en_bead_net.parameters()) + list(en_union.parameters()) +
                          list(de_bead_net.parameters()),
                          lr=1e-2, betas=(0.9, 0.999),
                          final_lr=0.1, gamma=1e-3,
                          eps=1e-8, weight_decay=0,
                          amsbound=False,
                          )
+    opt1 = optim.AdaBound(list(em_h1_bead.parameters()) +
+                        list(en_chain_net.parameters()) +
+                        list(de_center_net.parameters()),
+                        lr=1e-2, betas=(0.9, 0.999),
+                        final_lr=0.1, gamma=1e-3,
+                        eps=1e-8, weight_decay=0,
+                        amsbound=False,
+                        )
                          
     '''opt = optim.AdaBound(list(em_h1_bead.parameters()) +
                          list(en_chain_net.parameters())+ list(de_center_net.parameters()),
@@ -97,7 +104,7 @@ def create_network(configuration, graph, device):
     em_networks = [em_h0_bead, em_h1_bead]
     ae_networks = [en_chain_net, en_bead_net,
                    en_union, de_center_net, de_bead_net]
-    return sampler, em_networks, ae_networks, nll, opt
+    return sampler, em_networks, ae_networks, nll, [opt0, opt1]
 
 
 def setup_train(configuration):
@@ -161,9 +168,14 @@ def fit_one_step(graphs, features, cluster_weights, sampler, batch_size, em_netw
         loss0 = loss_fc(xp0, xt0, cw0)
         loss = loss0*1 + loss1*1000
         # loss = loss1
-        optimizer.zero_grad()
-        loss.backward(retain_graph=False)  # retain_graph=False,
-        optimizer.step()
+        optimizer[0].zero_grad()
+        loss0.backward(retain_graph=True)  # retain_graph=False,
+        optimizer[0].step()
+
+        optimizer[1].zero_grad()
+        loss1.backward(retain_graph=True)  # retain_graph=False,
+        optimizer[1].step()
+
         loss_list.append(loss.item()/1001)
 
     ll = np.array(loss_list)
