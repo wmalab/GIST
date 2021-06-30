@@ -306,7 +306,7 @@ class decoder(torch.nn.Module):
 
         self.r_dist = torch.nn.Parameter(torch.empty((1,num_seq)), requires_grad=True)
         self.register_parameter('r_dist',self.r_dist) 
-        torch.nn.init.uniform_(self.r_dist, a=0.3, b=0.5)
+        torch.nn.init.uniform_(self.r_dist, a=0.05, b=0.5)
         '''self.mean_dist = torch.nn.Parameter(torch.cumsum(torch.abs(self.r_dist)+1e-4, dim=1))
         self.register_parameter('mean_dist',self.mean_dist)''' 
 
@@ -327,13 +327,13 @@ class decoder(torch.nn.Module):
         self.avgP1d_5_2 = torch.nn.AvgPool1d(5, stride=2)
         self.maxP1d_5_2 = torch.nn.MaxPool1d(5, stride=2)'''
 
-    def norm_prob(self, mean, std, x):
+    '''def norm_prob(self, mean, std, x):
         f = (-1.0/2.0)*(((x-mean)/std)**2)
         #log norm probability
         # pdf = -torch.log(std*torch.sqrt(2*self.pi)) + f
         pdf = 1/(std*torch.sqrt(2*self.pi_const)) * torch.exp(f)
         # pdf = torch.nn.functional.normalize( pdf, p=2, dim=-1)
-        return pdf
+        return pdf'''
 
     def aritficial_fc(self, mean, x):
         m = torch.relu(mean)
