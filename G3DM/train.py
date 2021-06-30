@@ -8,6 +8,7 @@ import numpy as np
 from .model import embedding, encoder_bead, encoder_chain, encoder_union, decoder
 from .loss import nllLoss
 from .visualize import plot_feature, plot_X, plot_cluster, plot_confusion_mat, plot_lines
+from .visualize import plot_scaler
 
 # import GPUtil
 # gpuIDs = GPUtil.getAvailable(order = 'first', limit = 1, maxLoad = 0.05, maxMemory = 0.05, includeNan=False, excludeID=[], excludeUUID=[])
@@ -311,5 +312,6 @@ def run_epoch(dataset, model, loss_fc, optimizer, sampler, batch_size, iteration
                 # print(x1, x0)
                 plot_lines(np.cumsum(np.abs(x0+1e-4)+1e-4), writer, '2,3 hop_dist/bead', step=i)
                 plot_lines(np.cumsum(np.abs(x1+1e-4)+1e-4), writer, '2,3 hop_dist/center', step=i)
+        plot_scaler(np.nanmean(np.array(loss_list)), writer, 'Loss/nll' ,step = i)
         print("epoch {:d} Loss {:f}".format(i, np.nanmean(np.array(loss_list))))
 

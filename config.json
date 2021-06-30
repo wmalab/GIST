@@ -17,8 +17,8 @@
     "hyper": {"ratio": 8, "stride": 2},
     "parameter": {
         "graph":{
-            "num_clusters": {"0": 10, "1": 6},
-            "cutoff_percent": {"0": 10, "1": 6},
+            "num_clusters": {"0": 15, "1": 6},
+            "cutoff_percent": {"0": 50, "1": 20},
             "cutoff_cluster": 5
         },
         "feature":{

@@ -67,3 +67,6 @@ def plot_lines(x, writer, item_dir, step=None):
     plt.xlim(left=-0.01)
     step = 0 if step is None else step
     writer.add_figure(item_dir, fig, global_step=step)
+
+def plot_scaler(value, writer, item_dir, step):
+    writer.add_scalar(item_dir, value, step)
