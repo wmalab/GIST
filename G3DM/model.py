@@ -165,7 +165,8 @@ class encoder_bead(torch.nn.Module):
 
         return res
 
-class encoder_union(torch.nn.Module):
+'''class encoder_union(torch.nn.Module):
+    # src: center -> dst: bead
     def  __init__(self, in_h1_dim, in_h0_dim, out_dim, in_h1_heads, in_h0_heads, out_heads):
         super(encoder_union, self).__init__()
         self.layer_merge = dgl.nn.GATConv((in_h1_dim, in_h0_dim), out_dim, 
@@ -177,10 +178,8 @@ class encoder_union(torch.nn.Module):
         gain = torch.nn.init.calculate_gain('relu')
         torch.nn.init.xavier_normal_(self.wn_fc.weight, gain=gain)
 
-
     def normWeight(self, module): # 
         module.weight.data = torch.softmax(module.weight.data, dim=1)
-
 
     def forward(self, graph, hier_1, hier_0):
         res = []
@@ -192,7 +191,92 @@ class encoder_union(torch.nn.Module):
         self.normWeight(self.wn_fc)
         res = self.wn_fc(res)
         res = torch.transpose(res, 1, 2)
+        return res'''
+
+class encoder_union(torch.nn.Module):
+    # src: center -> dst: bead
+    def  __init__(self, in_h1_dim, in_h0_dim, out_dim, in_h1_heads, in_h0_heads, out_heads):
+        super(encoder_union, self).__init__()
+        '''self.layer_merge = dgl.nn.GATConv((in_h1_dim, in_h0_dim), out_dim, 
+                                            num_heads=in_h0_heads, 
+                                            allow_zero_in_degree=True)'''
+        self.layer_merge = MultiHeadMergeLayer(in_h0_dim, in_h1_dim, out_dim, in_h0_heads, merge='stack')
+        self.in_h1_heads = in_h1_heads
+
+        self.wn_fc = torch.nn.utils.weight_norm( torch.nn.Linear(in_features=in_h0_heads*in_h1_heads, out_features=out_heads) )
+        gain = torch.nn.init.calculate_gain('relu')
+        torch.nn.init.xavier_normal_(self.wn_fc.weight, gain=gain)
+
+    def normWeight(self, module): # 
+        module.weight.data = torch.softmax(module.weight.data, dim=1)
+
+    def forward(self, graph, hier_1, hier_0):
+        res = []
+        for i in torch.arange(self.in_h1_heads):
+            k = self.layer_merge(graph, (hier_0, hier_1[:,i,:]))
+            res.append(k)
+        res = torch.cat(res, dim=1)
+        res = torch.transpose(res, 1, 2)
+        self.normWeight(self.wn_fc)
+        res = self.wn_fc(res)
+        res = torch.transpose(res, 1, 2)
         return res
+
+class MergeLayer(torch.nn.Module):
+    def __init__(self, in_h0_dim, in_h1_dim, out_dim):
+        super(MergeLayer, self).__init__()
+        # src: center h1 -> dst: bead h0
+        self.fcsrc = torch.nn.Linear(in_h1_dim, out_dim, bias=False) 
+        self.fcdst = torch.nn.Linear(in_h0_dim, out_dim, bias=False)
+        self.attn_interacts = torch.nn.Linear(2*out_dim, 1, bias=False)
+
+        self.reset_parameters()
+
+    def reset_parameters(self):
+        """Reinitialize learnable parameters."""
+        gain = torch.nn.init.calculate_gain('relu')
+        torch.nn.init.xavier_normal_(self.fcsrc.weight, gain=gain)
+        torch.nn.init.xavier_normal_(self.fcdst.weight, gain=gain)
+        torch.nn.init.xavier_normal_(self.attn_interacts.weight, gain=gain)
+
+    def edge_attention(self, edges):
+        z2 = torch.cat([edges.src['z'], edges.dst['z']], dim=1)
+        a = self.attn_interacts(z2)
+        return {'e': torch.nn.functional.leaky_relu(a)}
+
+    def message_func(self, edges):
+        return {'src_z': edges.src['z'], 'e': edges.data['e'], 'dst_z': edges.dst['z']}
+
+    def reduce_func(self, nodes):
+        alpha = torch.nn.functional.softmax(nodes.mailbox['e'], dim=1)
+        h = torch.sum(alpha * nodes.mailbox['src_z'], dim=1) + nodes.data['z']
+        return {'ah': h}
+
+    def forward(self, graph, h0, h1):
+        with graph.local_scope():
+            graph.srcdata['z'] = self.fcsrc(h1)
+            graph.dstdata['z'] = self.fcdst(h0)
+            graph.apply_edges(self.edge_attention)
+            graph.update_all(self.message_func, self.reduce_func)
+
+            return graph.ndata.pop('ah')['h0_bead']
+
+class MultiHeadMergeLayer(torch.nn.Module):
+    def __init__(self, in_h0_dim, in_h1_dim, out_dim, num_heads, merge='stack'):
+        super(MultiHeadMergeLayer, self).__init__()
+        self.heads = torch.nn.ModuleList()
+        for i in range(num_heads):
+            self.heads.append(MergeLayer(in_h0_dim, in_h1_dim, out_dim))
+        self.merge = merge
+
+    def forward(self, g, h):
+        head_outs = [attn_head(g, h[0], h[1]) for attn_head in self.heads]
+        if self.merge == 'stack':
+            # stack on the output feature dimension (dim=1)
+            return torch.stack(head_outs, dim=1)
+        else:
+            # merge using average
+            return torch.mean(torch.stack(head_outs))
 
 class decoder(torch.nn.Module):
     ''' num_heads, num_clusters, ntype, etype '''

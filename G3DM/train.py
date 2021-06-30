@@ -158,7 +158,7 @@ def fit_one_step(graphs, features, cluster_weights, sampler, batch_size, em_netw
 
         loss1 = loss_fc(xp1, xt1, cw1)
         loss0 = loss_fc(xp0, xt0, cw0)
-        loss = loss0*0.01 + loss1*0.99
+        loss = loss0*0.1 + loss1*0.9
         # loss = loss1
         optimizer.zero_grad()
         loss.backward(retain_graph=False)  # retain_graph=False,
