@@ -15,7 +15,8 @@ warnings.filterwarnings('ignore')
 gpuIDs = GPUtil.getAvailable(order='first', limit=1, maxLoad=0.05,
                              maxMemory=0.05, includeNan=False, 
                              excludeID=[], excludeUUID=[])
-device = torch.device('cpu' if len(gpuIDs) == 0 else 'cuda:{}'.format(gpuIDs[0]))
+# device = torch.device('cpu' if len(gpuIDs) == 0 else 'cuda:{}'.format(gpuIDs[0]))
+device = torch.device('cpu' if len(gpuIDs) == 0 else 'cuda:0')
 print(device)
 
 if __name__ == '__main__':
