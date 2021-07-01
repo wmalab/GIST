@@ -52,13 +52,13 @@ class constrainLayer(torch.nn.Module):
         g.update_all(message_func, reduce_func)
         h = g.ndata['h']
         l = torch.norm(h, p=2, dim=-1, keepdim=True) + 1e-7
-        h = (h/l)
-        ha = self.alpha_fc(h)
+        dh = (h/l) + 1e-4
+        '''ha = self.alpha_fc(h)
         hb = self.beta_fc(h)
         x = r * torch.sin(ha) * torch.cos(hb)
         y = r * torch.sin(ha) * torch.sin(hb)
         z = r * torch.cos(ha)
-        dh = torch.cat([x,y,z], dim=-1)
+        dh = torch.cat([x,y,z], dim=-1)'''
         return dh
         # return h
 
