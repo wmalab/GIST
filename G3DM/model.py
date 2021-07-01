@@ -314,9 +314,9 @@ class decoder(torch.nn.Module):
         torch.nn.init.uniform_(self.b, a=1.0e-7, b=1.0e-4)
 
     def aritficial_fc(self, x):
-        upper = x - self.upper_bound
+        upper = self.upper_bound - x
         lower = x - self.lower_bound
-        score = (-(upper*lower))/(self.r_dist**2+1e-5)
+        score = upper*lower
         return score
         '''m = torch.relu(mean)
         score = 1.0/((x - m)**2 + self.b)

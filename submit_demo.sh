@@ -1,5 +1,4 @@
 #!/bin/bash
-#SBATCH --partition=wmalab
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --mem=100G
