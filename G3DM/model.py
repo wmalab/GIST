@@ -304,28 +304,37 @@ class decoder(torch.nn.Module):
         upones = torch.ones((num_seq, num_seq))
         upones = torch.triu(upones)
         self.upones = torch.nn.Parameter( upones, requires_grad=False)
+        
+        lowones = torch.ones((num_seq, num_seq))
+        lowones = torch.triu(lowones, diagonal=1)
+        self.lowones = torch.nn.Parameter( lowones, requires_grad=False)
 
         self.b = torch.nn.Parameter(torch.empty((1)), requires_grad=True)
         self.register_parameter('b',self.b) 
         torch.nn.init.uniform_(self.b, a=1.0e-7, b=1.0e-4)
 
-    def aritficial_fc(self, mean, x):
-        m = torch.relu(mean)
-        score = 1.0/((x - m)**2 + self.b)
+    def aritficial_fc(self, x):
+        upper = x - self.upper_bound
+        lower = x - self.lower_bound
+        score = (-(upper*lower))/(self.r_dist**2+1e-5)
         return score
+        '''m = torch.relu(mean)
+        score = 1.0/((x - m)**2 + self.b)
+        return score'''
 
     def edge_distance(self, edges):
         n2 = torch.norm((edges.dst['z'] - edges.src['z']), dim=-1)
         weight = torch.nn.functional.softmax(self.w, dim=0)
         dist = torch.sum(n2*weight, dim=-1, keepdim=True)
-        outputs_dist = self.aritficial_fc(self.mean_dist, dist)
+        outputs_dist = self.aritficial_fc(dist)
 
         return {'dist_pred': outputs_dist}
 
     def forward(self, g, h):
         with g.local_scope():
             g.nodes[self.ntype].data['z'] = h
-            self.mean_dist = self.r_dist # torch.exp(torch.matmul(self.r_dist, self.upones))
+            self.upper_bound = torch.matmul(torch.abs(self.r_dist), self.upones)
+            self.lower_bound = torch.matmul(torch.abs(self.r_dist), self.lowones)
             g.apply_edges(self.edge_distance, etype=self.etype)
             return g.edata.pop('dist_pred')
 
