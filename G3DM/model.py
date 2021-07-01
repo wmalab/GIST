@@ -110,20 +110,20 @@ class encoder_chain(torch.nn.Module):
         h = self.layer1(subg_interacts, {ntype[0]: x })
         h = self.layer2(subg_interacts, h)
 
-        '''subg_chain = g.edge_type_subgraph([etypes[1]])
+        subg_chain = g.edge_type_subgraph([etypes[1]])
         radius = torch.clamp(self.r, min=10e-3, max=3)
         dh = self.chain(subg_chain, h[ntype[0]], radius)
         conh = torch.cumsum(dh, dim=-2)
-        h = self.layerMHs(subg_interacts, {ntype[0]: conh })'''
+        h = self.layerMHs(subg_interacts, {ntype[0]: conh })
 
-        h = self.layerMHs(subg_interacts, h) #{ntype[0]: h })
+        # h = self.layerMHs(subg_interacts, h) #{ntype[0]: h })
 
         res = list()
         for i in torch.arange(self.num_heads):
-            '''ds = self.chain(subg_chain, h[ntype[0]][:,i,:], radius)
+            ds = self.chain(subg_chain, h[ntype[0]][:,i,:], radius)
             s = torch.cumsum(ds, dim=-2)
-            res.append(s)'''
-            res.append(h[ntype[0]][:,i,:])
+            res.append(s)
+            # res.append(h[ntype[0]][:,i,:])
         res = torch.stack(res, dim=1)
         return res
 
@@ -292,13 +292,6 @@ class decoder(torch.nn.Module):
         self.etype = etype
 
         num_seq = num_clusters
-        # x = lambda a : (a-1)*2+5
-        # num_seq = x(x(num_clusters))
-        # print('num_cluster: {}, mun_seq: {}'.format(num_clusters, num_seq))
-
-        # num_seq = ((2*num_clusters+3)*2+3)+2
-        # self.pi = torch.acos(torch.zeros(1)) * 2
-        # self.register_buffer('pi_const', self.pi)
 
         self.w = torch.nn.Parameter(torch.empty( (self.num_heads)), requires_grad=True)
         self.register_parameter('w', self.w)
@@ -316,27 +309,6 @@ class decoder(torch.nn.Module):
         self.register_parameter('b',self.b) 
         torch.nn.init.uniform_(self.b, a=1.0e-7, b=1.0e-4)
 
-        # self.std_dist = torch.nn.Parameter(torch.empty((1,num_seq)), requires_grad=True)
-        # self.register_parameter('std_dist',self.std_dist) 
-        # torch.nn.init.uniform_(self.std_dist, a=0.0, b=1.0)
-
-        '''self.conv1d_dist_0 = torch.nn.Conv1d(in_channels=1, out_channels=8, kernel_size=7, stride=1, padding=0, padding_mode='replicate', bias=True)
-        self.conv1d_dist_1 = torch.nn.Conv1d(in_channels=8, out_channels=1, kernel_size=5, stride=2, padding=0)
-        gain = torch.nn.init.calculate_gain('relu')
-        torch.nn.init.xavier_normal_(self.conv1d_dist_0.weight, gain=gain)
-        torch.nn.init.xavier_normal_(self.conv1d_dist_1.weight, gain=gain)
-
-        self.avgP1d_5_2 = torch.nn.AvgPool1d(5, stride=2)
-        self.maxP1d_5_2 = torch.nn.MaxPool1d(5, stride=2)'''
-
-    '''def norm_prob(self, mean, std, x):
-        f = (-1.0/2.0)*(((x-mean)/std)**2)
-        #log norm probability
-        # pdf = -torch.log(std*torch.sqrt(2*self.pi)) + f
-        pdf = 1/(std*torch.sqrt(2*self.pi_const)) * torch.exp(f)
-        # pdf = torch.nn.functional.normalize( pdf, p=2, dim=-1)
-        return pdf'''
-
     def aritficial_fc(self, mean, x):
         m = torch.relu(mean)
         score = 1.0/((x - m)**2 + self.b)
@@ -346,19 +318,8 @@ class decoder(torch.nn.Module):
         n2 = torch.norm((edges.dst['z'] - edges.src['z']), dim=-1)
         weight = torch.nn.functional.softmax(self.w, dim=0)
         dist = torch.sum(n2*weight, dim=-1, keepdim=True)
-
-        # std = torch.min(torch.abs(self.std_dist), torch.abs(self.r_dist)/4)
-        # outputs_dist = self.norm_prob(self.mean_dist, std, dist)
-        # torch.cumsum(torch.abs(self.r_dist+1e-4)+1e-4, dim=1)
         outputs_dist = self.aritficial_fc(self.mean_dist, dist)
-        # outputs_dist = torch.unsqueeze(outputs_dist, dim=1)
-        # outputs_dist = self.conv1d_dist_0(outputs_dist)
-        # outputs_dist = self.conv1d_dist_1(outputs_dist)
-        # outputs_dist = self.avgP1d_5_2(outputs_dist)
-        # outputs_dist = self.maxP1d_5_2(outputs_dist)
-        # outputs_dist = torch.squeeze(outputs_dist, dim=1)
 
-        # return {'dist_pred': outputs_dist, 'count_pred':outputs_count}
         return {'dist_pred': outputs_dist}
 
     def forward(self, g, h):
@@ -366,6 +327,5 @@ class decoder(torch.nn.Module):
             g.nodes[self.ntype].data['z'] = h
             self.mean_dist = torch.matmul(torch.abs(self.r_dist)+1e-4, self.upones) 
             g.apply_edges(self.edge_distance, etype=self.etype)
-            # return g.edata.pop('dist_pred'), g.edata.pop('count_pred'), self.mean_dist, self.mean_count
             return g.edata.pop('dist_pred')
 
