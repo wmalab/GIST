@@ -323,8 +323,8 @@ def run_epoch(dataset, model, loss_fc, optimizer, sampler, batch_size, iteration
                         x0 = param.to('cpu').detach().numpy()
                 # print(x1, x0)
                 # np.exp(np.cumsum(np.abs(x0+1e-4)))
-                plot_lines(x0, writer, '2,3 hop_dist/bead', step=i)
-                plot_lines(x1, writer, '2,3 hop_dist/center', step=i)
+                plot_lines(np.cumsum(np.abs(x0+1e-4)), writer, '2,3 hop_dist/bead', step=i)
+                plot_lines(np.cumsum(np.abs(x1+1e-4)), writer, '2,3 hop_dist/center', step=i)
         plot_scaler(np.nanmean(np.array(loss_list)), writer, 'Loss/nll' ,step = i)
         print("epoch {:d} Loss {:f}".format(i, np.nanmean(np.array(loss_list))))
 
