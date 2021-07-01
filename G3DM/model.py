@@ -97,7 +97,7 @@ class encoder_chain(torch.nn.Module):
 
         self.r = torch.nn.Parameter(torch.empty((1)), requires_grad=True)
         self.register_parameter('r', self.r)
-        torch.nn.init.uniform_(self.r, a=0.0, b=1.0)
+        torch.nn.init.uniform_(self.r, a=0.1, b=0.2)
 
 
     def forward(self, g, x, etypes, efeat, ntype):
