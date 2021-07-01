@@ -325,8 +325,7 @@ class decoder(torch.nn.Module):
     def forward(self, g, h):
         with g.local_scope():
             g.nodes[self.ntype].data['z'] = h
-            self.mean_dist = torch.exp(torch.matmul(self.r_dist, self.upones))
-            print(self.mean_dist)
+            self.mean_dist = self.r_dist # torch.exp(torch.matmul(self.r_dist, self.upones))
             g.apply_edges(self.edge_distance, etype=self.etype)
             return g.edata.pop('dist_pred')
 
