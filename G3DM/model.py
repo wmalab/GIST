@@ -243,7 +243,7 @@ class MergeLayer(torch.nn.Module):
         torch.nn.init.xavier_normal_(self.attn_interacts.weight, gain=gain)
 
     def edge_attention(self, edges):
-        z2 = torch.cat([edges.src['z'], edges.dst['z']], dim=1)
+        z2 = torch.cat([edges.src['z'], edges.dst['z']-edges.src['z']], dim=1)
         a = self.attn_interacts(z2)
         return {'e': torch.nn.functional.leaky_relu(a)}
 
@@ -252,7 +252,7 @@ class MergeLayer(torch.nn.Module):
 
     def reduce_func(self, nodes):
         alpha = torch.nn.functional.softmax(nodes.mailbox['e'], dim=1)
-        h = torch.sum(alpha * nodes.mailbox['src_z'], dim=1) + nodes.data['z']
+        h = torch.sum(alpha * (nodes.mailbox['src_z'] - nodes.mailbox['dst_z']), dim=1) + torch.mean(nodes.mailbox['src_z'], dim=1)
         return {'ah': h}
 
     def forward(self, graph, h0, h1):
@@ -307,9 +307,10 @@ class decoder(torch.nn.Module):
         self.r_dist = torch.nn.Parameter(torch.empty((1,num_seq)), requires_grad=True)
         self.register_parameter('r_dist',self.r_dist) 
         torch.nn.init.uniform_(self.r_dist, a=0.05, b=0.3)
-        print(self.r_dist)
-        '''self.mean_dist = torch.nn.Parameter(torch.cumsum(torch.abs(self.r_dist)+1e-4, dim=1))
-        self.register_parameter('mean_dist',self.mean_dist)''' 
+
+        upones = torch.ones((num_seq, num_seq))
+        upones = torch.triu(upones)
+        self.upones = torch.nn.Parameter( upones, requires_grad=False)
 
         self.b = torch.nn.Parameter(torch.empty((1)), requires_grad=True)
         self.register_parameter('b',self.b) 
@@ -363,8 +364,7 @@ class decoder(torch.nn.Module):
     def forward(self, g, h):
         with g.local_scope():
             g.nodes[self.ntype].data['z'] = h
-            self.mean_dist = torch.cumsum(torch.abs(self.r_dist+1e-4)+1e-4, dim=1)
-            # self.mean_dist, _ = torch.sort(torch.abs(self.r_dist+1e-4)) 
+            self.mean_dist = torch.matmul(torch.abs(self.r_dist)+1e-4, self.upones) 
             g.apply_edges(self.edge_distance, etype=self.etype)
             # return g.edata.pop('dist_pred'), g.edata.pop('count_pred'), self.mean_dist, self.mean_count
             return g.edata.pop('dist_pred')
