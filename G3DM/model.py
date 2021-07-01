@@ -92,7 +92,7 @@ class encoder_chain(torch.nn.Module):
                                     allow_zero_in_degree=True)
         self.layerMHs = dgl.nn.HeteroGraphConv( lMH, aggregate='mean')
 
-        self.chain = constrainLayer(out_dim)
+        '''self.chain = constrainLayer(out_dim)'''
         self.num_heads = num_heads
 
         self.r = torch.nn.Parameter(torch.empty((1)), requires_grad=True)
@@ -110,20 +110,20 @@ class encoder_chain(torch.nn.Module):
         h = self.layer1(subg_interacts, {ntype[0]: x })
         h = self.layer2(subg_interacts, h)
 
-        subg_chain = g.edge_type_subgraph([etypes[1]])
+        '''subg_chain = g.edge_type_subgraph([etypes[1]])
         radius = torch.clamp(self.r, min=10e-3, max=3)
         dh = self.chain(subg_chain, h[ntype[0]], radius)
         conh = torch.cumsum(dh, dim=-2)
-        h = self.layerMHs(subg_interacts, {ntype[0]: conh })
+        h = self.layerMHs(subg_interacts, {ntype[0]: conh })'''
 
-        # h = self.layerMHs(subg_interacts, h) #{ntype[0]: h })
+        h = self.layerMHs(subg_interacts, h) #{ntype[0]: h })
 
         res = list()
         for i in torch.arange(self.num_heads):
-            ds = self.chain(subg_chain, h[ntype[0]][:,i,:], radius)
+            '''ds = self.chain(subg_chain, h[ntype[0]][:,i,:], radius)
             s = torch.cumsum(ds, dim=-2)
-            res.append(s)
-            # res.append(h[ntype[0]][:,i,:])
+            res.append(s)'''
+            res.append(h[ntype[0]][:,i,:])
         res = torch.stack(res, dim=1)
         return res
 
