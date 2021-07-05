@@ -258,7 +258,7 @@ def inference(graphs, features, num_heads, num_clusters, em_networks, ae_network
         tp0 = bottom_graph.edges['_E'].data['label'].cpu().detach().numpy()
         bead_X = result.cpu().detach().numpy()
         bead_cluster_mat = np.ones((bead_X.shape[0], bead_X.shape[0]))*(num_clusters[0]-1)
-        xs, ys = bottom_graph.edges()[0], bottom_graph.edges()[1]
+        xs, ys = bottom_graph.edges()[0].cpu().detach().numpy(), bottom_graph.edges()[1].cpu().detach().numpy()
         bead_cluster_mat[xs, ys] = np.argmax(p0, axis=1)
         true_bead = np.ones((bead_X.shape[0], bead_X.shape[0]))*(num_clusters[0]-1)
         true_bead[xs, ys] = tp0
