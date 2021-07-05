@@ -18,8 +18,8 @@
     "parameter": {
         "graph":{
             "num_clusters": {"0": 14, "1": 7},
-            "cutoff_percent": {"0": 30, "1": 30},
-            "cutoff_cluster": {"0": 5, "1": 4}
+            "cutoff_percent": {"0": 5, "1": 5},
+            "cutoff_cluster": {"0": 6, "1": 6}
         },
         "feature":{
             "in_dim":{"h0":20, "h1":10},
