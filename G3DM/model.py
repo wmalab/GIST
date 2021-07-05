@@ -124,8 +124,8 @@ class encoder_chain(torch.nn.Module):
             s = torch.cumsum(ds, dim=-2)
             res.append(s)'''
             x = h[ntype[0]][:,i,:]
-            vmin = torch.min(x, dim=0, keepdim=True)
-            vmax = torch.max(x, dim=0, keepdim=True)
+            vmin, _ = torch.min(x, dim=0, keepdim=True)
+            vmax, _ = torch.max(x, dim=0, keepdim=True)
             x = (x - vmin)/(vmax-vmin)
             vmean = torch.mean(x, dim=0, keepdim=True)
             x = x - vmean
