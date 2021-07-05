@@ -150,7 +150,7 @@ if __name__ == '__main__':
     for key, value in percents.items():
         cutoff_percents[int(key)] = int(value)
 
-    cutoff_cluster = int(config_data['parameter']['graph']['cutoff_cluster'])
+    cutoff_cluster = config_data['parameter']['graph']['cutoff_cluster']
 
     pool_num = len(all_chromosome)*2 if multiprocessing.cpu_count() > len(
         all_chromosome)*2 else multiprocessing.cpu_count()
