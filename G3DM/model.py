@@ -297,7 +297,7 @@ class decoder(torch.nn.Module):
         self.register_parameter('w', self.w)
         torch.nn.init.uniform_(self.w, a=0.0, b=1.0)
 
-        self.r_dist = torch.nn.Parameter(torch.empty((1,num_seq)), requires_grad=True)
+        self.r_dist = torch.nn.Parameter(torch.empty((1, num_seq)), requires_grad=True)
         self.register_parameter('r_dist',self.r_dist) 
         torch.nn.init.uniform_(self.r_dist, a=0.05, b=0.3)
 
@@ -309,15 +309,12 @@ class decoder(torch.nn.Module):
         lowones = torch.triu(lowones, diagonal=1)
         self.lowones = torch.nn.Parameter( lowones, requires_grad=False)
 
-        self.b = torch.nn.Parameter(torch.empty((1)), requires_grad=True)
-        self.register_parameter('b',self.b) 
-        torch.nn.init.uniform_(self.b, a=1.0e-7, b=1.0e-4)
-
     def aritficial_fc(self, x):
         upper = self.upper_bound - x
         lower = x - self.lower_bound
         score = upper*lower
         return score
+
         '''m = torch.relu(mean)
         score = 1.0/((x - m)**2 + self.b)
         return score'''

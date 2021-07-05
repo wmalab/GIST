@@ -71,6 +71,7 @@ if __name__ == '__main__':
     cutoff_cluster = int(config_data['parameter']['graph']['cutoff_cluster'])'''
 
     # load dataset
+    print('load dataset: {}'.format(os.path.join( dataset_path, dataset_name)))
     HiCDataset = load_dataset(dataset_path, dataset_name)
     graphs, features, label, _ = HiCDataset[0]
 

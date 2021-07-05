@@ -17,7 +17,11 @@ def load_graph(output_path, output_file) -> dict() :
     ''' g_list = [ top_graph, top_subgraphs, bottom_graph, inter_graph ] '''
     output_file = output_file + '.bin'
     g_list, labels = dgl.data.utils.load_graphs(os.path.join(output_path, output_file))
-    res = {'top_graph':g_list[0], 'top_subgraphs': g_list[1], 'bottom_graph': g_list[2], 'inter_graph': g_list[3]}
+    res = {'top_graph':g_list[0], 
+            'top_subgraphs': g_list[1], 
+            'bottom_graph': g_list[2], 
+            'bottom_subgraphs': g_list[3], 
+            'inter_graph': g_list[4]}
     return res, labels
 
 def load_hic(name='Dixon2012-H1hESC-HindIII-allreps-filtered.500kb.cool', chromosome='chr1'):

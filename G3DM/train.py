@@ -28,6 +28,7 @@ def create_network(configuration, graph, device):
     top_graph = graph['top_graph']
     top_subgraphs = graph['top_subgraphs']
     bottom_graph = graph['bottom_graph']
+    bottom_subgraphs = graph['bottom_subgraphs']
     inter_graph = graph['inter_graph']
 
     sampling_num = config['G3DM']['sampling_num']
@@ -53,7 +54,7 @@ def create_network(configuration, graph, device):
     cin, chidden, cout = int(chain['in_dim']), int(
         chain['hidden_dim']), int(chain['out_dim'])
     e_list = ['interacts_1_c{}'.format(i) for i in np.arange(
-        int(config['graph']['cutoff_cluster']))]
+        int(config['graph']['cutoff_cluster'][str(1)]))]
     en_chain_net = encoder_chain(
         cin, chidden, cout, num_heads=nh1, etypes=e_list).to(device)
 
@@ -116,7 +117,8 @@ def setup_train(configuration):
 def fit_one_step(graphs, features, cluster_weights, sampler, batch_size, em_networks, ae_networks, loss_fc, optimizer, device):
     top_graph = graphs['top_graph'].to(device)
     top_subgraphs = graphs['top_subgraphs'].to(device)
-    bottom_graph = dgl.to_homogeneous(graphs['bottom_graph'], edata=['w', 'label'], store_type=True)
+    bottom_subgraphs = dgl.to_homogeneous(graphs['bottom_subgraphs'], edata=['w'], store_type=True)
+    bottom_graph = dgl.to_homogeneous(graphs['bottom_graph'], edata=['label'], store_type=True).to(device)
     inter_graph = graphs['inter_graph'].to(device)
 
     cw0 = cluster_weights[0]
@@ -134,7 +136,7 @@ def fit_one_step(graphs, features, cluster_weights, sampler, batch_size, em_netw
     # dataloader = dgl.dataloading.EdgeDataLoader(bottom_graph, {'interacts_0': eid_dict['interacts_0']}, sampler, device=device,
     #                                             batch_size=batch_size, shuffle=True, drop_last=True)
 
-    dataloader = dgl.dataloading.EdgeDataLoader(bottom_graph, bottom_graph.nodes(), sampler, device=device,
+    dataloader = dgl.dataloading.EdgeDataLoader(bottom_subgraphs, bottom_subgraphs.nodes(), sampler, device=device,
                                                 batch_size=batch_size, shuffle=True, drop_last=True)
     top_list = [e for e in top_subgraphs.etypes if 'interacts_1_c' in e]
     top_list.append('bead_chain')
@@ -158,11 +160,13 @@ def fit_one_step(graphs, features, cluster_weights, sampler, batch_size, em_netw
         c = h_center[h1, :, :].to(device)
         res = en_union(inter, c, h_bead)
 
+        sub_pair = dgl.node_subgraph(bottom_graph, {'_N': blocks[2].dstnodes('_N')})
+
         xp1 = de_center_net(top_graph, h_center)
-        xp0 = de_bead_net(pair_graph, res)
+        xp0 = de_bead_net(sub_pair, res)
 
         xt1 = top_graph.edges['interacts_1'].data['label']
-        xt0 = pair_graph.edges['_E'].data['label']
+        xt0 = sub_pair.edges['_E'].data['label']
 
         loss1 = loss_fc(xp1, xt1, cw1)
         loss0 = loss_fc(xp0, xt0, cw0)
@@ -185,7 +189,8 @@ def fit_one_step(graphs, features, cluster_weights, sampler, batch_size, em_netw
 def inference(graphs, features, num_heads, num_clusters, em_networks, ae_networks, device):
     top_graph = graphs['top_graph'].to(device)
     top_subgraphs = graphs['top_subgraphs'].to(device)
-    bottom_graph = (dgl.to_homogeneous(graphs['bottom_graph'], edata=['w', 'label']))
+    bottom_subgraphs = dgl.to_homogeneous(graphs['bottom_subgraphs'], edata=['w'], store_type=True)
+    bottom_graph = dgl.to_homogeneous(graphs['bottom_graph'], edata=['label'], store_type=True).to(device)
     inter_graph = graphs['inter_graph'].to(device)
 
     h0_feat = features[0]
@@ -200,8 +205,8 @@ def inference(graphs, features, num_heads, num_clusters, em_networks, ae_network
             
     sampler = dgl.dataloading.MultiLayerFullNeighborSampler(3)
     batch_size = 20 # bottom_graph.number_of_nodes()
-    dataloader = dgl.dataloading.NodeDataLoader(bottom_graph, 
-                                                torch.arange(bottom_graph.number_of_nodes()), 
+    dataloader = dgl.dataloading.NodeDataLoader(bottom_subgraphs, 
+                                                torch.arange(bottom_subgraphs.number_of_nodes()), 
                                                 sampler, device=device,
                                                 batch_size=batch_size, shuffle=False, drop_last=False)
     top_list = [e for e in top_subgraphs.etypes if 'interacts_1_c' in e]
