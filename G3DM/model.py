@@ -123,7 +123,13 @@ class encoder_chain(torch.nn.Module):
             '''ds = self.chain(subg_chain, h[ntype[0]][:,i,:], radius)
             s = torch.cumsum(ds, dim=-2)
             res.append(s)'''
-            res.append(h[ntype[0]][:,i,:])
+            x = h[ntype[0]][:,i,:]
+            vmin = torch.min(x, dim=0, keepdim=True)
+            vmax = torch.max(x, dim=0, keepdim=True)
+            x = (x - vmin)/(vmax-vmin)
+            vmean = torch.mean(x, dim=0, keepdim=True)
+            x = x - vmean
+            res.append(x)
         res = torch.stack(res, dim=1)
         return res
 
