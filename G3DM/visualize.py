@@ -18,10 +18,10 @@ def plot_feature(feats, position, writer, item_dir):
         fig.colorbar(pcm, ax=ax)
     writer.add_figure(item_dir, fig)
 
-def plot_X(X, writer, item_dir, step=None):
+def plot_X(S, writer, item_dir, step=None):
     fig = plt.figure()
     for i in np.arange(4):
-        data = X[:,i,:]
+        data = S[:,i,:]
         ax = fig.add_subplot(2,2,i+1, projection='3d')
         cmap = cm.get_cmap(plt.get_cmap('autumn')) # RdBu_r
         X, Y, Z = data[:,0], data[:,1], data[:,2]
