@@ -171,8 +171,8 @@ def fit_one_step(graphs, features, cluster_weights, sampler, batch_size, em_netw
         xt1 = top_graph.edges['interacts_1'].data['label']
         xt0 = sub_pair.edges['_E'].data['label']
 
-        loss1 = loss_fc[0](xp1, xt1, cw1) + loss_fc[1](std1, xt1, ncluster1)
-        loss0 = loss_fc[0](xp0, xt0, cw0) + loss_fc[1](std0, xt0, ncluster0)
+        loss1 = loss_fc[0](xp1, xt1, cw1) # + loss_fc[1](std1, xt1, ncluster1)
+        loss0 = loss_fc[0](xp0, xt0, cw0) # + loss_fc[1](std0, xt0, ncluster0)
         loss = loss_fc[0](xp0, xt0, cw0)*1 + loss_fc[0](xp1, xt1, cw1)*1000
         # loss = loss1
         optimizer[0].zero_grad()

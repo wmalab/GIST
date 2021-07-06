@@ -148,7 +148,7 @@ class encoder_bead(torch.nn.Module):
         # self.norm = dgl.nn.EdgeWeightNorm(norm='both')
 
     def forward(self, blocks, x, etypes, efeat):
-        edge_weights = [sub.edata[efeat[0]] for  sub in blocks]
+        edge_weights = [sub.edata[efeat[0]] for sub in blocks]
         # norm_edge_weights = [ self.norm(blocks[i], w) for i, w in enumerate(edge_weights)]
         
         # block = blocks[0].edge_type_subgraph([etypes[0]])
