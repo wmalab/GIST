@@ -218,7 +218,7 @@ class encoder_union(torch.nn.Module):
         self.layer_merge = MultiHeadMergeLayer(in_h0_dim, in_h1_dim, out_dim, in_h0_heads, merge='stack')
         self.in_h1_heads = in_h1_heads
 
-        self.wn_fc = torch.nn.utils.weight_norm( torch.nn.Linear(in_features=in_h0_heads*in_h1_heads, out_features=out_heads) )
+        self.wn_fc = torch.nn.Linear(in_features=in_h0_heads*in_h1_heads, out_features=out_heads, bias=False)
         gain = torch.nn.init.calculate_gain('relu')
         torch.nn.init.xavier_normal_(self.wn_fc.weight, gain=gain)
 
@@ -265,7 +265,8 @@ class MergeLayer(torch.nn.Module):
 
     def reduce_func(self, nodes):
         alpha = torch.nn.functional.softmax(nodes.mailbox['e'], dim=1)
-        h = torch.sum(alpha * (nodes.mailbox['src_z'] - nodes.mailbox['dst_z']), dim=1) + torch.mean(nodes.mailbox['src_z'], dim=1)
+        h = torch.sum(alpha * (nodes.mailbox['src_z'] - nodes.mailbox['dst_z']), dim=1, keepdim=True) + nodes.mailbox['dst_z']
+        h = torch.squeeze(h, dim=1)
         return {'ah': h}
 
     def forward(self, graph, h0, h1):
