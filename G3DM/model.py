@@ -136,7 +136,7 @@ class encoder_chain(torch.nn.Module):
 class encoder_bead(torch.nn.Module): 
     def __init__(self, in_dim, hidden_dim, out_dim):
         super(encoder_bead, self).__init__()
-        self.layer1 = dgl.nn.GraphConv( in_dim, hidden_dim, 
+        '''self.layer1 = dgl.nn.GraphConv( in_dim, hidden_dim, 
                                         norm='right', weight=True, 
                                         allow_zero_in_degree=True)
         self.layer2 = dgl.nn.GraphConv( hidden_dim, out_dim, 
@@ -144,7 +144,13 @@ class encoder_bead(torch.nn.Module):
                                         allow_zero_in_degree=True)
         self.layer3 = dgl.nn.GraphConv( out_dim, out_dim, 
                                         norm='right', weight=True, 
-                                        allow_zero_in_degree=True)
+                                        allow_zero_in_degree=True)'''
+        self.layer1 = dgl.nn.SAGEConv( in_dim, hidden_dim, 'lstm',
+                                        norm=None)
+        self.layer2 = dgl.nn.SAGEConv( hidden_dim, out_dim, 'lstm',
+                                        norm=None)
+        self.layer3 = dgl.nn.SAGEConv( out_dim, out_dim, 'lstm',
+                                        norm=None)
         # self.norm = dgl.nn.EdgeWeightNorm(norm='both')
 
     def forward(self, blocks, x, etypes, efeat):
@@ -217,15 +223,16 @@ class encoder_union(torch.nn.Module):
         torch.nn.init.xavier_normal_(self.wn_fc.weight, gain=gain)
 
     def normWeight(self, module): # 
-        module.weight.data = torch.softmax(module.weight.data, dim=1)
+        w = torch.relu(module.weight.data)
+        module.weight.data = w/(torch.sum(w, dim=1, keepdim=True))
 
     def forward(self, graph, hier_1, hier_0):
         res = []
         for i in torch.arange(self.in_h1_heads):
             k = self.layer_merge(graph, (hier_0, hier_1[:,i,:]))
             res.append(k)
-        res = torch.cat(res, dim=1)
-        res = torch.transpose(res, 1, 2)
+        res = torch.cat(res, dim=2)
+        # res = torch.transpose(res, 1, 2)
         self.normWeight(self.wn_fc)
         res = self.wn_fc(res)
         res = torch.transpose(res, 1, 2)
@@ -282,7 +289,7 @@ class MultiHeadMergeLayer(torch.nn.Module):
         head_outs = [attn_head(g, h[0], h[1]) for attn_head in self.heads]
         if self.merge == 'stack':
             # stack on the output feature dimension (dim=1)
-            return torch.stack(head_outs, dim=1)
+            return torch.stack(head_outs, dim=-1)
         else:
             # merge using average
             return torch.mean(torch.stack(head_outs))
