@@ -250,7 +250,7 @@ class MergeLayer(torch.nn.Module):
     def __init__(self, in_h0_dim, in_h1_dim, out_dim):
         super(MergeLayer, self).__init__()
         # src: center h1 -> dst: bead h0
-        self.fcsrc = torch.nn.Linear(in_h1_dim, out_dim, bias=False) 
+        # self.fcsrc = torch.nn.Linear(in_h1_dim, out_dim, bias=False) 
         self.fcdst = torch.nn.Linear(in_h0_dim, out_dim, bias=False)
         self.attn_interacts = torch.nn.Linear(2*out_dim, 1, bias=False)
 
@@ -259,12 +259,12 @@ class MergeLayer(torch.nn.Module):
     def reset_parameters(self):
         """Reinitialize learnable parameters."""
         gain = torch.nn.init.calculate_gain('relu')
-        torch.nn.init.xavier_normal_(self.fcsrc.weight, gain=gain)
+        # torch.nn.init.xavier_normal_(self.fcsrc.weight, gain=gain)
         torch.nn.init.xavier_normal_(self.fcdst.weight, gain=gain)
         torch.nn.init.xavier_normal_(self.attn_interacts.weight, gain=gain)
 
     def edge_attention(self, edges):
-        z2 = torch.cat([edges.src['z'], edges.dst['z']-edges.src['z']], dim=1)
+        z2 = torch.cat([edges.src['z'], edges.dst['z']], dim=1)
         a = self.attn_interacts(z2)
         return {'e': torch.nn.functional.leaky_relu(a)}
 
@@ -273,18 +273,17 @@ class MergeLayer(torch.nn.Module):
 
     def reduce_func(self, nodes):
         alpha = torch.nn.functional.softmax(nodes.mailbox['e'], dim=1)
-        h = torch.sum(alpha * (nodes.mailbox['dst_z']-nodes.mailbox['src_z']), dim=1) + torch.sum(alpha * (nodes.mailbox['src_z']), dim=1)
+        h = torch.sum(alpha * (nodes.mailbox['src_z']), dim=1)
         return {'ah': h}
 
     def forward(self, graph, h0, h1):
         with graph.local_scope():
-            graph.srcdata['z'] = self.fcsrc(h1)
+            # graph.srcdata['z'] = self.fcsrc(h1)
             graph.dstdata['z'] = self.fcdst(h0)
             graph.apply_edges(self.edge_attention)
             graph.update_all(self.message_func, self.reduce_func)
-
-            return graph.ndata.pop('ah')['h0_bead']
-
+            res = graph.ndata.pop('ah')['h0_bead']
+            return res
 class MultiHeadMergeLayer(torch.nn.Module):
     def __init__(self, in_h0_dim, in_h1_dim, out_dim, num_heads, merge='stack'):
         super(MultiHeadMergeLayer, self).__init__()
