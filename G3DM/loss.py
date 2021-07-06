@@ -10,6 +10,16 @@ class RMSLELoss(nn.Module):
     def forward(self, pred, target):
         return torch.sqrt(self.mse(torch.log1p(pred), torch.log1p(target)))
 
+class stdLoss(nn.Module):
+    def __init__(self):
+        super(stdLoss, self).__init__()
+        
+    def forward(self, std, cluster, num_cluster):
+        # cluster = torch.argmax(pred, dim=-1)
+        weight = (torch.abs(cluster - num_cluster/2) - num_cluster/6)**2
+        res = std*weight
+        return res
+
 class nllLoss(torch.nn.Module):
     def __init__(self):
         super(nllLoss, self).__init__()

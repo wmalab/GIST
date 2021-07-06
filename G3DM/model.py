@@ -330,8 +330,8 @@ class decoder(torch.nn.Module):
         weight = torch.nn.functional.softmax(self.w, dim=0)
         dist = torch.sum(n2*weight, dim=-1, keepdim=True)
         outputs_dist = self.aritficial_fc(dist)
-
-        return {'dist_pred': outputs_dist}
+        std = torch.sqrt(torch.mean((n2 - dist)**2, dim=-1, keepdim=True))
+        return {'dist_pred': outputs_dist, 'std': std}
 
     def forward(self, g, h):
         with g.local_scope():
@@ -339,5 +339,5 @@ class decoder(torch.nn.Module):
             self.upper_bound = torch.matmul(torch.abs(self.r_dist), self.upones)+0.1
             self.lower_bound = torch.matmul(torch.abs(self.r_dist), self.lowones)
             g.apply_edges(self.edge_distance, etype=self.etype)
-            return g.edata.pop('dist_pred')
+            return g.edata.pop('dist_pred'), g.edata.pop('std')
 

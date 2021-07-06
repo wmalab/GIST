@@ -28,6 +28,7 @@ def plot_X(X, writer, item_dir, step=None):
         ax.set_xlabel('X Label')
         ax.set_ylabel('Y Label')
         ax.set_zlabel('Z Label')
+        ax.set_aspect('equal', 'box')
     step = 0 if step is None else step
     writer.add_figure(item_dir, fig, global_step=step)
 
