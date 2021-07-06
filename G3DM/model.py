@@ -83,7 +83,7 @@ class encoder_chain(torch.nn.Module):
             l2[et] = dgl.nn.GATConv( hidden_dim, out_dim, 
                                     num_heads=1, residual=False, 
                                     allow_zero_in_degree=True)
-        self.layer2 = dgl.nn.HeteroGraphConv( l2, aggregate = 'mean')
+        self.layer2 = dgl.nn.HeteroGraphConv( l2, aggregate = self.agg_func)
         
         lMH = dict()
         for et in etypes:
@@ -95,10 +95,18 @@ class encoder_chain(torch.nn.Module):
         '''self.chain = constrainLayer(out_dim)'''
         self.num_heads = num_heads
 
+        self.fc = torch.nn.Linear(len(etypes), len(etypes), bias=False)
+        gain = torch.nn.init.calculate_gain('relu')
+        torch.nn.init.xavier_normal_(self.fc.weight, gain=gain)
+
         self.r = torch.nn.Parameter(torch.empty((1)), requires_grad=True)
         self.register_parameter('r', self.r)
         torch.nn.init.uniform_(self.r, a=0.1, b=0.2)
 
+    def agg_func(self, tensors, dsttype):
+        stacked = torch.stack(tensors, dim=-1)
+        res = self.fc(stacked)
+        return torch.mean(res, dim=-1)
 
     def forward(self, g, x, etypes, efeat, ntype):
 
@@ -136,7 +144,7 @@ class encoder_chain(torch.nn.Module):
 class encoder_bead(torch.nn.Module): 
     def __init__(self, in_dim, hidden_dim, out_dim):
         super(encoder_bead, self).__init__()
-        self.layer1 = dgl.nn.GraphConv( in_dim, hidden_dim, 
+        '''self.layer1 = dgl.nn.GraphConv( in_dim, hidden_dim, 
                                         norm='right', weight=True, 
                                         allow_zero_in_degree=True)
         self.layer2 = dgl.nn.GraphConv( hidden_dim, out_dim, 
@@ -144,13 +152,13 @@ class encoder_bead(torch.nn.Module):
                                         allow_zero_in_degree=True)
         self.layer3 = dgl.nn.GraphConv( out_dim, out_dim, 
                                         norm='right', weight=True, 
-                                        allow_zero_in_degree=True)
-        '''self.layer1 = dgl.nn.SAGEConv( in_dim, hidden_dim, 'lstm',
+                                        allow_zero_in_degree=True)'''
+        self.layer1 = dgl.nn.SAGEConv( in_dim, hidden_dim, 'mean',
                                         norm=None)
-        self.layer2 = dgl.nn.SAGEConv( hidden_dim, out_dim, 'lstm',
+        self.layer2 = dgl.nn.SAGEConv( hidden_dim, out_dim, 'mean',
                                         norm=None)
-        self.layer3 = dgl.nn.SAGEConv( out_dim, out_dim, 'lstm',
-                                        norm=None)'''
+        self.layer3 = dgl.nn.SAGEConv( out_dim, out_dim, 'mean',
+                                        norm=None)
         # self.norm = dgl.nn.EdgeWeightNorm(norm='both')
 
     def forward(self, blocks, x, etypes, efeat):
