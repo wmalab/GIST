@@ -264,7 +264,7 @@ class MergeLayer(torch.nn.Module):
         torch.nn.init.xavier_normal_(self.attn_interacts.weight, gain=gain)
 
     def edge_attention(self, edges):
-        z2 = torch.cat([edges.src['z'], edges.dst['z']], dim=1)
+        z2 = torch.cat([edges.src['z'], edges.dst['z'] - edges.src['z']], dim=1)
         a = self.attn_interacts(z2)
         return {'e': torch.nn.functional.leaky_relu(a)}
 
@@ -273,7 +273,7 @@ class MergeLayer(torch.nn.Module):
 
     def reduce_func(self, nodes):
         alpha = torch.nn.functional.softmax(nodes.mailbox['e'], dim=1)
-        h = torch.sum(alpha * (nodes.mailbox['src_z']), dim=1)
+        h = 0.5*(torch.squeeze(nodes.mailbox['dst_z'], dim=1) + torch.sum(alpha*(nodes.mailbox['src_z']), dim=1))
         return {'ah': h}
 
     def forward(self, graph, h0, h1):
