@@ -243,8 +243,8 @@ def inference(graphs, features, num_heads, num_clusters, em_networks, ae_network
             res = en_union(inter, c, h_bead)
             result[output_nodes.cpu().detach(),:,:] = res.cpu().detach()
 
-        xp1 = de_center_net(top_graph, h_center)
-        xp0 = de_bead_net(bottom_graph.to(device), result.to(device))
+        xp1, _ = de_center_net(top_graph, h_center)
+        xp0, _ = de_bead_net(bottom_graph.to(device), result.to(device))
 
         p1 = xp1.cpu().detach().numpy()
         tp1 = graphs['top_graph'].edges['interacts_1'].data['label'].cpu().detach().numpy()
