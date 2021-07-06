@@ -224,7 +224,7 @@ class encoder_union(torch.nn.Module):
 
     def normWeight(self, module): # 
         w = torch.relu(module.weight.data)
-        module.weight.data = w/(torch.sum(w, dim=1, keepdim=True))
+        module.weight.data = w/(torch.sum(w, dim=0, keepdim=True))
 
     def forward(self, graph, hier_1, hier_0):
         res = []
@@ -265,7 +265,7 @@ class MergeLayer(torch.nn.Module):
 
     def reduce_func(self, nodes):
         alpha = torch.nn.functional.softmax(nodes.mailbox['e'], dim=1)
-        h = torch.sum(alpha * (nodes.mailbox['src_z']), dim=1)
+        h = torch.sum(alpha * (nodes.mailbox['dst_z']-nodes.mailbox['src_z']), dim=1) + torch.sum(alpha * (nodes.mailbox['src_z']), dim=1)
         return {'ah': h}
 
     def forward(self, graph, h0, h1):
@@ -325,7 +325,7 @@ class decoder(torch.nn.Module):
     def aritficial_fc(self, x):
         upper = self.upper_bound - x
         lower = x - self.lower_bound
-        score = upper*lower
+        score = (upper*lower)/(self.r_dist**2+ 1e-5)
         return score
 
         '''m = torch.relu(mean)
