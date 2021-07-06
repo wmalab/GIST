@@ -312,7 +312,7 @@ class decoder(torch.nn.Module):
 
         self.r_dist = torch.nn.Parameter(torch.empty((1, num_seq)), requires_grad=True)
         self.register_parameter('r_dist',self.r_dist) 
-        torch.nn.init.uniform_(self.r_dist, a=0.05, b=0.3)
+        torch.nn.init.uniform_(self.r_dist, a=0.2, b=0.3)
 
         upones = torch.ones((num_seq, num_seq))
         upones = torch.triu(upones)
