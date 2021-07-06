@@ -220,10 +220,10 @@ class encoder_union(torch.nn.Module):
     # src: center -> dst: bead
     def  __init__(self, in_h1_dim, in_h0_dim, out_dim, in_h1_heads, in_h0_heads, out_heads):
         super(encoder_union, self).__init__()
-        '''self.layer_merge = dgl.nn.GATConv((in_h1_dim, in_h0_dim), out_dim, 
+        self.layer_merge = dgl.nn.GATConv((in_h1_dim, in_h0_dim), out_dim, 
                                             num_heads=in_h0_heads, 
-                                            allow_zero_in_degree=True)'''
-        self.layer_merge = MultiHeadMergeLayer(in_h0_dim, in_h1_dim, out_dim, in_h0_heads, merge='stack')
+                                            allow_zero_in_degree=True)
+        '''self.layer_merge = MultiHeadMergeLayer(in_h0_dim, in_h1_dim, out_dim, in_h0_heads, merge='stack')'''
         self.in_h1_heads = in_h1_heads
 
         self.wn_fc = torch.nn.Linear(in_features=in_h0_heads*in_h1_heads, out_features=out_heads, bias=False)
@@ -237,7 +237,8 @@ class encoder_union(torch.nn.Module):
     def forward(self, graph, hier_1, hier_0):
         res = []
         for i in torch.arange(self.in_h1_heads):
-            k = self.layer_merge(graph, (hier_0, hier_1[:,i,:]))
+            # k = self.layer_merge(graph, (hier_0, hier_1[:,i,:]))
+            k = self.layer_merge(graph, (hier_1[:,i,:], hier_0))
             res.append(k)
         res = torch.cat(res, dim=2)
         # res = torch.transpose(res, 1, 2)
@@ -273,7 +274,7 @@ class MergeLayer(torch.nn.Module):
 
     def reduce_func(self, nodes):
         alpha = torch.nn.functional.softmax(nodes.mailbox['e'], dim=1)
-        h = torch.sum(alpha*(nodes.mailbox['src_z']-nodes.mailbox['dst_z']), dim=1)
+        h = nodes.data['z']+torch.sum(alpha*(nodes.mailbox['src_z']-nodes.mailbox['dst_z']), dim=1)
         return {'ah': h}
 
     def forward(self, graph, h0, h1):
@@ -285,6 +286,7 @@ class MergeLayer(torch.nn.Module):
             graph.update_all(self.message_func, self.reduce_func)
             res = graph.ndata.pop('ah')['h0_bead']
             return res
+
 class MultiHeadMergeLayer(torch.nn.Module):
     def __init__(self, in_h0_dim, in_h1_dim, out_dim, num_heads, merge='stack'):
         super(MultiHeadMergeLayer, self).__init__()
