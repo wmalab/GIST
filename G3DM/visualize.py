@@ -24,11 +24,19 @@ def plot_X(X, writer, item_dir, step=None):
         data = X[:,i,:]
         ax = fig.add_subplot(2,2,i+1, projection='3d')
         cmap = cm.get_cmap(plt.get_cmap('autumn')) # RdBu_r
-        ax.scatter(data[:,0], data[:,1], data[:,2], c = np.arange(data.shape[0]), cmap=cmap, marker='o')
+        X, Y, Z = data[:,0], data[:,1], data[:,2]
+        ax.scatter(X, Y, Z, c = np.arange(data.shape[0]), cmap=cmap, marker='o')
         ax.set_xlabel('X Label')
         ax.set_ylabel('Y Label')
         ax.set_zlabel('Z Label')
-        ax.set_aspect('equal', 'box')
+
+        max_range = np.array([X.max()-X.min(), Y.max()-Y.min(), Z.max()-Z.min()]).max() / 2.0
+        mid_x = (X.max()+X.min()) * 0.5
+        mid_y = (Y.max()+Y.min()) * 0.5
+        mid_z = (Z.max()+Z.min()) * 0.5
+        ax.set_xlim(mid_x - max_range, mid_x + max_range)
+        ax.set_ylim(mid_y - max_range, mid_y + max_range)
+        ax.set_zlim(mid_z - max_range, mid_z + max_range)
     step = 0 if step is None else step
     writer.add_figure(item_dir, fig, global_step=step)
 
