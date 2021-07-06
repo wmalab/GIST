@@ -279,6 +279,7 @@ class MergeLayer(torch.nn.Module):
     def forward(self, graph, h0, h1):
         with graph.local_scope():
             # graph.srcdata['z'] = self.fcsrc(h1)
+            graph.srcdata['z'] = h1
             graph.dstdata['z'] = self.fcdst(h0)
             graph.apply_edges(self.edge_attention)
             graph.update_all(self.message_func, self.reduce_func)
