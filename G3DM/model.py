@@ -136,7 +136,7 @@ class encoder_chain(torch.nn.Module):
 class encoder_bead(torch.nn.Module): 
     def __init__(self, in_dim, hidden_dim, out_dim):
         super(encoder_bead, self).__init__()
-        '''self.layer1 = dgl.nn.GraphConv( in_dim, hidden_dim, 
+        self.layer1 = dgl.nn.GraphConv( in_dim, hidden_dim, 
                                         norm='right', weight=True, 
                                         allow_zero_in_degree=True)
         self.layer2 = dgl.nn.GraphConv( hidden_dim, out_dim, 
@@ -144,13 +144,13 @@ class encoder_bead(torch.nn.Module):
                                         allow_zero_in_degree=True)
         self.layer3 = dgl.nn.GraphConv( out_dim, out_dim, 
                                         norm='right', weight=True, 
-                                        allow_zero_in_degree=True)'''
-        self.layer1 = dgl.nn.SAGEConv( in_dim, hidden_dim, 'lstm',
+                                        allow_zero_in_degree=True)
+        '''self.layer1 = dgl.nn.SAGEConv( in_dim, hidden_dim, 'lstm',
                                         norm=None)
         self.layer2 = dgl.nn.SAGEConv( hidden_dim, out_dim, 'lstm',
                                         norm=None)
         self.layer3 = dgl.nn.SAGEConv( out_dim, out_dim, 'lstm',
-                                        norm=None)
+                                        norm=None)'''
         # self.norm = dgl.nn.EdgeWeightNorm(norm='both')
 
     def forward(self, blocks, x, etypes, efeat):
@@ -325,7 +325,7 @@ class decoder(torch.nn.Module):
     def aritficial_fc(self, x):
         upper = self.upper_bound - x
         lower = x - self.lower_bound
-        score = (upper*lower)/(self.r_dist**2+ 1e-5)
+        score = (upper*lower)/(self.r_dist**2 + 1)
         return score
 
         '''m = torch.relu(mean)
