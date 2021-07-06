@@ -36,7 +36,7 @@ class embedding(torch.nn.Module):
         X = torch.squeeze(X, dim=1)
         return X
 
-class constrainLayer(torch.nn.Module):
+"""class constrainLayer(torch.nn.Module):
     def __init__(self, in_dim):
         super(constrainLayer, self).__init__()
         self.alpha_fc = torch.nn.Linear(in_dim, 1, bias=True)
@@ -60,7 +60,7 @@ class constrainLayer(torch.nn.Module):
         z = r * torch.cos(ha)
         dh = torch.cat([x,y,z], dim=-1)'''
         return dh
-        # return h
+        # return h"""
 
 class encoder_chain(torch.nn.Module):
     def __init__(self, in_dim, hidden_dim, out_dim, num_heads, etypes):
@@ -126,9 +126,9 @@ class encoder_chain(torch.nn.Module):
             x = h[ntype[0]][:,i,:]
             '''vmin, _ = torch.min(x, dim=0, keepdim=True)
             vmax, _ = torch.max(x, dim=0, keepdim=True)
-            x = (x - vmin)/(vmax-vmin)
+            x = (x - vmin)/(vmax-vmin)'''
             vmean = torch.mean(x, dim=0, keepdim=True)
-            x = x - vmean'''
+            x = x - vmean
             res.append(x)
         res = torch.stack(res, dim=1)
         return res
