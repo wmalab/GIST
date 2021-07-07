@@ -275,8 +275,8 @@ class MergeLayer(torch.nn.Module):
 
     def reduce_func(self, nodes):
         alpha = torch.nn.functional.softmax(nodes.mailbox['e'], dim=1)
-        h = 0.5*(nodes.mailbox['dst_z'] + torch.sum(alpha*(nodes.mailbox['src_z']), dim=1, keepdim=True))
-        h = torch.mean(h, dim=1)
+        n = nodes.mailbox['src_z'].shape[1]
+        h = (torch.mean(nodes.mailbox['dst_z'], dim=1) + n*torch.sum(alpha*(nodes.mailbox['src_z']), dim=1))/(n)
         return {'ah': h}
 
     def forward(self, graph, h0, h1):
