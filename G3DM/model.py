@@ -153,11 +153,11 @@ class encoder_bead(torch.nn.Module):
         self.layer3 = dgl.nn.GraphConv( out_dim, out_dim, 
                                         norm='right', weight=True, 
                                         allow_zero_in_degree=True)'''
-        self.layer1 = dgl.nn.SAGEConv( in_dim, hidden_dim, 'mean',
+        self.layer1 = dgl.nn.SAGEConv( in_dim, hidden_dim, 'lstm',
                                         norm=None)
-        self.layer2 = dgl.nn.SAGEConv( hidden_dim, out_dim, 'mean',
+        self.layer2 = dgl.nn.SAGEConv( hidden_dim, out_dim, 'lstm',
                                         norm=None)
-        self.layer3 = dgl.nn.SAGEConv( out_dim, out_dim, 'mean',
+        self.layer3 = dgl.nn.SAGEConv( out_dim, out_dim, 'lstm',
                                         norm=None)
         # self.norm = dgl.nn.EdgeWeightNorm(norm='both')
 
