@@ -1,6 +1,18 @@
 import torch
 import torch.nn as nn
+from geomloss import SamplesLoss
 # import torch.nn.functional as F
+
+class WassersteinLoss(nn.Module):
+    def __init__(self):
+        super(WassersteinLoss, self).__init__()
+        loss = "sinkhorn"
+        p = 1
+        blur = 0.01
+        self.loss_fc = SamplesLoss(loss, p=p, blur=blur)
+    
+    def forward(self, pred, target):
+        return self.loss_fc(pred.float(), target.float())
 
 class RMSLELoss(nn.Module):
     def __init__(self):

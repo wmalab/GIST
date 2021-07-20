@@ -25,3 +25,5 @@
         - iced
         - torch_optimizer
         - tensorboard
+        - pykeops
+        - geomloss

@@ -6,7 +6,7 @@ import torch_optimizer as optim
 import numpy as np
 
 from .model import embedding, encoder_bead, encoder_chain, encoder_union, decoder
-from .loss import nllLoss, stdLoss
+from .loss import nllLoss, stdLoss, WassersteinLoss
 from .visualize import plot_feature, plot_X, plot_cluster, plot_confusion_mat, plot_lines
 from .visualize import plot_scaler
 
@@ -74,6 +74,8 @@ def create_network(configuration, graph, device):
 
     nll = nllLoss().to(device)
     stdl = stdLoss().to(device)
+    wnl = WassersteinLoss().to(device)
+
     '''opt = torch.optim.Adam(list(em_h0_bead.parameters()) + list(em_h1_bead.parameters()) +
                             list(en_chain_net.parameters()) + list(en_bead_net.parameters()) + list(en_union.parameters()) +
                             list(de_center_net.parameters()) +
@@ -106,7 +108,7 @@ def create_network(configuration, graph, device):
     em_networks = [em_h0_bead, em_h1_bead]
     ae_networks = [en_chain_net, en_bead_net,
                    en_union, de_center_net, de_bead_net]
-    return sampler, em_networks, ae_networks, [nll, stdl], [opt0, opt1]
+    return sampler, em_networks, ae_networks, [nll, wnl], [opt0, opt1]
 
 
 def setup_train(configuration):
@@ -169,12 +171,20 @@ def fit_one_step(graphs, features, cluster_weights, sampler, batch_size, em_netw
         xp0, std0 = de_bead_net(sub_pair, res)
 
         xt1 = top_graph.edges['interacts_1'].data['label']
+        ct1 = torch.nn.functional.one_hot(xt1.long(), ncluster1)
         xt0 = sub_pair.edges['_E'].data['label']
+        ct0 = torch.nn.functional.one_hot(xt0.long(), ncluster0)
 
-        loss1 = loss_fc[0](xp1, xt1, cw1) # + loss_fc[1](std1, xt1, ncluster1)
-        loss0 = loss_fc[0](xp0, xt0, cw0) # + loss_fc[1](std0, xt0, ncluster0)
-        loss = loss_fc[0](xp0, xt0, cw0)*1 + loss_fc[0](xp1, xt1, cw1)*1000
-        # loss = loss1
+        l1_nll = loss_fc[0](xp1, xt1, cw1)
+        l1_wnl = loss_fc[1](xp1, ct1)
+        loss1 = l1_nll + l1_wnl
+
+        l0_nll = loss_fc[0](xp0, xt0, cw0)
+        l0_wnl = loss_fc[1](xp0, ct0)
+        loss0 = l0_nll + l0_wnl
+
+        # loss = loss_fc[0](xp0, xt0, cw0)*1 + loss_fc[0](xp1, xt1, cw1)*1000
+
         optimizer[0].zero_grad()
         loss0.backward(retain_graph=True)  # retain_graph=False,
         optimizer[0].step()
@@ -183,10 +193,11 @@ def fit_one_step(graphs, features, cluster_weights, sampler, batch_size, em_netw
         loss1.backward(retain_graph=True)  # retain_graph=False,
         optimizer[1].step()
 
-        loss_list.append(loss.item()/1001)
+        loss_list.append([l0_nll, l0_wnl, l1_nll, l1_wnl])
 
     ll = np.array(loss_list)
-    return np.nan if len(ll)==0 else np.mean(ll)
+    ll = np.nanmean(ll, axis=0, keepdims=True)
+    return ll
 
 
 def inference(graphs, features, num_heads, num_clusters, em_networks, ae_networks, device):
@@ -333,6 +344,10 @@ def run_epoch(dataset, model, loss_fc, optimizer, sampler, batch_size, iteration
                 # np.exp(np.cumsum(np.abs(x0+1e-4)))
                 plot_lines(np.cumsum(np.abs(x0+1e-4))+0.1, writer, '2,3 hop_dist/bead', step=i)
                 plot_lines(np.cumsum(np.abs(x1+1e-4))+0.1, writer, '2,3 hop_dist/center', step=i)
-        plot_scaler(np.nanmean(np.array(loss_list)), writer, 'Loss/nll' ,step = i)
+        ll = np.array(loss_list)
+        plot_scaler(np.nanmean(ll[:,0]), writer, 'Loss/l0_nll' ,step = i)
+        plot_scaler(np.nanmean(ll[:,1]), writer, 'Loss/l0_wnl' ,step = i)
+        plot_scaler(np.nanmean(ll[:,2]), writer, 'Loss/l1_nll' ,step = i)
+        plot_scaler(np.nanmean(ll[:,3]), writer, 'Loss/l1_wnl' ,step = i)
         print("epoch {:d} Loss {:f}".format(i, np.nanmean(np.array(loss_list))))
 
