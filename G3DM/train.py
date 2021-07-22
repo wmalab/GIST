@@ -141,14 +141,17 @@ def fit_one_step(graphs, features, cluster_weights, sampler, batch_size, em_netw
     # dataloader = dgl.dataloading.EdgeDataLoader(bottom_graph, {'interacts_0': eid_dict['interacts_0']}, sampler, device=device,
     #                                             batch_size=batch_size, shuffle=True, drop_last=True)
 
-    dataloader = dgl.dataloading.EdgeDataLoader(bottom_subgraphs, bottom_subgraphs.nodes(), sampler, device=device,
-                                                batch_size=batch_size, shuffle=True, drop_last=True)
+    # dataloader = dgl.dataloading.EdgeDataLoader(bottom_subgraphs, bottom_subgraphs.nodes(), sampler, device=device,
+    #                                             batch_size=batch_size, shuffle=True, drop_last=True)
+
+    dataloader = dgl.dataloading.NodeDataLoader(bottom_subgraphs, bottom_subgraphs.nodes(), sampler, device=device,
+                                                 batch_size=batch_size, shuffle=True, drop_last=True)
     top_list = [e for e in top_subgraphs.etypes if 'interacts_1_c' in e]
     top_list.append('bead_chain')
 
     loss_list = []
     print(bottom_graph)
-    for input_nodes, pair_graph, blocks in dataloader:
+    for input_nodes, output_nodes, blocks in dataloader:
         blocks = [b.to(device) for b in blocks]
         X1 = em_h1_bead(h1_feat)
         h_center = en_chain_net(top_subgraphs, X1, top_list, ['w'], ['h1_bead'])
@@ -170,6 +173,7 @@ def fit_one_step(graphs, features, cluster_weights, sampler, batch_size, em_netw
 
         print(sub_pair)
         print(blocks[2].dstnodes('_N'))
+        print(output_nodes)
         # if sub_pair.num_edges()==0:
         #     continue
 
