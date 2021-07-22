@@ -292,12 +292,12 @@ def run_epoch(dataset, model, loss_fc, optimizer, sampler, batch_size, iteration
     dur = []
 
     for epoch in np.arange(iterations):
-        print("chromosome: ", sep='\t')
+        print("chromosome: ", end='\t')
         if epoch >=3:
             t0 = time.time()
         for j, data in enumerate(dataset):
             graphs, features, chro, cluster_weights = data
-            print(chro, sep='\t')
+            print(chro, end='\t')
 
             # 1 over density of cluster
             cw0 = torch.tensor(cluster_weights['0']).to(device)
@@ -317,7 +317,7 @@ def run_epoch(dataset, model, loss_fc, optimizer, sampler, batch_size, iteration
             ll = fit_one_step(graphs, [h0_feat, h1_feat], [cw0, cw1], sampler, batch_size, em_networks, ae_networks, loss_fc, optimizer, device)
             loss_list.append(ll)
 
-            if i == 0 and j == 0 and writer is not None:
+            if epoch == 0 and j == 0 and writer is not None:
                 m0 = cluster_weights['mat_0']
                 m1 = cluster_weights['mat_1']
                 plot_feature(h0_f, h0_p, writer, '0, features/h0')
@@ -325,7 +325,7 @@ def run_epoch(dataset, model, loss_fc, optimizer, sampler, batch_size, iteration
                 plot_cluster(m1, writer, int(config['parameter']['graph']['num_clusters']['1']),'0 cluster/center', step=None)
                 plot_cluster(m0, writer, int(config['parameter']['graph']['num_clusters']['0']), '0 cluster/bead', step=None)
 
-            if i%5==0 and j == 0 and writer is not None and config is not None:
+            if epoch%5==0 and j == 0 and writer is not None and config is not None:
                 num_heads = int(config['parameter']['G3DM']['num_heads']['out'])
                 [center_X, bead_X, 
                 center_cluster_mat, bead_cluster_mat, 
