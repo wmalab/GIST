@@ -13,7 +13,7 @@ class WassersteinLoss(nn.Module):
         self.device = device
 
     def forward(self, pred, target, num_cluster):
-        self.ncluster = torch.nn.Parameter(torch.arange(0, num_cluster), device=self.device,requires_grad=False)
+        self.ncluster = torch.arange(0, num_cluster, dtype= torch.float, device=self.device,requires_grad=False)
     
         p = torch.relu(pred)
         p = torch.nn.functional.normalize(p)
