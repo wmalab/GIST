@@ -160,16 +160,16 @@ def fit_one_step(graphs, features, cluster_weights, sampler, batch_size, em_netw
         X0 = em_h0_bead(inputs0)
         h_bead = en_bead_net(blocks, X0, ['interacts_0'], ['w'])
 
-        h0 = dgl.in_subgraph(inter_graph, {'h0_bead': blocks[2].dstnodes()}).edges()[1]  # dst
+        h0 = dgl.in_subgraph(inter_graph, {'h0_bead': blocks[2].dstdata['_ID']}).edges()[1]  # dst
         h0, _ = torch.sort(torch.unique(h0))
-        h1 = dgl.in_subgraph(inter_graph, {'h0_bead': blocks[2].dstnodes()}).edges()[0]  # src
+        h1 = dgl.in_subgraph(inter_graph, {'h0_bead': blocks[2].dstdata['_ID']}).edges()[0]  # src
         h1, _ = torch.sort(torch.unique(h1))
         inter = dgl.node_subgraph(inter_graph, {'h0_bead': h0, 'h1_bead': h1})
 
         c = h_center[h1, :, :].to(device)
         res = en_union(inter, c, h_bead)
 
-        sub_pair = dgl.node_subgraph(bottom_graph, {'_N': blocks[2].dstnodes('_N')})
+        sub_pair = dgl.node_subgraph(bottom_graph, {'_N': blocks[2].dstdata['_ID']})
 
         print(sub_pair)
         print(blocks[2].dstnodes('_N'))
@@ -208,7 +208,7 @@ def fit_one_step(graphs, features, cluster_weights, sampler, batch_size, em_netw
 
     ll = np.array(loss_list)
     ll = np.nanmean(ll, axis=0, keepdims=False)
-    print(ll)
+    print('fit_one_step', ll)
     return ll
 
 
