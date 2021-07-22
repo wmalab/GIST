@@ -292,7 +292,7 @@ def run_epoch(dataset, model, loss_fc, optimizer, sampler, batch_size, iteration
     dur = []
 
     for epoch in np.arange(iterations):
-        print("chromosome: ", end='\t')
+        print("epoch {:d} chromosome: ".format(epoch), end='\t')
         if epoch >=3:
             t0 = time.time()
         for j, data in enumerate(dataset):
@@ -361,5 +361,7 @@ def run_epoch(dataset, model, loss_fc, optimizer, sampler, batch_size, iteration
         plot_scaler(np.nanmean(ll[:,1]), writer, 'Loss/l0_wnl' ,step = epoch)
         plot_scaler(np.nanmean(ll[:,2]), writer, 'Loss/l1_nll' ,step = epoch)
         plot_scaler(np.nanmean(ll[:,3]), writer, 'Loss/l1_wnl' ,step = epoch)
-        print("epoch {:d} Loss ".format(epoch), np.nanmean(ll, axis=0))
+        if epoch >=3:
+            dur.append(time.time() - t0)
+        print("Loss:", np.nanmean(ll, axis=0), "| Time(s) {:.4f}".format( np.mean(dur)), sep =" " )
 
