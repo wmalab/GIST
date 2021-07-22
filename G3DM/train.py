@@ -254,7 +254,7 @@ def inference(graphs, features, num_heads, num_clusters, em_networks, ae_network
             c = h_center[h1, :, :].to(device)
             h_bead = en_union(inter, c, X0)
 
-            res = en_bead_net(blocks, X0, ['interacts_0'], ['w'])
+            res = en_bead_net(blocks, h_bead, ['interacts_0'], ['w'])
             result[output_nodes.cpu().detach(),:,:] = res.cpu().detach()
 
         xp1, _ = de_center_net(top_graph, h_center)
