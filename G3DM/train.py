@@ -294,7 +294,7 @@ def run_epoch(dataset, model, loss_fc, optimizer, sampler, batch_size, iteration
     for i in np.arange(iterations):
         for j, data in enumerate(dataset):
             graphs, features, chro, cluster_weights = data
-            print("epoch {:d} chromosome {:d} ".format(i, chro), sep='\t')
+            print("epoch {:d} ".format(i)+"chromosome "+chro, sep='\t')
 
             # 1 over density of cluster
             cw0 = torch.tensor(cluster_weights['0']).to(device)
