@@ -174,8 +174,8 @@ def fit_one_step(graphs, features, cluster_weights, sampler, batch_size, em_netw
         xp0, std0 = de_bead_net(sub_pair, res)
 
         print(xp0.shape)
-        # if xp0.shape[1]==0:
-        #     continue
+        if xp0.shape[0]==0:
+            continue
         xt1 = top_graph.edges['interacts_1'].data['label']
         xt0 = sub_pair.edges['_E'].data['label']
 
