@@ -73,10 +73,10 @@ if __name__ == '__main__':
     # load dataset
     print('load dataset: {}'.format(os.path.join( dataset_path, dataset_name)))
     HiCDataset = load_dataset(dataset_path, dataset_name)
-    graphs, features, label, _ = HiCDataset[0]
+    # graphs, features, label, _ = HiCDataset[0]
 
     # creat network model
-    sampler, em_networks, ae_networks, nll, opt = create_network(config_data, graphs, device)
+    sampler, em_networks, ae_networks, nll, opt = create_network(config_data, device)
 
     # setup and call train
     itn, batch_size = setup_train(config_data)

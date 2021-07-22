@@ -23,13 +23,13 @@ def load_dataset(path, name):
     return HiCDataset
 
 
-def create_network(configuration, graph, device):
+def create_network(configuration, device):
     config = configuration['parameter']
-    top_graph = graph['top_graph']
-    top_subgraphs = graph['top_subgraphs']
-    bottom_graph = graph['bottom_graph']
-    bottom_subgraphs = graph['bottom_subgraphs']
-    inter_graph = graph['inter_graph']
+    # top_graph = graph['top_graph']
+    # top_subgraphs = graph['top_subgraphs']
+    # bottom_graph = graph['bottom_graph']
+    # bottom_subgraphs = graph['bottom_subgraphs']
+    # inter_graph = graph['inter_graph']
 
     sampling_num = config['G3DM']['sampling_num']
     sampler = dgl.dataloading.MultiLayerNeighborSampler(
