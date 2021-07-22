@@ -193,7 +193,7 @@ def fit_one_step(graphs, features, cluster_weights, sampler, batch_size, em_netw
         loss1.backward(retain_graph=True)  # retain_graph=False,
         optimizer[1].step()
 
-        loss_list.append([l0_nll, l0_wnl, l1_nll, l1_wnl])
+        loss_list.append([l0_nll.item(), l0_wnl.item(), l1_nll.item(), l1_wnl.item()])
 
     ll = np.array(loss_list)
     ll = np.nanmean(ll, axis=0, keepdims=True)
