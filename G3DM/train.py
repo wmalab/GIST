@@ -166,9 +166,7 @@ def fit_one_step(graphs, features, cluster_weights, sampler, batch_size, em_netw
         inter = dgl.node_subgraph(inter_graph, {'h0_bead': h0, 'h1_bead': h1})
 
         c = h_center[h1, :, :].to(device)
-        print('--', c.shape, X0.shape, end='\t')
         h_bead = en_union(inter, c, X0)
-        print('--', h_bead.shape, end='\t')
         res = en_bead_net(blocks, h_bead, ['interacts_0'], ['w'])
 
         sub_pair = dgl.node_subgraph(bottom_graph, {'_N': blocks[2].dstdata['_ID']})
@@ -246,16 +244,17 @@ def inference(graphs, features, num_heads, num_clusters, em_networks, ae_network
             inputs0 = torch.tensor(h0_feat[input_nodes.cpu().detach(), :], dtype=torch.float).to(device)  # ['h0_bead']
             X0 = em_h0_bead(inputs0)
             # h_bead = en_bead_net(blocks, X0, ['interacts_0'], ['w'])
-            h_bead = en_bead_net(blocks, X0, [], ['w'])
 
-            h0 = dgl.in_subgraph(inter_graph, {'h0_bead': blocks[2].dstnodes()}).edges()[1]  # dst
+            h0 = dgl.in_subgraph(inter_graph, {'h0_bead': blocks[0].srcdata['_ID']}).edges()[1]  # dst
             h0, _ = torch.sort(torch.unique(h0))
-            h1 = dgl.in_subgraph(inter_graph, {'h0_bead': blocks[2].dstnodes()}).edges()[0]  # src
+            h1 = dgl.in_subgraph(inter_graph, {'h0_bead': blocks[0].srcdata['_ID']}).edges()[0]  # src
             h1, _ = torch.sort(torch.unique(h1))
             inter = dgl.node_subgraph(inter_graph, {'h0_bead': h0, 'h1_bead': h1})
 
             c = h_center[h1, :, :].to(device)
-            res = en_union(inter, c, h_bead)
+            h_bead = en_union(inter, c, X0)
+
+            res = en_bead_net(blocks, X0, ['interacts_0'], ['w'])
             result[output_nodes.cpu().detach(),:,:] = res.cpu().detach()
 
         xp1, _ = de_center_net(top_graph, h_center)
