@@ -167,6 +167,10 @@ def fit_one_step(graphs, features, cluster_weights, sampler, batch_size, em_netw
 
         sub_pair = dgl.node_subgraph(bottom_graph, {'_N': blocks[2].dstnodes('_N')})
 
+        print(sub_pair)
+        if sub_pair.num_nodes()==0:
+            continue
+
         xp1, std1 = de_center_net(top_graph, h_center)
         xp0, std0 = de_bead_net(sub_pair, res)
 
@@ -178,7 +182,6 @@ def fit_one_step(graphs, features, cluster_weights, sampler, batch_size, em_netw
         loss1 = l1_nll + l1_wnl
 
         l0_nll = loss_fc[0](xp0, xt0, cw0)
-        print(xp0.shape, xt0.shape)
         l0_wnl = loss_fc[1](xp0, xt0, ncluster0)
         loss0 = l0_nll + l0_wnl
 
