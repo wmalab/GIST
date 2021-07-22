@@ -7,8 +7,8 @@ import torchvision
 
 from sklearn import metrics
 
-def plot_feature(feats, position, writer, item_dir):
-    data = [feats, position]
+def plot_feature(featsv, featsh, position, writer, item_dir):
+    data = [featsv, featsh, position]
     fig = plt.figure()
     fig, axs = plt.subplots(1, len(data))
     cmaps = ['RdBu_r', 'viridis', 'RdBu_r']

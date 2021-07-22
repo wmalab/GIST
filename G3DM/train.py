@@ -1,5 +1,5 @@
 import os
-import sys, time
+import sys, time, GPUtil
 import dgl
 import torch
 import torch_optimizer as optim
@@ -326,8 +326,8 @@ def run_epoch(dataset, model, loss_fc, optimizer, sampler, batch_size, iteration
             if epoch == 0 and j == 0 and writer is not None:
                 m0 = cluster_weights['mat_0']
                 m1 = cluster_weights['mat_1']
-                plot_feature(h0_f, h0_p, writer, '0, features/h0')
-                plot_feature(h1_f, h1_p, writer, '0, features/h1')
+                plot_feature(h0_f_vn, h0_f_hn, h0_p, writer, '0, features/h0')
+                plot_feature(h1_f_vn, h1_f_hn, writer, '0, features/h1')
                 plot_cluster(m1, writer, int(config['parameter']['graph']['num_clusters']['1']),'0 cluster/center', step=None)
                 plot_cluster(m0, writer, int(config['parameter']['graph']['num_clusters']['0']), '0 cluster/bead', step=None)
 
@@ -369,5 +369,7 @@ def run_epoch(dataset, model, loss_fc, optimizer, sampler, batch_size, iteration
         plot_scaler(np.nanmean(ll[:,3]), writer, 'Loss/l1_wnl' ,step = epoch)
         if epoch >=3:
             dur.append(time.time() - t0)
-        print("Loss:", np.nanmean(ll, axis=0), "| Time(s) {:.4f}".format( np.mean(dur)), sep =" " )
+        print("Loss:", np.nanmean(ll, axis=0), "| Time(s) {:.4f} ".format( np.mean(dur)), sep =" " )
+        if epoch%10==0:
+            GPUtil.showUtilization()
 
