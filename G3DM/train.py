@@ -147,8 +147,7 @@ def fit_one_step(graphs, features, cluster_weights, sampler, batch_size, em_netw
     top_list.append('bead_chain')
 
     loss_list = []
-    print(bottom_subgraphs)
-    
+
     for input_nodes, pair_graph, blocks in dataloader:
         blocks = [b.to(device) for b in blocks]
         X1 = em_h1_bead(h1_feat)
@@ -169,6 +168,7 @@ def fit_one_step(graphs, features, cluster_weights, sampler, batch_size, em_netw
 
         sub_pair = dgl.node_subgraph(bottom_graph, {'_N': blocks[2].dstnodes('_N')})
 
+        print(sub_pair)
         # if sub_pair.num_edges()==0:
         #     continue
 
