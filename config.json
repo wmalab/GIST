@@ -19,7 +19,7 @@
         "graph":{
             "num_clusters": {"0": 18, "1": 9},
             "cutoff_percent": {"0": 1, "1": 1},
-            "cutoff_cluster": {"0": 3, "1": 5}
+            "cutoff_cluster": {"0": 8, "1": 5}
         },
         "feature":{
             "in_dim":{"h0":20, "h1":10},
