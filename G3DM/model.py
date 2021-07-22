@@ -177,7 +177,6 @@ class encoder_bead(torch.nn.Module):
         
         num = x.shape[1]
         res = []
-        print(x.shape)
         for i in np.arange(num):
             h = x[:,i,:]
             block = blocks[0]
