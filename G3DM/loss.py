@@ -18,7 +18,6 @@ class WassersteinLoss(nn.Module):
         p = torch.relu(pred)
         p = torch.nn.functional.normalize(p)
         p = torch.sum(p * self.ncluster.view(1, -1), dim=-1, keepdim=True)
-        print(p.shape, target.shape)
         res = self.loss_fc(p.float(), target.view(-1,1).float())
         return res
 
