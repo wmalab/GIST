@@ -167,7 +167,7 @@ def fit_one_step(graphs, features, cluster_weights, sampler, batch_size, em_netw
 
         c = h_center[h1, :, :].to(device)
         h_bead = en_union(inter, c, X0)
-
+        print('--', h_bead.shape, end='\t')
         res = en_bead_net(blocks, h_bead, ['interacts_0'], ['w'])
 
         sub_pair = dgl.node_subgraph(bottom_graph, {'_N': blocks[2].dstdata['_ID']})
