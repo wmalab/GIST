@@ -147,6 +147,8 @@ def fit_one_step(graphs, features, cluster_weights, sampler, batch_size, em_netw
     top_list.append('bead_chain')
 
     loss_list = []
+    print(bottom_subgraphs)
+    
     for input_nodes, pair_graph, blocks in dataloader:
         blocks = [b.to(device) for b in blocks]
         X1 = em_h1_bead(h1_feat)
