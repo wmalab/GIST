@@ -169,6 +169,7 @@ def fit_one_step(graphs, features, cluster_weights, sampler, batch_size, em_netw
         sub_pair = dgl.node_subgraph(bottom_graph, {'_N': blocks[2].dstnodes('_N')})
 
         print(sub_pair)
+        print(blocks[2].dstnodes('_N'))
         # if sub_pair.num_edges()==0:
         #     continue
 
