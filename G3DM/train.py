@@ -178,8 +178,8 @@ def fit_one_step(graphs, features, cluster_weights, sampler, batch_size, em_netw
         loss1 = l1_nll + l1_wnl
 
         l0_nll = loss_fc[0](xp0, xt0, cw0)
-        l0_wnl = loss_fc[1](xp0, xt0, ncluster0)
-        loss0 = l0_nll + l0_wnl
+        # l0_wnl = loss_fc[1](xp0, xt0, ncluster0)
+        loss0 = l0_nll #  + l0_wnl
 
         # loss = loss_fc[0](xp0, xt0, cw0)*1 + loss_fc[0](xp1, xt1, cw1)*1000
 
