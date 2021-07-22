@@ -167,12 +167,15 @@ def fit_one_step(graphs, features, cluster_weights, sampler, batch_size, em_netw
 
         sub_pair = dgl.node_subgraph(bottom_graph, {'_N': blocks[2].dstnodes('_N')})
 
-        if sub_pair.num_edges()==0:
-            continue
+        # if sub_pair.num_edges()==0:
+        #     continue
 
         xp1, std1 = de_center_net(top_graph, h_center)
         xp0, std0 = de_bead_net(sub_pair, res)
 
+        print(xp0.shape)
+        # if xp0.shape[1]==0:
+        #     continue
         xt1 = top_graph.edges['interacts_1'].data['label']
         xt0 = sub_pair.edges['_E'].data['label']
 
