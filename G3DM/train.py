@@ -1,5 +1,5 @@
 import os
-import sys
+import sys, time
 import dgl
 import torch
 import torch_optimizer as optim
@@ -176,7 +176,6 @@ def fit_one_step(graphs, features, cluster_weights, sampler, batch_size, em_netw
         xp1, std1 = de_center_net(top_graph, h_center)
         xp0, std0 = de_bead_net(sub_pair, res)
 
-        print(xp0.shape)
         if xp0.shape[0]==0:
             continue
         xt1 = top_graph.edges['interacts_1'].data['label']
@@ -290,11 +289,15 @@ def inference(graphs, features, num_heads, num_clusters, em_networks, ae_network
 def run_epoch(dataset, model, loss_fc, optimizer, sampler, batch_size, iterations, device, writer=None, config=None):
     em_networks, ae_networks = model
     loss_list = []
+    dur = []
 
-    for i in np.arange(iterations):
+    for epoch in np.arange(iterations):
+        print("chromosome: ", sep='\t')
+        if epoch >=3:
+            t0 = time.time()
         for j, data in enumerate(dataset):
             graphs, features, chro, cluster_weights = data
-            print("epoch {:d} ".format(i)+"chromosome "+chro, sep='\t')
+            print(chro, sep='\t')
 
             # 1 over density of cluster
             cw0 = torch.tensor(cluster_weights['0']).to(device)
@@ -330,17 +333,17 @@ def run_epoch(dataset, model, loss_fc, optimizer, sampler, batch_size, iteration
                                                     [int(config['parameter']['graph']['num_clusters']['0']), 
                                                         int(config['parameter']['graph']['num_clusters']['1'])], 
                                                     em_networks, ae_networks, device)
-                plot_X(center_X, writer, '1, 3D/center', step=i)
-                plot_X(bead_X, writer, '1, 3D/bead', step=i)
+                plot_X(center_X, writer, '1, 3D/center', step=epoch)
+                plot_X(bead_X, writer, '1, 3D/bead', step=epoch)
 
                 plot_cluster(center_cluster_mat, writer, 
                             int(config['parameter']['graph']['num_clusters']['1']),
-                            '2,1 cluster/center', step=i)
+                            '2,1 cluster/center', step=epoch)
                 plot_cluster(bead_cluster_mat, writer, 
                             int(config['parameter']['graph']['num_clusters']['0']), 
-                            '2,1 cluster/bead', step=i)
-                plot_confusion_mat(center_cluster_mat, center_true,  writer, '2,2 confusion matrix/center', step=i)
-                plot_confusion_mat(bead_cluster_mat, bead_true, writer, '2,2 confusion matrix/bead', step=i)
+                            '2,1 cluster/bead', step=epoch)
+                plot_confusion_mat(center_cluster_mat, center_true,  writer, '2,2 confusion matrix/center', step=epoch)
+                plot_confusion_mat(bead_cluster_mat, bead_true, writer, '2,2 confusion matrix/bead', step=epoch)
                 for name, param in ae_networks[3].named_parameters():
                     if name == 'r_dist':
                         x1 = param.to('cpu').detach().numpy()
@@ -350,13 +353,13 @@ def run_epoch(dataset, model, loss_fc, optimizer, sampler, batch_size, iteration
                         x0 = param.to('cpu').detach().numpy()
                 # print(x1, x0)
                 # np.exp(np.cumsum(np.abs(x0+1e-4)))
-                plot_lines(np.cumsum(np.abs(x0+1e-4))+0.1, writer, '2,3 hop_dist/bead', step=i)
-                plot_lines(np.cumsum(np.abs(x1+1e-4))+0.1, writer, '2,3 hop_dist/center', step=i)
+                plot_lines(np.cumsum(np.abs(x0+1e-4))+0.1, writer, '2,3 hop_dist/bead', step=epoch)
+                plot_lines(np.cumsum(np.abs(x1+1e-4))+0.1, writer, '2,3 hop_dist/center', step=epoch)
 
         ll = np.array(loss_list)
-        plot_scaler(np.nanmean(ll[:,0]), writer, 'Loss/l0_nll' ,step = i)
-        plot_scaler(np.nanmean(ll[:,1]), writer, 'Loss/l0_wnl' ,step = i)
-        plot_scaler(np.nanmean(ll[:,2]), writer, 'Loss/l1_nll' ,step = i)
-        plot_scaler(np.nanmean(ll[:,3]), writer, 'Loss/l1_wnl' ,step = i)
-        print("epoch {:d} Loss ".format(i), np.nanmean(ll, axis=0))
+        plot_scaler(np.nanmean(ll[:,0]), writer, 'Loss/l0_nll' ,step = epoch)
+        plot_scaler(np.nanmean(ll[:,1]), writer, 'Loss/l0_wnl' ,step = epoch)
+        plot_scaler(np.nanmean(ll[:,2]), writer, 'Loss/l1_nll' ,step = epoch)
+        plot_scaler(np.nanmean(ll[:,3]), writer, 'Loss/l1_wnl' ,step = epoch)
+        print("epoch {:d} Loss ".format(epoch), np.nanmean(ll, axis=0))
 
