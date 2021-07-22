@@ -4,15 +4,16 @@ from geomloss import SamplesLoss
 # import torch.nn.functional as F
 
 class WassersteinLoss(nn.Module):
-    def __init__(self):
+    def __init__(self, device):
         super(WassersteinLoss, self).__init__()
         loss = "sinkhorn"
         p = 1
         blur = 0.01
         self.loss_fc = SamplesLoss(loss, p=p, blur=blur)
+        self.device = device
 
     def forward(self, pred, target, num_cluster):
-        self.ncluster = torch.nn.Parameter(torch.arange(0, num_cluster), requires_grad=False)
+        self.ncluster = torch.nn.Parameter(torch.arange(0, num_cluster), device=self.device,requires_grad=False)
     
         p = torch.relu(pred)
         p = torch.nn.functional.normalize(p)

@@ -74,7 +74,7 @@ def create_network(configuration, graph, device):
 
     nll = nllLoss().to(device)
     stdl = stdLoss().to(device)
-    wnl = WassersteinLoss().to(device)
+    wnl = WassersteinLoss(device).to(device)
 
     '''opt = torch.optim.Adam(list(em_h0_bead.parameters()) + list(em_h1_bead.parameters()) +
                             list(en_chain_net.parameters()) + list(en_bead_net.parameters()) + list(en_union.parameters()) +
