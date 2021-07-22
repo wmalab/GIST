@@ -23,14 +23,14 @@
         },
         "feature":{
             "in_dim":{"h0":20, "h1":10},
-            "out_dim":{"h0":15, "h1":15}
+            "out_dim":{"h0":4, "h1":3}
         },
         "G3DM":{
             "iteration": 2000,
             "batchsize": 100,
             "num_heads": {"0": 5, "1": 6, "out": 8},
-            "graph_chain_dim":{"in_dim":15, "hidden_dim":6, "out_dim": 3},
-            "graph_bead_dim":{"in_dim":15, "hidden_dim":6, "out_dim": 4},
+            "graph_chain_dim":{"in_dim":3, "hidden_dim":3, "out_dim": 3},
+            "graph_bead_dim":{"in_dim":3, "hidden_dim":3, "out_dim": 3},
             "sampling_num":{"l0":5, "l1":10, "l2":50}
         }
     }

@@ -43,8 +43,8 @@ def create_network(configuration, device):
     outd0 = int(config['feature']['out_dim']['h0'])
     ind1 = int(config['feature']['in_dim']['h1'])
     outd1 = int(config['feature']['out_dim']['h1'])
-    em_h0_bead = embedding(ind0, outd0).to(device)
-    em_h1_bead = embedding(ind1, outd1).to(device)
+    em_h0_bead = embedding(in_dim=ind0, out_dim=outd0, in_num_channels=3).to(device)
+    em_h1_bead = embedding(in_dim=ind1, out_dim=outd1, in_num_channels=3).to(device)
 
     nh0 = int(config['G3DM']['num_heads']['0'])
     nh1 = int(config['G3DM']['num_heads']['1'])
@@ -62,9 +62,10 @@ def create_network(configuration, device):
     bdin, bdhidden, bdout = int(bead['in_dim']), int(
         bead['hidden_dim']), int(bead['out_dim'])
 
-    en_bead_net = encoder_bead(bdin, bdhidden, bdout).to(device)
-    en_union = encoder_union(in_h1_dim=cout, in_h0_dim=bdout, out_dim=3,
+    en_union = encoder_union(in_h1_dim=cout, in_h0_dim=outd0, out_dim=3,
                              in_h1_heads=nh1, in_h0_heads=nh0, out_heads=nhout).to(device)
+    
+    en_bead_net = encoder_bead(bdin, bdhidden, bdout).to(device)
 
     nc0 = int(config['graph']['num_clusters']['0'])
     nc1 = int(config['graph']['num_clusters']['1'])
@@ -157,27 +158,23 @@ def fit_one_step(graphs, features, cluster_weights, sampler, batch_size, em_netw
 
         inputs0 = torch.tensor(h0_feat[input_nodes.cpu().detach(), :], dtype=torch.float).to(device)  # ['h0_bead']
         X0 = em_h0_bead(inputs0)
-        h_bead = en_bead_net(blocks, X0, ['interacts_0'], ['w'])
 
-        h0 = dgl.in_subgraph(inter_graph, {'h0_bead': blocks[2].dstdata['_ID']}).edges()[1]  # dst
+        h0 = dgl.in_subgraph(inter_graph, {'h0_bead': blocks[0].srcdata['_ID']}).edges()[1]  # dst
         h0, _ = torch.sort(torch.unique(h0))
-        h1 = dgl.in_subgraph(inter_graph, {'h0_bead': blocks[2].dstdata['_ID']}).edges()[0]  # src
+        h1 = dgl.in_subgraph(inter_graph, {'h0_bead': blocks[0].srcdata['_ID']}).edges()[0]  # src
         h1, _ = torch.sort(torch.unique(h1))
         inter = dgl.node_subgraph(inter_graph, {'h0_bead': h0, 'h1_bead': h1})
 
         c = h_center[h1, :, :].to(device)
-        res = en_union(inter, c, h_bead)
+        h_bead = en_union(inter, c, X0)
+
+        res = en_bead_net(blocks, h_bead, ['interacts_0'], ['w'])
 
         sub_pair = dgl.node_subgraph(bottom_graph, {'_N': blocks[2].dstdata['_ID']})
-
-        # if sub_pair.num_edges()==0:
-        #     continue
 
         xp1, std1 = de_center_net(top_graph, h_center)
         xp0, std0 = de_bead_net(sub_pair, res)
 
-        if xp0.shape[0]==0:
-            continue
         xt1 = top_graph.edges['interacts_1'].data['label']
         xt0 = sub_pair.edges['_E'].data['label']
 
@@ -305,12 +302,21 @@ def run_epoch(dataset, model, loss_fc, optimizer, sampler, batch_size, iteration
 
             h0_f = features['hic_h0']['feat']
             h0_p = features['hic_h0']['pos']
-            h0_feat = torch.stack( [torch.tensor(h0_f, dtype=torch.float), 
+
+            h0_f_vn = torch.nn.functional.normalize(torch.tensor(h0_f, dtype=torch.float), p=2.0, dim=0)
+            h0_f_hn = torch.nn.functional.normalize(torch.tensor(h0_f, dtype=torch.float), p=2.0, dim=1)
+
+            h0_feat = torch.stack( [h0_f_vn, h0_f_hn, 
                                     torch.tensor(h0_p, dtype=torch.float)], 
                                     dim=1).to(device)
+ 
             h1_f = features['hic_h1']['feat']
             h1_p = features['hic_h1']['pos']
-            h1_feat = torch.stack( [torch.tensor(h1_f, dtype=torch.float),
+
+            h1_f_vn = torch.nn.functional.normalize(torch.tensor(h1_f, dtype=torch.float), p=2.0, dim=0)
+            h1_f_hn = torch.nn.functional.normalize(torch.tensor(h1_f, dtype=torch.float), p=2.0, dim=1)
+
+            h1_feat = torch.stack( [h1_f_vn, h1_f_hn,
                                     torch.tensor(h1_p, dtype=torch.float)], 
                                     dim=1).to(device)
 

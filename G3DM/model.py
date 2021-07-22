@@ -4,14 +4,17 @@ import numpy as np
 
 class embedding(torch.nn.Module):
     '''in_dim, out_dim'''
-    def __init__(self, in_dim, out_dim):
+    def __init__(self, in_dim, out_dim, in_num_channels):
         super(embedding, self).__init__()
-        self.conv1d_1 = torch.nn.Conv1d(2, 8, 3, stride=1, padding=1, padding_mode='replicate')
-        self.conv1d_2 = torch.nn.Conv1d(8, 1, 5, stride=1, padding=2, padding_mode='replicate')
-        self.fc1 = torch.nn.Linear(in_dim, out_dim, bias=True)
+        self.conv1d_1 = torch.nn.Conv1d(in_num_channels, 8, 3, stride=1, padding=1, padding_mode='replicate')
+        self.conv1d_2 = torch.nn.Conv1d(8, 16, 5, stride=1, padding=2, padding_mode='replicate')
+        self.conv1d_3 = torch.nn.Conv1d(16, 4, 7, stride=3, padding=3, padding_mode='replicate')
+        self.conv1d_4 = torch.nn.Conv1d(4, 1, 7, stride=3, padding=3, padding_mode='replicate')
+        self.hidden_dim = np.floor((in_dim+2)/3).astype(float)
+        self.hidden_dim = np.floor((self.hidden_dim+2)/3).astype(int)
+        self.fc1 = torch.nn.Linear(self.hidden_dim, out_dim, bias=True)
         self.fc2 = torch.nn.Linear(out_dim, out_dim, bias=True)
         self.pool = torch.nn.MaxPool1d(3, stride=1, padding=1)
-        
         self.reset()
 
     def reset(self):
@@ -20,18 +23,25 @@ class embedding(torch.nn.Module):
         torch.nn.init.xavier_normal_(self.fc2.weight, gain=gain)
         torch.nn.init.xavier_normal_(self.conv1d_1.weight, gain=gain)
         torch.nn.init.xavier_normal_(self.conv1d_2.weight, gain=gain)
+        torch.nn.init.xavier_normal_(self.conv1d_3.weight, gain=gain)
+        torch.nn.init.xavier_normal_(self.conv1d_4.weight, gain=gain)
 
     def forward(self, h):
-        X = torch.nn.functional.normalize(h, p=2.0, dim=-1)
-        X = self.conv1d_1(X)
+        # X = torch.nn.functional.normalize(h, p=2.0, dim=-1)
+        X = self.conv1d_1(h)
         X = torch.nn.functional.leaky_relu(X)
         X = self.conv1d_2(X)
+        X = torch.nn.functional.leaky_relu(X)
+        X = self.pool(X)
+        X = self.conv1d_3(X) # ceil( (Lin+2)/3 )
+        X = torch.nn.functional.leaky_relu(X)
+        X = self.conv1d_4(X) # ceil( (Lin+2)/3 )
         X = torch.nn.functional.leaky_relu(X)
         X = self.pool(X)
         X = self.fc1(X)
         X = torch.nn.functional.leaky_relu(X)
         X = self.fc2(X)
-        X = torch.nn.functional.normalize(X, p=2.0, dim=-1)
+        # X = torch.nn.functional.normalize(X, p=2.0, dim=-1)
         # X = torch.nn.functional.leaky_relu(X)
         X = torch.squeeze(X, dim=1)
         return X
@@ -165,28 +175,21 @@ class encoder_bead(torch.nn.Module):
         edge_weights = [sub.edata[efeat[0]] for sub in blocks]
         # norm_edge_weights = [ self.norm(blocks[i], w) for i, w in enumerate(edge_weights)]
         
-        # block = blocks[0].edge_type_subgraph([etypes[0]])
-        # block = dgl.to_homogeneous(block)
-        # block = dgl.to_block(block)
-        block = blocks[0]
-        # h = self.layer1(block, x, edge_weight=norm_edge_weights[0])
-        h = self.layer1(block, x, edge_weight=edge_weights[0])
+        num = x.shape[1]
+        res = []
+        for i in np.arange(num):
+            h = x[:,i,:]
+            block = blocks[0]
+            h = self.layer1(block, h, edge_weight=edge_weights[0])
 
-        # block = blocks[1].edge_type_subgraph([etypes[0]])
-        # block = dgl.to_homogeneous(block)
-        # block = dgl.to_block(block)
-        block = blocks[1]
-        # h = self.layer2(block, h, edge_weight=norm_edge_weights[1])
-        h = self.layer2(block, h, edge_weight=edge_weights[1])
+            block = blocks[1]
+            h = self.layer2(block, h, edge_weight=edge_weights[1])
 
-        # block = blocks[2].edge_type_subgraph([etypes[0]])
-        # block = dgl.to_homogeneous(block)
-        # lock = dgl.to_block(block)
-        block = blocks[2]
-        # res = self.layer3(block, h, edge_weight=norm_edge_weights[2])
-        res = self.layer3(block, h, edge_weight=edge_weights[2])
+            block = blocks[2]
+            h = self.layer3(block, h, edge_weight=edge_weights[2])
 
-        return res
+            res.append(h)
+        return torch.stack(res, dim=1)
 
 '''class encoder_union(torch.nn.Module):
     # src: center -> dst: bead
