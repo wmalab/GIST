@@ -10,9 +10,15 @@ class WassersteinLoss(nn.Module):
         p = 1
         blur = 0.01
         self.loss_fc = SamplesLoss(loss, p=p, blur=blur)
+
+    def forward(self, pred, target, num_cluster):
+        self.ncluster = torch.nn.Parameter(torch.arange(0, num_cluster), requires_grad=False)
     
-    def forward(self, pred, target):
-        return self.loss_fc(pred.float(), target.float())
+        p = torch.relu(pred)
+        p = torch.nn.functional.normalize(p)
+        p = torch.sum(p * self.ncluster.view(1, -1), dim=-1, keepdim=True)
+        res = self.loss_fc(p.float(), target.view(-1,1).float())
+        return res
 
 class RMSLELoss(nn.Module):
     def __init__(self):

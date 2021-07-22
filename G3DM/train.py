@@ -171,16 +171,14 @@ def fit_one_step(graphs, features, cluster_weights, sampler, batch_size, em_netw
         xp0, std0 = de_bead_net(sub_pair, res)
 
         xt1 = top_graph.edges['interacts_1'].data['label']
-        ct1 = torch.nn.functional.one_hot(xt1.long(), ncluster1)
         xt0 = sub_pair.edges['_E'].data['label']
-        ct0 = torch.nn.functional.one_hot(xt0.long(), ncluster0)
 
         l1_nll = loss_fc[0](xp1, xt1, cw1)
-        l1_wnl = loss_fc[1](xp1, ct1)
+        l1_wnl = loss_fc[1](xp1, xt1, ncluster1)
         loss1 = l1_nll + l1_wnl
 
         l0_nll = loss_fc[0](xp0, xt0, cw0)
-        l0_wnl = loss_fc[1](xp0, ct0)
+        l0_wnl = loss_fc[1](xp0, xt0, ncluster0)
         loss0 = l0_nll + l0_wnl
 
         # loss = loss_fc[0](xp0, xt0, cw0)*1 + loss_fc[0](xp1, xt1, cw1)*1000
