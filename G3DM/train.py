@@ -150,7 +150,6 @@ def fit_one_step(graphs, features, cluster_weights, sampler, batch_size, em_netw
     top_list.append('bead_chain')
 
     loss_list = []
-    print(bottom_graph)
     for input_nodes, output_nodes, blocks in dataloader:
         blocks = [b.to(device) for b in blocks]
         X1 = em_h1_bead(h1_feat)
@@ -171,9 +170,6 @@ def fit_one_step(graphs, features, cluster_weights, sampler, batch_size, em_netw
 
         sub_pair = dgl.node_subgraph(bottom_graph, {'_N': blocks[2].dstdata['_ID']})
 
-        print(sub_pair)
-        print(blocks[2].dstnodes('_N'))
-        print(output_nodes)
         # if sub_pair.num_edges()==0:
         #     continue
 
@@ -208,7 +204,6 @@ def fit_one_step(graphs, features, cluster_weights, sampler, batch_size, em_netw
 
     ll = np.array(loss_list)
     ll = np.nanmean(ll, axis=0, keepdims=False)
-    print('fit_one_step', ll)
     return ll
 
 
@@ -298,7 +293,8 @@ def run_epoch(dataset, model, loss_fc, optimizer, sampler, batch_size, iteration
 
     for i in np.arange(iterations):
         for j, data in enumerate(dataset):
-            graphs, features, _, cluster_weights = data
+            graphs, features, chro, cluster_weights = data
+            print("epoch {:d} chromosome {:d} ".format(i, chro), sep='\t')
 
             # 1 over density of cluster
             cw0 = torch.tensor(cluster_weights['0']).to(device)
@@ -362,5 +358,5 @@ def run_epoch(dataset, model, loss_fc, optimizer, sampler, batch_size, iteration
         plot_scaler(np.nanmean(ll[:,1]), writer, 'Loss/l0_wnl' ,step = i)
         plot_scaler(np.nanmean(ll[:,2]), writer, 'Loss/l1_nll' ,step = i)
         plot_scaler(np.nanmean(ll[:,3]), writer, 'Loss/l1_wnl' ,step = i)
-        print("epoch {:d} Loss {:f}".format(i, np.nanmean(ll, axis=0)))
+        print("epoch {:d} Loss ".format(i), np.nanmean(ll, axis=0))
 
