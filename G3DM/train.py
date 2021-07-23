@@ -327,7 +327,7 @@ def run_epoch(dataset, model, loss_fc, optimizer, sampler, batch_size, iteration
                 m0 = cluster_weights['mat_0']
                 m1 = cluster_weights['mat_1']
                 plot_feature(h0_f_vn, h0_f_hn, h0_p, writer, '0, features/h0')
-                plot_feature(h1_f_vn, h1_f_hn, writer, '0, features/h1')
+                plot_feature(h1_f_vn, h1_f_hn, h1_p, writer, '0, features/h1')
                 plot_cluster(m1, writer, int(config['parameter']['graph']['num_clusters']['1']),'0 cluster/center', step=None)
                 plot_cluster(m0, writer, int(config['parameter']['graph']['num_clusters']['0']), '0 cluster/bead', step=None)
 
