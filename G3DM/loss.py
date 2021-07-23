@@ -14,7 +14,7 @@ class ClusterWassersteinLoss(nn.Module):
         p = torch.relu(pred)
         p = torch.nn.functional.normalize(p)
         p = torch.sum(p * self.ncluster.view(1, -1), dim=-1, keepdim=True)
-        res = torch.abs(p.flaot()-target.view(-1,1).float())
+        res = torch.abs(p.float()-target.view(-1,1).float())
         res = torch.mean(res)
         return res
 
