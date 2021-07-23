@@ -3,6 +3,21 @@ import torch.nn as nn
 from geomloss import SamplesLoss
 # import torch.nn.functional as F
 
+class ClusterWassersteinLoss(nn.Module):
+    def __init__(self, device):
+        super(ClusterWassersteinLoss, self).__init__()
+        self.device = device
+
+    def forward(self, pred, target, num_cluster):
+        self.ncluster = torch.arange(0, num_cluster, dtype= torch.float, device=self.device,requires_grad=False)
+    
+        p = torch.relu(pred)
+        p = torch.nn.functional.normalize(p)
+        p = torch.sum(p * self.ncluster.view(1, -1), dim=-1, keepdim=True)
+        res = torch.abs(p.flaot()-target.view(-1,1).float())
+        res = torch.mean(res)
+        return res
+
 class WassersteinLoss(nn.Module):
     def __init__(self, device):
         super(WassersteinLoss, self).__init__()

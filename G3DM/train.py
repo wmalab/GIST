@@ -6,7 +6,7 @@ import torch_optimizer as optim
 import numpy as np
 
 from .model import embedding, encoder_bead, encoder_chain, encoder_union, decoder
-from .loss import nllLoss, stdLoss, WassersteinLoss
+from .loss import nllLoss, stdLoss, WassersteinLoss, ClusterWassersteinLoss
 from .visualize import plot_feature, plot_X, plot_cluster, plot_confusion_mat, plot_lines
 from .visualize import plot_scaler
 
@@ -76,6 +76,7 @@ def create_network(configuration, device):
     nll = nllLoss().to(device)
     stdl = stdLoss().to(device)
     wnl = WassersteinLoss(device).to(device)
+    cwnl = ClusterWassersteinLoss(device).to(device)
 
     '''opt = torch.optim.Adam(list(em_h0_bead.parameters()) + list(em_h1_bead.parameters()) +
                             list(en_chain_net.parameters()) + list(en_bead_net.parameters()) + list(en_union.parameters()) +
@@ -109,7 +110,7 @@ def create_network(configuration, device):
     em_networks = [em_h0_bead, em_h1_bead]
     ae_networks = [en_chain_net, en_bead_net,
                    en_union, de_center_net, de_bead_net]
-    return sampler, em_networks, ae_networks, [nll, wnl], [opt0, opt1]
+    return sampler, em_networks, ae_networks, [nll, cwnl], [opt0, opt1]
 
 
 def setup_train(configuration):
