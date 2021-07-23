@@ -12,6 +12,6 @@ date
 hostname
 source activate env_G3DM
 module load cuda/10.2.2
-module load GCC/8.3.0 GCCcore/8.3.0
+module load GCC/8.3.0
 echo python test_train.py
 python test_train.py
