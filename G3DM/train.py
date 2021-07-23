@@ -184,6 +184,7 @@ def fit_one_step(graphs, features, cluster_weights, sampler, batch_size, em_netw
         l1_wnl = loss_fc[1](xp1, xt1, ncluster1)
         loss1 = l1_nll + l1_wnl
 
+        print(xp0.shape, xt0.shape)
         l0_nll = loss_fc[0](xp0, xt0, cw0)
         l0_wnl = loss_fc[1](xp0, xt0, ncluster0)
         loss0 = l0_nll + l0_wnl
@@ -292,12 +293,12 @@ def run_epoch(dataset, model, loss_fc, optimizer, sampler, batch_size, iteration
     dur = []
 
     for epoch in np.arange(iterations):
-        print("epoch {:d} chromosome: ".format(epoch), end='\t')
+        print("epoch {:d} chromosome: ".format(epoch), end=' ')
         if epoch >=3:
             t0 = time.time()
         for j, data in enumerate(dataset):
             graphs, features, chro, cluster_weights = data
-            print(chro, end='\t')
+            print(chro, end=' ')
 
             # 1 over density of cluster
             cw0 = torch.tensor(cluster_weights['0']).to(device)

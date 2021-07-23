@@ -2,7 +2,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --mem=100G
-#SBATCH --time=10:00:00
+#SBATCH --time=1-20:00:00
 #SBATCH -p gpu
 #SBATCH --gres=gpu:k80:1
 #SBATCH --job-name=G3DM
