@@ -180,6 +180,9 @@ def fit_one_step(graphs, features, cluster_weights, sampler, batch_size, em_netw
         if xp0.shape[0]==0 or xp1.shape[0]==0:
             continue
 
+        if xp0.shape[0]!= xt0.shape[0]:
+            continue
+
         l1_nll = loss_fc[0](xp1, xt1, cw1)
         l1_wnl = loss_fc[1](xp1, xt1, ncluster1)
         loss1 = l1_nll + l1_wnl
