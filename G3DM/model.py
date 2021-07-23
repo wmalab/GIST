@@ -154,21 +154,21 @@ class encoder_chain(torch.nn.Module):
 class encoder_bead(torch.nn.Module): 
     def __init__(self, in_dim, hidden_dim, out_dim):
         super(encoder_bead, self).__init__()
-        '''self.layer1 = dgl.nn.GraphConv( in_dim, hidden_dim, 
-                                        norm='right', weight=True, 
+        self.layer1 = dgl.nn.GraphConv( in_dim, hidden_dim, 
+                                        norm='none', weight=True, 
                                         allow_zero_in_degree=True)
         self.layer2 = dgl.nn.GraphConv( hidden_dim, out_dim, 
-                                        norm='right', weight=True, 
+                                        norm='none', weight=True, 
                                         allow_zero_in_degree=True)
         self.layer3 = dgl.nn.GraphConv( out_dim, out_dim, 
-                                        norm='right', weight=True, 
-                                        allow_zero_in_degree=True)'''
-        self.layer1 = dgl.nn.SAGEConv( in_dim, hidden_dim, 'lstm',
-                                        norm=None)
-        self.layer2 = dgl.nn.SAGEConv( hidden_dim, out_dim, 'lstm',
-                                        norm=None)
-        self.layer3 = dgl.nn.SAGEConv( out_dim, out_dim, 'lstm',
-                                        norm=None)
+                                        norm='none', weight=True, 
+                                        allow_zero_in_degree=True)
+        # self.layer1 = dgl.nn.SAGEConv( in_dim, hidden_dim, 'lstm',
+        #                                 norm=None)
+        # self.layer2 = dgl.nn.SAGEConv( hidden_dim, out_dim, 'lstm',
+        #                                 norm=None)
+        # self.layer3 = dgl.nn.SAGEConv( out_dim, out_dim, 'lstm',
+        #                                 norm=None)
         # self.norm = dgl.nn.EdgeWeightNorm(norm='both')
 
     def forward(self, blocks, x, etypes, efeat):
@@ -357,8 +357,9 @@ class decoder(torch.nn.Module):
     def forward(self, g, h):
         with g.local_scope():
             g.nodes[self.ntype].data['z'] = h
-            self.upper_bound = torch.matmul(torch.abs(self.r_dist), self.upones)+0.1
-            self.lower_bound = torch.matmul(torch.abs(self.r_dist), self.lowones)
+            r = 10/torch.sum(torch.abs(self.r_dist))
+            self.upper_bound = (torch.matmul(torch.abs(self.r_dist), self.upones)+0.1)*r
+            self.lower_bound = (torch.matmul(torch.abs(self.r_dist), self.lowones))*r
             g.apply_edges(self.edge_distance, etype=self.etype)
             return g.edata.pop('dist_pred'), g.edata.pop('std')
 

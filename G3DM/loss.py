@@ -11,10 +11,16 @@ class ClusterWassersteinLoss(nn.Module):
     def forward(self, pred, target, num_cluster):
         self.ncluster = torch.arange(0, num_cluster, dtype= torch.float, device=self.device,requires_grad=False)
     
-        p = torch.relu(pred)
-        p = torch.nn.functional.normalize(p)
-        p = torch.sum(p * self.ncluster.view(1, -1), dim=-1, keepdim=True)
-        res = torch.abs(p.float()-target.view(-1,1).float())
+        # p = torch.relu(pred)
+        # p = torch.nn.functional.normalize(p)
+        # p = torch.sum(p * self.ncluster.view(1, -1), dim=-1, keepdim=True)
+        # res = torch.abs(p.float()-target.view(-1,1).float())
+        # res = torch.mean(res)
+        p = torch.softmax(pred, dim=1)
+        p = torch.cumsum(p, dim=1)
+        t = torch.nn.function.one_hot(target, num_cluster)
+        t = torch.cumsum(t, dim=1)
+        res = torch.abs(p.float()-target.float())
         res = torch.mean(res)
         return res
 
