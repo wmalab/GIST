@@ -357,9 +357,9 @@ class decoder(torch.nn.Module):
     def forward(self, g, h):
         with g.local_scope():
             g.nodes[self.ntype].data['z'] = h
-            r = 10/torch.sum(torch.abs(self.r_dist))
-            self.upper_bound = (torch.matmul(torch.abs(self.r_dist), self.upones)+0.1)*r
-            self.lower_bound = (torch.matmul(torch.abs(self.r_dist), self.lowones))*r
+            # r = 10/torch.sum(torch.abs(self.r_dist))
+            self.upper_bound = (torch.matmul(torch.abs(self.r_dist), self.upones)+0.1) # *r
+            self.lower_bound = (torch.matmul(torch.abs(self.r_dist), self.lowones)) # *r
             g.apply_edges(self.edge_distance, etype=self.etype)
             return g.edata.pop('dist_pred'), g.edata.pop('std')
 
