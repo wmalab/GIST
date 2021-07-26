@@ -69,10 +69,10 @@ if __name__ == '__main__':
                     cool_data_path, cool_file,
                     [feature_path, graph_path], 'chr-{}'.format(chromosome))
         # pool.apply_async(create_data, args=data_args)
-        create_data(num_clusters, chromosome,
-                    cutoff_percents, cutoff_cluster,
+        create_data(num_clusters, chromosome, dim,
+                    cutoff_percents, cutoff_cluster, max_len,
                     cool_data_path, cool_file,
-                    [feature_path, graph_path], 'chr-{}'.format(chromosome))
+                    [feature_path, graph_path])
     # pool.close()
     # pool.join()
 
