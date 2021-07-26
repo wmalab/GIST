@@ -100,15 +100,18 @@ def create_graph_1lvl(norm_hic,
                          output_path, output_prefix_filename)
     else:
         idx_list = permutation_list(idxs, max_len)
-        pool_num = np.min(len(idx_list), multiprocessing.cpu_count())
-        pool = multiprocessing.Pool(pool_num)
+        # pool_num = np.min(len(idx_list), multiprocessing.cpu_count())
+        # pool = multiprocessing.Pool(pool_num)
         for i, idx in enumerate(idx_list):
             data_args = (i, log_hic, mats_, idx,
                          cutoff_percent, cutoff_cluster,
                          output_path, output_prefix_filename)
-            pool.apply_async(create_subgraph_, args=data_args)
-        pool.close()
-        pool.join()
+            # pool.apply_async(create_subgraph_, args=data_args)
+            create_subgraph_(i, log_hic, mats_, idx,
+                         cutoff_percent, cutoff_cluster,
+                         output_path, output_prefix_filename)
+        # pool.close()
+        # pool.join()
 
     # -----------------------------------------------------------------------------
     return cluster_weight

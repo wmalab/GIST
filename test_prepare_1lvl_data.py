@@ -58,20 +58,23 @@ if __name__ == '__main__':
     max_len = config_data['parameter']['graph']['max_len']
     cutoff_percents = config_data['parameter']['graph']['cutoff_percent']
     cutoff_cluster = config_data['parameter']['graph']['cutoff_cluster']
-    
+
     dim = config_data['parameter']['feature']['in_dim']
 
-
-    pool_num = np.min( [ len(all_chromosome), multiprocessing.cpu_count()] )
-    pool = multiprocessing.Pool(pool_num)
+    # pool_num = np.min( [ len(all_chromosome), multiprocessing.cpu_count()] )
+    # pool = multiprocessing.Pool(pool_num)
     for chromosome in all_chromosome:
         data_args = (num_clusters, chromosome,
                     cutoff_percents, cutoff_cluster,
                     cool_data_path, cool_file,
                     [feature_path, graph_path], 'chr-{}'.format(chromosome))
-        pool.apply_async(create_data, args=data_args)
-    pool.close()
-    pool.join()
+        # pool.apply_async(create_data, args=data_args)
+        create_data(num_clusters, chromosome,
+                    cutoff_percents, cutoff_cluster,
+                    cool_data_path, cool_file,
+                    [feature_path, graph_path], 'chr-{}'.format(chromosome))
+    # pool.close()
+    # pool.join()
 
     """graph_dict = dict()
     feature_dict = dict()
