@@ -61,7 +61,8 @@ if __name__ == '__main__':
     
     dim = config_data['parameter']['feature']['in_dim']
 
-    pool_num = np.min(len(all_chromosome), multiprocessing.cpu_count())
+    print(len(all_chromosome), multiprocessing.cpu_count() )
+    pool_num = np.min( len(all_chromosome), multiprocessing.cpu_count() )
     pool = multiprocessing.Pool(pool_num)
     for chromosome in all_chromosome:
         data_args = (num_clusters, chromosome,
