@@ -11,7 +11,7 @@ warnings.filterwarnings('ignore')
  
 def create_feature(norm_hic, dim):
     ''' create Hi-C feature '''
-    log_hic = [log1p_hic(x) for x in norm_hic]
+    log_hic = log1p_hic(norm_hic)
 
     #! dim can't larger than int(x.shape[0]/2)-1
     features = feature_hic(log_hic, check_dim(dim, log_hic))
