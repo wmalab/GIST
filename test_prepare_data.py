@@ -39,16 +39,6 @@ def create_feature(ratio, stride, dim, chromosome, cool_path, cool_file, output_
     #! dim can't larger than int(x.shape[0]/2)-1
     features = [ feature_hic(x, check_dim(dim[i], x)) for i, x in enumerate(log_hics) ]
 
-    '''features = []
-    nrepeats = strides
-    nrepeats = nrepeats.astype(int)
-    features.append(feats[-1])
-    for i in np.arange(len(feats)-2, -1, -1):
-        f0 = feats[i]
-        f1 = np.repeat(features[0], nrepeats[i+1], axis=0)[0:f0.shape[0], :]
-        f = np.concatenate((f0, f1), axis=1)
-        features.insert(0, f)'''
-
     positions = []
     for f in features:
         pe = np.array(position_hic(f, f.shape[1]))
@@ -91,8 +81,8 @@ def create_graph(ratio, stride, num_clusters, chromosome, cutoff_percent, cutoff
 
 
 if __name__ == '__main__':
-    # root = '.'
-    root = '/rhome/yhu/bigdata/proj/experiment_G3DM'
+    root = '.'
+    # root = '/rhome/yhu/bigdata/proj/experiment_G3DM'
 
     configuration_src_path = os.path.join(root, 'data')
     configuration_name = 'config.json'
@@ -110,20 +100,14 @@ if __name__ == '__main__':
 
     # '/rhome/yhu/bigdata/proj/experiment_G3DM'
     root = config_data['root'] if config_data['root'] else root
-    cool_data_path = config_data['cool_data_path'] if config_data['cool_data_path'] else os.path.join(
-        root, 'data', 'raw')
-    graph_path = config_data['graph_path'] if config_data['graph_path'] else os.path.join(
-        root, 'data', cell, hyper, 'graph')
-    feature_path = config_data['feature_path'] if config_data['feature_path'] else os.path.join(
-        root, 'data', cell, hyper, 'feature')
-    dataset_path = config_data['dataset_path']['path'] if config_data['dataset_path']['path'] else os.path.join(
-        root, 'data', cell, hyper)
+    cool_data_path = config_data['cool_data_path'] if config_data['cool_data_path'] else os.path.join( root, 'data', 'raw')
+    graph_path = config_data['graph_path'] if config_data['graph_path'] else os.path.join( root, 'data', cell, hyper, 'graph')
+    feature_path = config_data['feature_path'] if config_data['feature_path'] else os.path.join( root, 'data', cell, hyper, 'feature')
+    dataset_path = config_data['dataset_path']['path'] if config_data['dataset_path']['path'] else os.path.join( root, 'data', cell, hyper)
     dataset_name = config_data['dataset_path']['name'] if config_data['dataset_path']['name'] else 'dataset.pt'
-    output_path = config_data['output_path'] if config_data['output_path'] else os.path.join(
-        root, 'data', cell, hyper, 'output')
+    output_path = config_data['output_path'] if config_data['output_path'] else os.path.join( root, 'data', cell, hyper, 'output')
 
-    saved_model_path = config_data['saved_model']['path'] if config_data['saved_model']['path'] else os.path.join(
-        root, 'saved_model')
+    saved_model_path = config_data['saved_model']['path'] if config_data['saved_model']['path'] else os.path.join( root, 'saved_model')
     saved_model_name = config_data['saved_model']['name'] if config_data['saved_model']['name'] else 'model_net'
 
     os.makedirs(graph_path, exist_ok=True)
@@ -152,21 +136,20 @@ if __name__ == '__main__':
 
     cutoff_cluster = config_data['parameter']['graph']['cutoff_cluster']
 
-    pool_num = len(all_chromosome)*2 if multiprocessing.cpu_count() > len(
-        all_chromosome)*2 else multiprocessing.cpu_count()
-    pool = multiprocessing.Pool(pool_num)
-    for chromosome in all_chromosome:
-        feat_args = (ratio, stride, dim, chromosome,
-                    cool_data_path, cool_file,
-                    feature_path, 'F_chr-{}'.format(chromosome))
-        pool.apply_async(create_feature, args=feat_args)
-        graph_args = (ratio, stride, num_clusters, chromosome,
-                    cutoff_percents, cutoff_cluster,
-                    cool_data_path, cool_file,
-                    graph_path, 'G_chr-{}'.format(chromosome))
-        pool.apply_async(create_graph, args=graph_args)
-    pool.close()
-    pool.join()
+    # pool_num = len(all_chromosome)*2 if multiprocessing.cpu_count() > len(all_chromosome)*2 else multiprocessing.cpu_count()
+    # pool = multiprocessing.Pool(pool_num)
+    # for chromosome in all_chromosome:
+    #     feat_args = (ratio, stride, dim, chromosome,
+    #                 cool_data_path, cool_file,
+    #                 feature_path, 'F_chr-{}'.format(chromosome))
+    #     pool.apply_async(create_feature, args=feat_args)
+    #     graph_args = (ratio, stride, num_clusters, chromosome,
+    #                 cutoff_percents, cutoff_cluster,
+    #                 cool_data_path, cool_file,
+    #                 graph_path, 'G_chr-{}'.format(chromosome))
+    #     pool.apply_async(create_graph, args=graph_args)
+    # pool.close()
+    # pool.join()
 
     graph_dict = dict()
     feature_dict = dict()

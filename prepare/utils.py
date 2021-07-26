@@ -1,12 +1,26 @@
-import os
-import cooler
+from __future__ import print_function, division
+
+import os, sys
 import numpy as np
 from numpy import inf
-from scipy.stats import percentileofscore
-from sklearn import mixture
+# import multiprocessing as mp
 
 import torch
+from torch.utils.data import Dataset, DataLoader
+
+import cooler
+from iced import normalization
+
+from scipy.stats import percentileofscore
+from sklearn import mixture
+from skimage import measure
+
 import dgl
+from dgl import save_graphs, load_graphs
+from dgl.data.utils import makedirs, save_info, load_info
+
+import warnings
+warnings.filterwarnings('ignore')
 
 def save_graph(g_list, output_path, output_file):
     ''' g_list = [ top_graph, top_subgraphs, bottom_graph, inter_graph ] '''
@@ -107,3 +121,69 @@ def _gmm_matrix(labels, probability, idx, n_cluster, matrix_size):
     khop_pba = torch.reshape(
         khop_pba, (matrix_size[0], matrix_size[0], n_cluster))
     return khop_m, khop_pba
+
+
+def block_reduce(raw_hic, wl, reduce_fun):
+    hic = measure.block_reduce(raw_hic, (wl, wl), reduce_fun)
+    return hic
+
+def iced_normalization(raw_hic):
+    hic = normalization.ICE_normalization(raw_hic)
+    return hic
+
+def hic_prepare_block_reduce(rawfile, chromosome, ratios, reduce_fun=np.mean, remove_zero_col = True):
+    raw_hic, resolution, cooler = load_hic(rawfile, chromosome = chromosome)
+    hics, norm_hics = [], []
+    win_len = [1]
+    raw_hic = np.nan_to_num(raw_hic)
+    if remove_zero_col:
+        raw_hic, idxy = remove_nan_col(raw_hic)
+    for r in ratios[1:]:
+        win_len.append(win_len[-1]*r)
+
+    for wl in win_len:
+        hics.append( block_reduce(raw_hic, wl, reduce_fun) )
+
+    for h in hics:
+        norm_hics.append(iced_normalization(h))
+    return norm_hics, ratios
+
+def hic_prepare_pooling(rawfile, chromosome, ratios, strides, remove_zero_col = True):
+    raw_hic, resolution, cooler = load_hic(rawfile, chromosome = chromosome)
+    raw_hic = np.nan_to_num(raw_hic)
+    raw_hic = torch.tensor(raw_hic).float()
+    n = raw_hic.shape[0]
+    hics, norm_hics = [], []
+    if remove_zero_col:
+        raw_hic, idxy = remove_nan_col(raw_hic)
+
+    for i, wl in enumerate(ratios):
+        pool1d = torch.nn.AvgPool2d(kernel_size=(wl,wl), stride=strides[i], padding=int(wl/2), count_include_pad=False)
+        m = pool1d(raw_hic.view(1,1,n,n))
+        m = np.array(torch.squeeze(m))
+        m = (m+np.transpose(m))/2
+        np.fill_diagonal(m, 0)
+        hics.append( m )
+
+    for h in hics:
+        m = iced_normalization(h)
+        norm_hics.append(m)
+    return norm_hics
+
+def hic_prepare(rawfile, chromosome):
+    raw_hic, resolution, cooler = load_hic(rawfile, chromosome = chromosome)
+    # raw_hic = np.nan_to_num(raw_hic)
+    raw_hic = torch.tensor(raw_hic).float()
+    n = raw_hic.shape[0]
+
+    #smoothing
+    wl = 3
+    pool1d = torch.nn.AvgPool2d(kernel_size=(wl,wl), stride=1, padding=int(wl/2), count_include_pad=False)
+    m = pool1d(raw_hic.view(1,1,n,n))
+    m = np.array(torch.squeeze(m))
+    m = (m+np.transpose(m))/2
+    np.fill_diagonal(m, 0)
+    hic = m
+
+    norm_hic = iced_normalization(hic)
+    return norm_hic

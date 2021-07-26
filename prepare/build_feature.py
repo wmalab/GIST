@@ -1,6 +1,33 @@
+import os, sys, shutil
+import json, pickle
 import numpy as np
+import torch
 import math
-import os, pickle
+
+from .utils import log1p_hic
+
+import warnings
+warnings.filterwarnings('ignore')
+ 
+def create_feature(norm_hic, dim):
+    ''' create Hi-C feature '''
+    log_hic = [log1p_hic(x) for x in norm_hic]
+
+    #! dim can't larger than int(x.shape[0]/2)-1
+    features = feature_hic(log_hic, check_dim(dim, log_hic))
+    mean_fs = np.nanmean(features,axis=0)
+    for i in np.arange(features.shape[1]):
+        features[np.argwhere(np.isnan(features[:, i])), i] = mean_fs[i]
+    pe = position_hic(features, features.shape[1])
+    positions = np.array(pe)
+
+    f_dict = {'feat':features, 'pos': positions}
+    # save_feature(output_path, output_file, f_dict)
+    return f_dict
+
+def check_dim(dim, x):
+    assert dim <= int(x.shape[0]/2)-1
+    return int(dim)
 
 def feature_hic(hic, dim):
     t_hic = tilt_hic(hic, dim)
@@ -20,13 +47,15 @@ def tilt_hic(hic, dim):
                     featrues[i,l-1] = hic[i, i-l]
     return featrues
 
-def position_hic(hic_feat, dim):
+def position_hic(hic_feat, dim, idx=None):
     max_seq_len, d_model = hic_feat.shape[0], dim
     pe = np.zeros((max_seq_len, d_model))
-    for pos in range(max_seq_len):
-        for i in range(0, d_model-1, 2):
-            pe[pos, i] = math.sin(pos / (10000 ** ((2 * i)/d_model)))
-            pe[pos, i + 1] = math.cos(pos / (10000 ** ((2 * (i + 1))/d_model)))
+    pos = np.arange(max_seq_len)
+
+    step = pos if idx is None else idx[pos]
+    for i in range(0, d_model-1, 2):
+        pe[pos, i] = math.sin(step / (10000 ** ((2 * i)/d_model)))
+        pe[pos, i + 1] = math.cos(step / (10000 ** ((2 * (i + 1))/d_model)))
     x = hic_feat * math.sqrt(d_model)
     #add constant to embedding
     seq_len = x.shape[1]
