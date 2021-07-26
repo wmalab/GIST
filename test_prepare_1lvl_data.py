@@ -15,8 +15,8 @@ warnings.filterwarnings('ignore')
 
 
 if __name__ == '__main__':
-    root = '.'
-    # root = '/rhome/yhu/bigdata/proj/experiment_G3DM'
+    # root = '.'
+    root = '/rhome/yhu/bigdata/proj/experiment_G3DM'
 
     configuration_src_path = os.path.join(root, 'data')
     configuration_name = 'config_1lvl.json'
