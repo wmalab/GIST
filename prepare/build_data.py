@@ -26,7 +26,9 @@ def create_data(num_clusters, chromosome, dim,
     feature = feature_dict['feat']
     position = feature_dict['pos']
 
-    output_g_path = graph_path
+    output_g_path = os.path.join(graph_path, 'chr{}'.format(chromosome))
+    os.makedirs(output_g_path, exist_ok=True)
+    
     output_prefix_file = 'G_chr-{}'.format(chromosome)
     cluster_weight = create_graph_1lvl(norm_hic,
                                        num_clusters, max_len,

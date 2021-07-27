@@ -17,7 +17,7 @@ def create_subgraph_(ID, mat_hic, mat_chic, idx,
         idx: subgraph index
     '''
     hic = mat_hic[idx, :]
-    hic = hic[:idx]
+    hic = hic[:, idx]
     chic = mat_chic[idx, :]
     chic = chic[:, idx]
 
@@ -25,11 +25,13 @@ def create_subgraph_(ID, mat_hic, mat_chic, idx,
     graph_data = dict()
     cutoff = np.percentile(hic, cutoff_percent)
     fid = np.where(hic > cutoff)
+    if len(fid[0])==0 or len(fid[1])==0:
+        return False
     fid_interacts = fid
     u = np.concatenate(fid[0].reshape(-1, 1))
     v = np.concatenate(fid[1].reshape(-1, 1))
     graph_data[('bead', 'interacts', 'bead')] = (u, v)
-    print('# create interacts')
+    print('# create interacts', end=' ')
 
     c_list = [r for r in range(cutoff_cluster)]  # int(n_cluster)-1)
     fid = []
@@ -39,16 +41,15 @@ def create_subgraph_(ID, mat_hic, mat_chic, idx,
         v = np.concatenate([dst])
         fid.append(np.where(chic == i))
         graph_data[('bead', 'interacts_c{}'.format(str(i)), 'bead')] = (u, v)
-    print('# create interacts_c')
+    print('# interacts_c', end=' ')
 
     num_nodes_dict = {'bead': len(idx)}
     g = dgl.heterograph(graph_data, num_nodes_dict, idtype=torch.long)
-    print('# create heterograph')
+    print('# heterograph', end=' ')
 
     g.nodes['bead'].data['id'] = torch.tensor(idx.flatten(), dtype=torch.long)
 
-    with chic as m_hic:
-        g.edges['interacts'].data['label'] = m_hic[tuple(
+    g.edges['interacts'].data['label'] = chic[tuple(
             fid_interacts)].clone().detach().flatten().type(torch.int8)
     print('# assign id & label')
 
@@ -62,7 +63,7 @@ def create_subgraph_(ID, mat_hic, mat_chic, idx,
     save_graph(g_list, output_path, output_file)
     print('Done graphs saved in {}'.format(output_path))
 
-    return
+    return True
 
 
 def create_graph_1lvl(norm_hic,
@@ -100,18 +101,20 @@ def create_graph_1lvl(norm_hic,
                          output_path, output_prefix_filename)
     else:
         idx_list = permutation_list(idxs, max_len)
-        # pool_num = np.min(len(idx_list), multiprocessing.cpu_count())
-        # pool = multiprocessing.Pool(pool_num)
+        pool_num = np.min([len(idx_list), multiprocessing.cpu_count()])
+        pool = multiprocessing.Pool(pool_num)
+        result_objs=[]
         for i, idx in enumerate(idx_list):
             data_args = (i, log_hic, mats_, idx,
                          cutoff_percent, cutoff_cluster,
                          output_path, output_prefix_filename)
-            # pool.apply_async(create_subgraph_, args=data_args)
-            create_subgraph_(i, log_hic, mats_, idx,
-                         cutoff_percent, cutoff_cluster,
-                         output_path, output_prefix_filename)
-        # pool.close()
-        # pool.join()
+            res = pool.apply_async(create_subgraph_, args=data_args)
+            result_objs.append(res)
+            # create_subgraph_(i, log_hic, mats_, idx,
+            #              cutoff_percent, cutoff_cluster,
+            #              output_path, output_prefix_filename)
+        pool.close()
+        pool.join()
 
     # -----------------------------------------------------------------------------
     return cluster_weight
@@ -119,18 +122,18 @@ def create_graph_1lvl(norm_hic,
 def permutation_list(idx, max_len):
     idx_list = []
     # 1 continous idx
-    step = (max_len/10).astype(int)
+    step = np.ceil(max_len/10).astype(int)
     for i in np.arange(0, len(idx), step=step):
-        l,r = i, min(l+max_len, len(idx))
+        l,r = i, min(i+max_len, len(idx))
         sub = idx[l:r]
         idx_list.append(sub)
-    
+    idx_list.append(idx[-max_len:])
     # 2 random
     itn = 10
-    num = np.ceil(len(idx)/max_len)
+    num = np.ceil(len(idx)/max_len).astype(int)
     for epoch in np.arange(itn):
         rand_idx = np.random.permutation(idx)
-        sub_idx = np.split(rand_idx, 2*num)
+        sub_idx = np.array_split(rand_idx, 2*num)
         for i in np.arange(0, 2*num):
             for j in np.arange(i+1, 2*num):
                 sub = np.concatenate((sub_idx[i], sub_idx[j]), axis=0)
