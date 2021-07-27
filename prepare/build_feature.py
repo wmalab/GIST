@@ -53,9 +53,11 @@ def position_hic(hic_feat, dim, idx=None):
     pos = np.arange(max_seq_len)
 
     step = pos if idx is None else idx[pos]
+    print(step.shape)
     for i in range(0, d_model-1, 2):
-        pe[pos, i] = math.sin(step / (10000 ** ((2 * i)/d_model)))
-        pe[pos, i + 1] = math.cos(step / (10000 ** ((2 * (i + 1))/d_model)))
+        iarry = np.ones(len(pos))*i
+        pe[pos, iarry] = math.sin(step / (10000 ** ((2 * i)/d_model)))
+        pe[pos, iarry + 1] = math.cos(step / (10000 ** ((2 * (i + 1))/d_model)))
     x = hic_feat * math.sqrt(d_model)
     #add constant to embedding
     seq_len = x.shape[1]
