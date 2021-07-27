@@ -61,7 +61,7 @@ def create_subgraph_(ID, mat_hic, mat_chic, idx,
 
     output_file = output_prefix_file+'_{}'.format(ID)
     save_graph(g_list, output_path, output_file)
-    print('Done graphs saved in {}'.format(output_path))
+    print('#{} Done graphs saved in \n \t{}'.format(ID, output_path))
 
     return True
 
@@ -91,7 +91,7 @@ def create_graph_1lvl(norm_hic,
     # 1/density
     cluster_weight = (1.0/(cluster_weight+10e-7).astype(np.double))
     cweights_.append(cluster_weight)
-    print('#{} hic: {} clusters, weights: {}'.format(ID, num_clusters, cluster_weight))
+    print('# hic: {} clusters, weights: {}'.format(num_clusters, cluster_weight))
     # -----------------------------------------------------------------------------
 
     # permutation idx in idex
