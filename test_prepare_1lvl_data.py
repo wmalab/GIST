@@ -6,6 +6,8 @@ import multiprocessing
 from prepare.utils import log1p_hic, save_graph, load_graph, hic_prepare
 from prepare.build_graph import create_hierarchical_graph_2lvl
 from prepare.build_data import create_data
+from prepare.build_feature import load_feature
+
 from prepare.build_dataset import HiCDataset
 
 import torch
@@ -61,33 +63,30 @@ if __name__ == '__main__':
 
     dim = config_data['parameter']['feature']['in_dim']
 
-    # pool_num = np.min( [ len(all_chromosome), multiprocessing.cpu_count()] )
-    # pool = multiprocessing.Pool(pool_num)
     for chromosome in all_chromosome:
-        # data_args = (num_clusters, chromosome, dim,
-        #             cutoff_percents, cutoff_cluster, max_len,
-        #             cool_data_path, cool_file,
-        #             [feature_path, graph_path])
-        # pool.apply_async(create_data, args=data_args)
         create_data(num_clusters, chromosome, dim,
                     cutoff_percents, cutoff_cluster, max_len,
                     cool_data_path, cool_file,
                     [feature_path, graph_path])
-    # pool.close()
-    # pool.join()
 
-    """graph_dict = dict()
+    graph_dict = dict()
     feature_dict = dict()
     cluster_weight_dict = dict()
     train_list, valid_list, test_list = list(), list(), list()
     for chromosome in all_chromosome:
-        # graph_dict[chromosome] = {top_graph, top_subgraphs, bottom_graph, inter_graph}
-        # feature_dict[chromosome] = {'hic_feat_h0', 'hic_feat_h1'}
-        g, _ = load_graph(graph_path, 'G_chr-{}'.format(chromosome))
-        graph_dict[str(chromosome)] = g
-        c = load_feature(graph_path, 'cw_G_chr-{}'.format(chromosome))
-        cluster_weight_dict[str(chromosome)] = c
         feature_dict[str(chromosome)] = load_feature(feature_path, 'F_chr-{}'.format(chromosome))
+        cluster_weight_dict[str(chromosome)] = feature_dict[str(chromosome)]['cluster_weight']
+
+        graph_dict[str(chromosome)]=dict()
+        g_path = os.path.join(graph_path, 'chr{}'.format(chromosome))
+        files = [f for f in os.listdir(g_path) if 'chr-{}'.format(chromosome) in f]
+        for file in files:
+            gid = file.split('.')[0]
+            gid = gid.split('_')[-1]
+            gid = int(gid)
+            g, _ = load_graph(g_path, file)
+            graph_dict[str(chromosome)][gid] = g
+
         if str(chromosome) in train_chromosomes:
             train_list.append(str(chromosome))
         if str(chromosome) in valid_chromosomes:
@@ -97,7 +96,7 @@ if __name__ == '__main__':
     
     # create HiCDataset and save
     HD = HiCDataset(graph_dict, feature_dict, cluster_weight_dict, train_list, valid_list, test_list, dataset_path, dataset_name)
-    torch.save(HD, os.path.join( dataset_path, dataset_name))"""
+    torch.save(HD, os.path.join( dataset_path, dataset_name))
 
     '''load_HD = torch.load(os.path.join( dataset_path, dataset_name))
     load_HD[0]

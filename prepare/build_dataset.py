@@ -25,17 +25,24 @@ class HiCDataset(dgl.data.DGLDataset):
         self.train_list = []
         self.valid_list = []
         self.test_list = []
-        for i, (key, gs) in enumerate(self.g_dict.items()):
-            self.graphs.append(gs)
-            self.features.append(self.f_dict[key])
-            self.labels.append(key)
-            self.cw.append(self.cw_dict[key])
-            if(key in self.train):
-                self.train_list.append(i)
-            if(key in self.valid):
-                self.valid_list.append(i)
-            if(key in self.test):
-                self.test_list.append(i)
+        count = 0
+        for i, (key, gs_list) in enumerate(self.g_dict.items()):
+            feature = self.f_dict[key]
+            for j, (idx, gs) in enumerate(gs_list.items()):
+                nodes = gs['top_graph'].ndata['id']
+                feat = feature['feat'][nodes, :]
+                pos = feature['pos'][nodes, :]
+                self.features.append({'feat':feat, 'pos':pos})
+                self.graphs.append(gs)
+                self.labels.append('{}_{}'.format(key, idx))
+                self.cw.append(self.cw_dict[key])
+                if(key in self.train):
+                    self.train_list.append(count)
+                if(key in self.valid):
+                    self.valid_list.append(count)
+                if(key in self.test):
+                    self.test_list.append(count)
+                count = count+1
 
 
     def __getitem__(self, i):
