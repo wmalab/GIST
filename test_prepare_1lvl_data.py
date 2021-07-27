@@ -58,6 +58,8 @@ if __name__ == '__main__':
 
     num_clusters = config_data['parameter']['graph']['num_clusters']
     max_len = config_data['parameter']['graph']['max_len']
+    iteration = config_data['parameter']['graph']['iteration']
+    offset = config_data['parameter']['graph']['offset']
     cutoff_percents = config_data['parameter']['graph']['cutoff_percent']
     cutoff_cluster = config_data['parameter']['graph']['cutoff_cluster']
 

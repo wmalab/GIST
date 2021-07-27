@@ -17,6 +17,8 @@
     "parameter": {
         "graph":{
             "max_len": 145,
+            "iteration": 10,
+            "offset": 3,
             "num_clusters": 18,
             "cutoff_percent": 1,
             "cutoff_cluster": 5

@@ -67,7 +67,7 @@ def create_subgraph_(ID, mat_hic, mat_chic, idx,
 
 
 def create_graph_1lvl(norm_hic,
-                      num_clusters, max_len,
+                      num_clusters, max_len, itn, offset,
                       cutoff_percent, cutoff_cluster,
                       output_path, output_prefix_filename):
     log_hic = log1p_hic(norm_hic)
@@ -119,7 +119,7 @@ def create_graph_1lvl(norm_hic,
     # -----------------------------------------------------------------------------
     return cluster_weight
 
-def permutation_list(idx, max_len):
+def permutation_list(idx, max_len, iteration=10, offset=10):
     idx_list = []
     # 1 continous idx
     step = np.ceil(max_len/10).astype(int)
@@ -129,13 +129,13 @@ def permutation_list(idx, max_len):
         idx_list.append(sub)
     idx_list.append(idx[-max_len:])
     # 2 random
-    itn = 10
     num = np.ceil(len(idx)/max_len).astype(int)
-    for epoch in np.arange(itn):
+    offset = np.min([offset, 2*num])
+    for epoch in np.arange(iteration):
         rand_idx = np.random.permutation(idx)
         sub_idx = np.array_split(rand_idx, 2*num)
         for i in np.arange(0, 2*num):
-            for j in np.arange(i+1, 2*num):
+            for j in np.arange(i+1, offset):
                 sub = np.concatenate((sub_idx[i], sub_idx[j]), axis=0)
                 sub = np.unique(sub.flatten())
                 idx_list.append( np.sort(sub) )
