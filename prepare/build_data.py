@@ -19,8 +19,8 @@ def create_data(num_clusters, chromosome, dim,
     cool = os.path.join(cool_data_path, cool_file)
     norm_hic = hic_prepare(
         rawfile=cool, chromosome='chr{}'.format(str(chromosome)))
-    for m in norm_hic:
-        print('create featrue chromosome {}, iced normalization Hi-C shape: {}'.format(chromosome, m.shape))
+
+    print('create featrue chromosome {}, iced normalization Hi-C shape: {}'.format(chromosome, norm_hic.shape))
 
     feature_dict = create_feature(norm_hic, dim)
     feature = feature_dict['feat']
