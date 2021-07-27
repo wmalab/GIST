@@ -67,7 +67,8 @@ if __name__ == '__main__':
 
     for chromosome in all_chromosome:
         create_data(num_clusters, chromosome, dim,
-                    cutoff_percents, cutoff_cluster, max_len,
+                    cutoff_percents, cutoff_cluster, 
+                    max_len, iteration, offset,
                     cool_data_path, cool_file,
                     [feature_path, graph_path])
 

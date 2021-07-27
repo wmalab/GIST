@@ -10,7 +10,8 @@ from .build_feature import create_feature, save_feature
 
 
 def create_data(num_clusters, chromosome, dim,
-                cutoff_percent, cutoff_cluster, max_len, iteration, offset,
+                cutoff_percent, cutoff_cluster, 
+                max_len, iteration, offset,
                 cool_data_path, cool_file,
                 data_path
                 ):
