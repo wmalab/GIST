@@ -91,7 +91,7 @@ def create_graph_1lvl(norm_hic,
     # 1/density
     cluster_weight = (1.0/(cluster_weight+10e-7).astype(np.double))
     cweights_.append(cluster_weight)
-    print('# hic: {} clusters, weights: {}'.format(num_clusters, cluster_weight))
+    print('#{} hic: {} clusters, weights: {}'.format(ID, num_clusters, cluster_weight))
     # -----------------------------------------------------------------------------
 
     # permutation idx in idex
