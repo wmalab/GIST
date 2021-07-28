@@ -39,6 +39,8 @@ def create_subgraph_(ID, mat_hic, mat_chic, idx,
         [src, dst] = np.where(chic == i)
         u = np.concatenate([src])
         v = np.concatenate([dst])
+        if len(u)==0 or len(v)==0:
+            return False
         fid.append(np.where(chic == i))
         graph_data[('bead', 'interacts_c{}'.format(str(i)), 'bead')] = (u, v)
     print('# interacts_c', end=' ')
