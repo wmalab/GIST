@@ -128,17 +128,17 @@ def permutation_list(idx, max_len, iteration=10, offset=10):
         sub = np.sort(sub)
         idx_list.append(sub)
     idx_list.append(idx[-max_len:])
-    # # 2 random
-    # num = np.ceil(len(idx)/max_len).astype(int)
-    # offset = np.min([offset, 2*num])
-    # for epoch in np.arange(iteration):
-    #     rand_idx = np.random.permutation(idx)
-    #     sub_idx = np.array_split(rand_idx, 2*num)
-    #     for i in np.arange(0, 2*num):
-    #         for j in np.arange(i+1, offset):
-    #             sub = np.concatenate((sub_idx[i], sub_idx[j]), axis=0)
-    #             sub = np.unique(sub.flatten())
-    #             idx_list.append( np.sort(sub) )
+    # 2 random
+    num = np.ceil(len(idx)/max_len).astype(int)
+    offset = np.min([offset, 2*num])
+    for epoch in np.arange(iteration):
+        rand_idx = np.random.permutation(idx)
+        sub_idx = np.array_split(rand_idx, 2*num)
+        for i in np.arange(0, 2*num):
+            for j in np.arange(i+1, offset):
+                sub = np.concatenate((sub_idx[i], sub_idx[j]), axis=0)
+                sub = np.unique(sub.flatten())
+                idx_list.append( np.sort(sub) )
     return idx_list
 
 def create_hierarchical_graph_2lvl(norm_hics, num_clusters, ratios, strides, cutoff_percent={0: 10, 1: 10}, cutoff_cluster={0: 4, 1: 6}):
