@@ -174,7 +174,7 @@ def run_epoch(dataset, model, loss_fc, optimizer, batch_size, iterations, device
                 plot_cluster(m, writer, int(config['parameter']['graph']['num_clusters']),'0 cluster/bead', step=None)
 
             if epoch%5==0 and j == 0 and writer is not None and config is not None:
-                num_heads = int(config['parameter']['G3DM']['num_heads']['out'])
+                num_heads = int(config['parameter']['G3DM']['num_heads'])
                 [center_X,
                 center_cluster_mat, 
                 center_true] = inference(graphs, h_feat, num_heads, 
