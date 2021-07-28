@@ -45,7 +45,8 @@ def create_network(configuration, device):
 
     nll = nllLoss().to(device)
     stdl = stdLoss().to(device)
-    cwnl = ClusterWassersteinLoss(device).to(device)
+    # cwnl = ClusterWassersteinLoss(device).to(device)
+    cwnl = WassersteinLoss(device).to(device)
 
     opt = optim.AdaBound(list(em_bead.parameters()) + list(en_net.parameters()) + list(de_net.parameters()),
                         lr=1e-3, betas=(0.9, 0.999), final_lr=0.1, gamma=1e-3, eps=1e-8, weight_decay=0,
@@ -90,7 +91,7 @@ def fit_one_step(graphs, features, cluster_weights, batch_size, em_networks, ae_
 
     l_nll = loss_fc[0](xp, xt, cw)
     l_wnl = loss_fc[1](xp, xt, ncluster)
-    loss = l_nll # + l_wnl
+    loss = l_nll + l_wnl
 
     optimizer[0].zero_grad()
     loss.backward(retain_graph=False)  # retain_graph=False,
