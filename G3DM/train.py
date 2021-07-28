@@ -45,8 +45,8 @@ def create_network(configuration, device):
 
     nll = nllLoss().to(device)
     stdl = stdLoss().to(device)
-    # cwnl = ClusterWassersteinLoss(device).to(device)
-    cwnl = WassersteinLoss(device).to(device)
+    cwnl = ClusterWassersteinLoss(device).to(device)
+    # cwnl = WassersteinLoss(device).to(device)
 
     opt = optim.AdaBound(list(em_bead.parameters()) + list(en_net.parameters()) + list(de_net.parameters()),
                         lr=1e-3, betas=(0.9, 0.999), final_lr=0.1, gamma=1e-3, eps=1e-8, weight_decay=0,
@@ -90,9 +90,8 @@ def fit_one_step(flg_wnl, graphs, features, cluster_weights, em_networks, ae_net
         return [0, 0]
 
     l_nll = loss_fc[0](xp, xt, cw)
-    l_wnl = loss_fc[0](xp, xt, cw)
+    l_wnl = loss_fc[1](xp, xt, ncluster)
     if flg_wnl : 
-        l_wnl = loss_fc[1](xp, xt, ncluster)
         loss = l_nll + l_wnl
     else:
         loss = l_nll
@@ -165,7 +164,7 @@ def run_epoch(dataset, model, loss_fc, optimizer, iterations, device, writer=Non
                                     torch.tensor(h_p, dtype=torch.float)], 
                                     dim=1).to(device)
 
-            ll = fit_one_step(epoch>=500 and epoch%5==0, graphs, h_feat, cw, em_networks, ae_networks, loss_fc, optimizer, device)
+            ll = fit_one_step(epoch>=50 and epoch%5==0, graphs, h_feat, cw, em_networks, ae_networks, loss_fc, optimizer, device)
             loss_list.append(ll)
 
             if epoch == 0 and j == 0 and writer is not None:
@@ -194,8 +193,7 @@ def run_epoch(dataset, model, loss_fc, optimizer, iterations, device, writer=Non
 
         ll = np.array(loss_list)
         plot_scaler(np.nanmean(ll[:,0]), writer, 'Loss/l_nll' ,step = epoch)
-        if epoch>=500 and epoch%5==0 :
-            plot_scaler(np.nanmean(ll[:,1]), writer, 'Loss/l_wnl' ,step = epoch)
+        plot_scaler(np.nanmean(ll[:,1]), writer, 'Loss/l_wnl' ,step = epoch)
 
         if epoch >=3:
             dur.append(time.time() - t0)
