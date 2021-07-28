@@ -145,12 +145,11 @@ def run_epoch(dataset, model, loss_fc, optimizer, batch_size, iterations, device
     dur = []
 
     for epoch in np.arange(iterations):
-        print("epoch {:d} chromosome: ".format(epoch), end=' ')
+        print("epoch {:d} ".format(epoch), end=' ')
         if epoch >=3:
             t0 = time.time()
         for j, data in enumerate(dataset):
             graphs, features, chro, cluster_weights = data
-            print(chro, end=' ')
 
             # 1 over density of cluster
             cw = torch.tensor(cluster_weights['cw']).to(device)
