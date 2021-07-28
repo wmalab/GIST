@@ -124,9 +124,10 @@ class encoder_chain(torch.nn.Module):
         # edge_weight = subg_interacts.edata[efeat[0]]
 
         h = self.layer1(subg_interacts, {ntype[0]: x })
-        h = self.layer2(subg_interacts, {ntype[0]: h })
+        print(h.shape)
+        h = self.layer2(subg_interacts, h)
 
-        h = self.layerMHs(subg_interacts, {ntype[0]: h })
+        h = self.layerMHs(subg_interacts, h)
 
         res = list()
         for i in torch.arange(self.num_heads):
