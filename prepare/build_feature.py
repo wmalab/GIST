@@ -12,7 +12,8 @@ warnings.filterwarnings('ignore')
 def create_feature(norm_hic, dim):
     ''' create Hi-C feature '''
     log_hic = log1p_hic(norm_hic)
-    n_idx = np.sort(np.argwhere(np.sum(log_hic, axis=0)!=0)).flatten()
+    n_idx = np.arange(log_hic.shape[0]).flatten()
+    # n_idx = np.sort(np.argwhere(np.sum(log_hic, axis=0)!=0)).flatten()
 
     remove_hic = log_hic[n_idx,:]
     remove_hic = remove_hic[:, n_idx]
