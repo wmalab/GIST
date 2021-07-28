@@ -120,38 +120,24 @@ class encoder_chain(torch.nn.Module):
 
     def forward(self, g, x, etypes, efeat, ntype):
 
-        subg_interacts = g.edge_type_subgraph(etypes[:-1])
+        subg_interacts = g.edge_type_subgraph(etypes)
         # edge_weight = subg_interacts.edata[efeat[0]]
 
-        '''h = self.layer1(subg_interacts, {ntype[0]: x }, {'edge_weight':edge_weight})
-        h = self.layer2(subg_interacts, h, {'edge_weight':edge_weight})'''
         h = self.layer1(subg_interacts, {ntype[0]: x })
         h = self.layer2(subg_interacts, h)
-
-        '''subg_chain = g.edge_type_subgraph([etypes[1]])
-        radius = torch.clamp(self.r, min=10e-3, max=3)
-        dh = self.chain(subg_chain, h[ntype[0]], radius)
-        conh = torch.cumsum(dh, dim=-2)
-        h = self.layerMHs(subg_interacts, {ntype[0]: conh })'''
 
         h = self.layerMHs(subg_interacts, h) #{ntype[0]: h })
 
         res = list()
         for i in torch.arange(self.num_heads):
-            '''ds = self.chain(subg_chain, h[ntype[0]][:,i,:], radius)
-            s = torch.cumsum(ds, dim=-2)
-            res.append(s)'''
             x = h[ntype[0]][:,i,:]
-            '''vmin, _ = torch.min(x, dim=0, keepdim=True)
-            vmax, _ = torch.max(x, dim=0, keepdim=True)
-            x = (x - vmin)/(vmax-vmin)'''
             vmean = torch.mean(x, dim=0, keepdim=True)
             x = x - vmean
             res.append(x)
         res = torch.stack(res, dim=1)
         return res
 
-class encoder_bead(torch.nn.Module): 
+"""class encoder_bead(torch.nn.Module): 
     def __init__(self, in_dim, hidden_dim, out_dim):
         super(encoder_bead, self).__init__()
         '''self.layer1 = dgl.nn.GraphConv( in_dim, hidden_dim, 
@@ -188,9 +174,9 @@ class encoder_bead(torch.nn.Module):
             block = blocks[2]
             h = self.layer3(block, h, edge_weight=edge_weights[2])
             res.append(h)
-        return torch.stack(res, dim=1)
+        return torch.stack(res, dim=1)"""
 
-'''class encoder_union(torch.nn.Module):
+"""class encoder_union(torch.nn.Module):
     # src: center -> dst: bead
     def  __init__(self, in_h1_dim, in_h0_dim, out_dim, in_h1_heads, in_h0_heads, out_heads):
         super(encoder_union, self).__init__()
@@ -216,9 +202,9 @@ class encoder_bead(torch.nn.Module):
         self.normWeight(self.wn_fc)
         res = self.wn_fc(res)
         res = torch.transpose(res, 1, 2)
-        return res'''
+        return res"""
 
-class encoder_union(torch.nn.Module):
+"""class encoder_union(torch.nn.Module):
     # src: center -> dst: bead
     def  __init__(self, in_h1_dim, in_h0_dim, out_dim, in_h1_heads, in_h0_heads, out_heads):
         super(encoder_union, self).__init__()
@@ -248,9 +234,9 @@ class encoder_union(torch.nn.Module):
         self.normWeight(self.wn_fc)
         res = self.wn_fc(res)
         res = torch.transpose(res, 1, 2)
-        return res
+        return res"""
 
-class MergeLayer(torch.nn.Module):
+"""class MergeLayer(torch.nn.Module):
     def __init__(self, in_h0_dim, in_h1_dim, out_dim):
         super(MergeLayer, self).__init__()
         # src: center h1 -> dst: bead h0
@@ -261,7 +247,7 @@ class MergeLayer(torch.nn.Module):
         self.reset_parameters()
 
     def reset_parameters(self):
-        """Reinitialize learnable parameters."""
+        '''Reinitialize learnable parameters.'''
         gain = torch.nn.init.calculate_gain('relu')
         # torch.nn.init.xavier_normal_(self.fcsrc.weight, gain=gain)
         torch.nn.init.xavier_normal_(self.fcdst.weight, gain=gain)
@@ -289,9 +275,9 @@ class MergeLayer(torch.nn.Module):
             graph.apply_edges(self.edge_attention)
             graph.update_all(self.message_func, self.reduce_func)
             res = graph.ndata.pop('ah')['h0_bead']
-            return res
+            return res"""
 
-class MultiHeadMergeLayer(torch.nn.Module):
+"""class MultiHeadMergeLayer(torch.nn.Module):
     def __init__(self, in_h0_dim, in_h1_dim, out_dim, num_heads, merge='stack'):
         super(MultiHeadMergeLayer, self).__init__()
         self.heads = torch.nn.ModuleList()
@@ -306,7 +292,7 @@ class MultiHeadMergeLayer(torch.nn.Module):
             return torch.stack(head_outs, dim=-1)
         else:
             # merge using average
-            return torch.mean(torch.stack(head_outs))
+            return torch.mean(torch.stack(head_outs))"""
 
 class decoder(torch.nn.Module):
     ''' num_heads, num_clusters, ntype, etype '''

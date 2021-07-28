@@ -31,7 +31,7 @@
             "iteration": 2000,
             "batchsize": 100,
             "num_heads": 6,
-            "graph_bead_dim":{"in_dim":3, "hidden_dim":3, "out_dim": 3}
+            "graph_dim":{"in_dim":3, "hidden_dim":3, "out_dim": 3}
         }
     }
 }
