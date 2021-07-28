@@ -80,7 +80,6 @@ def create_graph_1lvl(norm_hic,
     log_hic[x_nan_diag_1, y_nan_diag_1] = mean_diag_1
 
     idxs = np.arange(len(norm_hic))
-    cweights_ = []
     # only 1 log Hi-C
 
     mats_, matpbs_ = cluster_hic(log_hic, log_hic, n_cluster=num_clusters)
@@ -90,7 +89,6 @@ def create_graph_1lvl(norm_hic,
     cluster_weight = np.append(cluster_weight, [1.0])
     # 1/density
     cluster_weight = (1.0/(cluster_weight+10e-7).astype(np.double))
-    cweights_.append(cluster_weight)
     print('# hic: {} clusters, weights: {}'.format(num_clusters, cluster_weight))
     # -----------------------------------------------------------------------------
 
@@ -117,7 +115,7 @@ def create_graph_1lvl(norm_hic,
         pool.join()
 
     # -----------------------------------------------------------------------------
-    return cluster_weight
+    return cluster_weight, mats_
 
 def permutation_list(idx, max_len, iteration=10, offset=10):
     idx_list = []

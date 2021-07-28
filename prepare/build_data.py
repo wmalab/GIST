@@ -31,12 +31,12 @@ def create_data(num_clusters, chromosome, dim,
     os.makedirs(output_g_path, exist_ok=True)
     print(output_g_path)
     output_prefix_file = 'G_chr-{}'.format(chromosome)
-    cluster_weight = create_graph_1lvl(norm_hic,
+    cluster_weight, cw_mat = create_graph_1lvl(norm_hic,
                                        num_clusters, max_len, iteration, offset,
                                        cutoff_percent, cutoff_cluster,
                                        output_g_path, output_prefix_file)
 
-    feature_dict['cluster_weight'] = cluster_weight
+    feature_dict['cluster_weight'] = {'cw':cluster_weight, 'mat':cw_mat}
     output_f_path = feature_path
     output_f_file = 'F_chr-{}'.format(chromosome)
     save_feature(output_f_path, output_f_file, feature_dict)

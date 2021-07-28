@@ -153,7 +153,7 @@ def run_epoch(dataset, model, loss_fc, optimizer, batch_size, iterations, device
             print(chro, end=' ')
 
             # 1 over density of cluster
-            cw = torch.tensor(cluster_weights).to(device)
+            cw = torch.tensor(cluster_weights['cw']).to(device)
  
             h_f = features['feat']
             h_p = features['pos']
@@ -169,7 +169,7 @@ def run_epoch(dataset, model, loss_fc, optimizer, batch_size, iterations, device
             loss_list.append(ll)
 
             if epoch == 0 and j == 0 and writer is not None:
-                m = cluster_weights
+                m = cluster_weights['mats']
                 plot_feature(h_f_vn, h_f_hn, h_p, writer, '0, features/h')
                 plot_cluster(m, writer, int(config['parameter']['graph']['num_clusters']),'0 cluster/bead', step=None)
 
