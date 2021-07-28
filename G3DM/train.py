@@ -65,7 +65,7 @@ def setup_train(configuration):
     return itn, batch_size
 
 
-def fit_one_step(graphs, features, cluster_weights, batch_size, em_networks, ae_networks, loss_fc, optimizer, device):
+def fit_one_step(flg_wnl, graphs, features, cluster_weights, em_networks, ae_networks, loss_fc, optimizer, device):
     top_graph = graphs['top_graph'].to(device)
     top_subgraphs = graphs['top_subgraphs'].to(device)
 
@@ -90,8 +90,12 @@ def fit_one_step(graphs, features, cluster_weights, batch_size, em_networks, ae_
         return [0, 0]
 
     l_nll = loss_fc[0](xp, xt, cw)
-    l_wnl = loss_fc[1](xp, xt, ncluster)
-    loss = l_nll + l_wnl
+    l_wnl = loss_fc[0](xp, xt, cw)
+    if flg_wnl : 
+        l_wnl = loss_fc[1](xp, xt, ncluster)
+        loss = l_nll + l_wnl
+    else:
+        loss = l_nll
 
     optimizer[0].zero_grad()
     loss.backward(retain_graph=False)  # retain_graph=False,
@@ -135,7 +139,7 @@ def inference(graphs, features, num_heads, num_clusters, em_networks, ae_network
         return pred_X, pred_cluster_mat, true_cluster_mat
 
 
-def run_epoch(dataset, model, loss_fc, optimizer, batch_size, iterations, device, writer=None, config=None):
+def run_epoch(dataset, model, loss_fc, optimizer, iterations, device, writer=None, config=None):
     em_networks, ae_networks = model
     loss_list = []
     dur = []
@@ -161,7 +165,7 @@ def run_epoch(dataset, model, loss_fc, optimizer, batch_size, iterations, device
                                     torch.tensor(h_p, dtype=torch.float)], 
                                     dim=1).to(device)
 
-            ll = fit_one_step(graphs, h_feat, cw, batch_size, em_networks, ae_networks, loss_fc, optimizer, device)
+            ll = fit_one_step(epoch>=500 and epoch%5==0, graphs, h_feat, cw, em_networks, ae_networks, loss_fc, optimizer, device)
             loss_list.append(ll)
 
             if epoch == 0 and j == 0 and writer is not None:
@@ -190,7 +194,9 @@ def run_epoch(dataset, model, loss_fc, optimizer, batch_size, iterations, device
 
         ll = np.array(loss_list)
         plot_scaler(np.nanmean(ll[:,0]), writer, 'Loss/l_nll' ,step = epoch)
-        plot_scaler(np.nanmean(ll[:,1]), writer, 'Loss/l_wnl' ,step = epoch)
+        if epoch>=500 and epoch%5==0 :
+            plot_scaler(np.nanmean(ll[:,1]), writer, 'Loss/l_wnl' ,step = epoch)
+
         if epoch >=3:
             dur.append(time.time() - t0)
         print("Loss:", np.nanmean(ll, axis=0), "| Time(s) {:.4f} ".format( np.mean(dur)), sep =" " )
