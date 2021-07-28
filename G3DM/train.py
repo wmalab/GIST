@@ -86,11 +86,11 @@ def fit_one_step(graphs, features, cluster_weights, batch_size, em_networks, ae_
     xt = top_graph.edges['interacts'].data['label']
 
     if xp.shape[0]==0 or xp.shape[0]!= xt.shape[0]:
-        return
+        return [0, 0]
 
     l_nll = loss_fc[0](xp, xt, cw)
     l_wnl = loss_fc[1](xp, xt, ncluster)
-    loss = l_nll + l_wnl
+    loss = l_nll # + l_wnl
 
     optimizer[0].zero_grad()
     loss.backward(retain_graph=False)  # retain_graph=False,
