@@ -125,6 +125,7 @@ def permutation_list(idx, max_len, iteration=10, offset=10):
     for i in np.arange(0, len(idx), step=step):
         l,r = i, min(i+max_len, len(idx))
         sub = idx[l:r]
+        sub = np.sort(sub)
         idx_list.append(sub)
     idx_list.append(idx[-max_len:])
     # # 2 random

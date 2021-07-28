@@ -21,10 +21,10 @@ def create_feature(norm_hic, dim):
     #! dim can't larger than int(x.shape[0]/2)-1
     features = feature_hic(remove_hic, check_dim(dim, remove_hic))
 
-    # mean_fs = np.nanmean(features[n_idx.flatten(),:],axis=0)
-    # for i in np.arange(features.shape[0]):
-    #     for j in np.arange(features.shape[1]):
-    #         features[i, j] = mean_fs[j] if features[i,j]==0 else features[i,j] 
+    mean_fs = np.nanmean(features[n_idx.flatten(),:],axis=0)
+    for i in np.arange(features.shape[0]):
+        for j in np.arange(features.shape[1]):
+            features[i, j] = mean_fs[j] if features[i,j]==0 else features[i,j] 
 
     pe = position_hic(features, features.shape[1], idx=n_idx)
     positions = np.array(pe)
