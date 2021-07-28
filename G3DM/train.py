@@ -129,6 +129,7 @@ def inference(graphs, features, num_heads, num_clusters, em_networks, ae_network
         tp1 = graphs['top_graph'].edges['interacts'].data['label'].cpu().detach().numpy()
 
         pred_X = h_center.cpu().detach().numpy()
+        print(pred_X.shape, h_center.shape)
         pred_cluster_mat = np.ones((pred_X.shape[0], pred_X.shape[0]))*(num_clusters[1]-1)
         xs,ys = graphs['top_graph'].edges(etype='interacts', form='uv')[0], graphs['top_graph'].edges(etype='interacts', form='uv')[1]
         pred_cluster_mat[xs, ys] = np.argmax(p1, axis=1)
