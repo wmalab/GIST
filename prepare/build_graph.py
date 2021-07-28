@@ -31,7 +31,6 @@ def create_subgraph_(ID, mat_hic, mat_chic, idx,
     u = np.concatenate(fid[0].reshape(-1, 1))
     v = np.concatenate(fid[1].reshape(-1, 1))
     graph_data[('bead', 'interacts', 'bead')] = (u, v)
-    print('# create interacts', end=' ')
 
     c_list = [r for r in range(cutoff_cluster)]  # int(n_cluster)-1)
     fid = []
@@ -43,17 +42,14 @@ def create_subgraph_(ID, mat_hic, mat_chic, idx,
             return False
         fid.append(np.where(chic == i))
         graph_data[('bead', 'interacts_c{}'.format(str(i)), 'bead')] = (u, v)
-    print('# interacts_c', end=' ')
 
     num_nodes_dict = {'bead': len(idx)}
     g = dgl.heterograph(graph_data, num_nodes_dict, idtype=torch.long)
-    print('# heterograph', end=' ')
 
     g.nodes['bead'].data['id'] = torch.tensor(idx.flatten(), dtype=torch.long)
 
     g.edges['interacts'].data['label'] = chic[tuple(
             fid_interacts)].clone().detach().flatten().type(torch.int8)
-    print('# assign id & label')
 
     top_list = ['interacts_c{}'.format(i) for i in np.arange(cutoff_cluster)]
     top_subgraphs = g.edge_type_subgraph(top_list)
