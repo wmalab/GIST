@@ -70,14 +70,15 @@ def create_graph_1lvl(norm_hic,
                       output_path, output_prefix_filename):
     log_hic = log1p_hic(norm_hic)
 
-    # fill diagonal offset 1 to make a chain of one chromosome
-    diag_1 = np.diagonal(log_hic, offset=1)
-    mean_diag_1 = np.nanmean(diag_1)
-    x_nan_diag_1 = np.argwhere(np.isnan(diag_1))
-    y_nan_diag_1 = x_nan_diag_1 + 1
-    log_hic[x_nan_diag_1, y_nan_diag_1] = mean_diag_1
+    # # fill diagonal offset 1 to make a chain of one chromosome
+    # diag_1 = np.diagonal(log_hic, offset=1)
+    # mean_diag_1 = np.nanmean(diag_1)
+    # x_nan_diag_1 = np.argwhere(np.isnan(diag_1))
+    # y_nan_diag_1 = x_nan_diag_1 + 1
+    # log_hic[x_nan_diag_1, y_nan_diag_1] = mean_diag_1
 
-    idxs = np.arange(len(norm_hic))
+    n_idx = np.sort(np.argwhere(np.sum(log_hic, axis=0)!=0)).flatten()
+    idxs = n_idx
     # only 1 log Hi-C
 
     mats_, matpbs_ = cluster_hic(log_hic, log_hic, n_cluster=num_clusters)
@@ -113,7 +114,9 @@ def create_graph_1lvl(norm_hic,
         pool.join()
 
     # -----------------------------------------------------------------------------
-    return cluster_weight, mats_
+    remove_mats_ = mats_[n_idx, :]
+    remove_mats_ = remove_mats_[:, n_idx]
+    return cluster_weight, remove_mats_
 
 def permutation_list(idx, max_len, iteration=10, offset=10):
     idx_list = []
