@@ -152,7 +152,8 @@ def run_epoch(dataset, model, loss_fc, optimizer, batch_size, iterations, device
             h_f = features['feat']
             h_p = features['pos']
 
-            h_f_vn = torch.nn.functional.normalize(torch.tensor(h_f, dtype=torch.float), p=1.0, dim=0)
+            # h_f_vn = torch.nn.functional.normalize(torch.tensor(h_f, dtype=torch.float), p=1.0, dim=0)
+            h_f_vn = torch.tensor(h_f, dtype=torch.float)
             h_f_hn = torch.nn.functional.normalize(torch.tensor(h_f, dtype=torch.float), p=1.0, dim=1)
 
             h_feat = torch.stack( [h_f_vn, h_f_hn,
@@ -167,7 +168,7 @@ def run_epoch(dataset, model, loss_fc, optimizer, batch_size, iterations, device
                 plot_feature(h_f_vn, h_f_hn, h_p, writer, '0, features/h')
                 plot_cluster(m, writer, int(config['parameter']['graph']['num_clusters']),'0 cluster/bead', step=None)
 
-            if epoch%2==0 and j == 0 and writer is not None and config is not None:
+            if epoch%3==0 and j == 0 and writer is not None and config is not None:
                 num_heads = int(config['parameter']['G3DM']['num_heads'])
                 [center_X,
                 center_cluster_mat, 
