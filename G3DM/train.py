@@ -90,7 +90,7 @@ def fit_one_step(graphs, features, cluster_weights, batch_size, em_networks, ae_
 
     l_nll = loss_fc[0](xp, xt, cw)
     l_wnl = loss_fc[1](xp, xt, ncluster)
-    loss = 1000*l_nll + l_wnl
+    loss = l_nll # + l_wnl
 
     optimizer[0].zero_grad()
     loss.backward(retain_graph=False)  # retain_graph=False,
@@ -175,8 +175,6 @@ def run_epoch(dataset, model, loss_fc, optimizer, batch_size, iterations, device
                 center_true] = inference(graphs, h_feat, num_heads, 
                                         int(config['parameter']['graph']['num_clusters']), 
                                         em_networks, ae_networks, device)
-                print(np.argwhere(np.isnan(center_X)))
-                print(center_X)
                 plot_X(center_X, writer, '1, 3D/center', step=epoch)
                 plot_cluster(center_cluster_mat, writer, 
                             int(config['parameter']['graph']['num_clusters']),
