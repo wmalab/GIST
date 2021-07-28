@@ -12,12 +12,13 @@ warnings.filterwarnings('ignore')
 def create_feature(norm_hic, dim):
     ''' create Hi-C feature '''
     log_hic = log1p_hic(norm_hic)
-    nan_idx = np.argwhere(np.sum(log_hic, axis=0)==0)
+    # nan_idx = np.argwhere(np.sum(log_hic, axis=0)==0)
     #! dim can't larger than int(x.shape[0]/2)-1
     features = feature_hic(log_hic, check_dim(dim, log_hic))
     mean_fs = np.nanmean(features,axis=0)
-    for i in np.arange(features.shape[1]):
-        features[nan_idx, i] = mean_fs[i]
+    for i in np.arange(features.shape[0]):
+        for j in np.arange(features.shape[1]):
+            features[i, j] = mean_fs[j] if features[i,j]==0 else features[i,j] 
     pe = position_hic(features, features.shape[1])
     positions = np.array(pe)
 
