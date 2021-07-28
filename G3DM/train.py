@@ -79,7 +79,6 @@ def fit_one_step(graphs, features, cluster_weights, batch_size, em_networks, ae_
 
     top_list = [e for e in top_subgraphs.etypes if 'interacts_c' in e]
 
-    loss_list = []
     X1 = em_bead(h_feat)
     h_center = en_net(top_subgraphs, X1, top_list, ['w'], ['bead'])
 
@@ -97,11 +96,7 @@ def fit_one_step(graphs, features, cluster_weights, batch_size, em_networks, ae_
     loss.backward(retain_graph=True)  # retain_graph=False,
     optimizer[0].step()
 
-    loss_list.append([l_nll.item(), l_wnl.item()])
-
-    ll = np.array(loss_list)
-    ll = np.nanmean(ll, axis=0, keepdims=False)
-    return ll
+    return [l_nll.item(), l_wnl.item()]
 
 
 def inference(graphs, features, num_heads, num_clusters, em_networks, ae_networks, device):
@@ -157,8 +152,8 @@ def run_epoch(dataset, model, loss_fc, optimizer, batch_size, iterations, device
             h_f = features['feat']
             h_p = features['pos']
 
-            h_f_vn = torch.nn.functional.normalize(torch.tensor(h_f, dtype=torch.float), p=2.0, dim=0)
-            h_f_hn = torch.nn.functional.normalize(torch.tensor(h_f, dtype=torch.float), p=2.0, dim=1)
+            h_f_vn = torch.nn.functional.normalize(torch.tensor(h_f, dtype=torch.float), p=1.0, dim=0)
+            h_f_hn = torch.nn.functional.normalize(torch.tensor(h_f, dtype=torch.float), p=1.0, dim=1)
 
             h_feat = torch.stack( [h_f_vn, h_f_hn,
                                     torch.tensor(h_p, dtype=torch.float)], 
