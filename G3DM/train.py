@@ -92,10 +92,11 @@ def fit_one_step(flg_wnl, graphs, features, cluster_weights, em_networks, ae_net
     l_nll = loss_fc[0](xp, xt, cw)
     l_wnl = loss_fc[1](xp, xt, ncluster)
     l_stdl = loss_fc[2](std, xt, ncluster)
-    if flg_wnl : 
-        loss = l_nll + l_wnl
-    else:
-        loss = l_nll
+    # if flg_wnl : 
+    #     loss = l_nll + l_wnl
+    # else:
+    #     loss = l_nll
+    loss = l_nll + l_stdl
 
     optimizer[0].zero_grad()
     loss.backward(retain_graph=False)  # retain_graph=False,
