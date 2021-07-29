@@ -55,8 +55,8 @@ class stdLoss(nn.Module):
         
     def forward(self, std, cluster, num_cluster):
         # cluster = torch.argmax(pred, dim=-1)
-        weight = torch.abs(cluster - num_cluster/2) - (num_cluster/6)
-        res = torch.mean(std*weight.view(-1,1))
+        weight = torch.abs(cluster - num_cluster/2)**2 - (num_cluster/6)**2
+        res = torch.exp(std*weight.view(-1,1))
         return res
 
 class nllLoss(torch.nn.Module):

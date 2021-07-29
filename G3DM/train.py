@@ -56,7 +56,7 @@ def create_network(configuration, device):
 
     em_networks = [em_bead]
     ae_networks = [en_net, de_net]
-    return em_networks, ae_networks, [nll, cwnl], [opt]
+    return em_networks, ae_networks, [nll, cwnl, stdl], [opt]
 
 
 def setup_train(configuration):
@@ -91,6 +91,7 @@ def fit_one_step(flg_wnl, graphs, features, cluster_weights, em_networks, ae_net
 
     l_nll = loss_fc[0](xp, xt, cw)
     l_wnl = loss_fc[1](xp, xt, ncluster)
+    l_stdl = loss_fc[2](std, xt, ncluster)
     if flg_wnl : 
         loss = l_nll + l_wnl
     else:
@@ -100,7 +101,7 @@ def fit_one_step(flg_wnl, graphs, features, cluster_weights, em_networks, ae_net
     loss.backward(retain_graph=False)  # retain_graph=False,
     optimizer[0].step()
 
-    return [l_nll.item(), l_wnl.item()]
+    return [l_nll.item(), l_wnl.item(), l_stdl.item()]
 
 
 def inference(graphs, features, num_heads, num_clusters, em_networks, ae_networks, device):
@@ -194,6 +195,7 @@ def run_epoch(dataset, model, loss_fc, optimizer, iterations, device, writer=Non
         ll = np.array(loss_list)
         plot_scaler(np.nanmean(ll[:,0]), writer, 'Loss/l_nll' ,step = epoch)
         plot_scaler(np.nanmean(ll[:,1]), writer, 'Loss/l_wnl' ,step = epoch)
+        plot_scaler(np.nanmean(ll[:,2]), writer, 'Loss/l_stdl' ,step = epoch)
 
         if epoch >=3:
             dur.append(time.time() - t0)
