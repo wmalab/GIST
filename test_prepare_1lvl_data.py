@@ -59,7 +59,7 @@ if __name__ == '__main__':
     num_clusters = config_data['parameter']['graph']['num_clusters']
     max_len = config_data['parameter']['graph']['max_len']
     iteration = config_data['parameter']['graph']['iteration']
-    offset = config_data['parameter']['graph']['offset']
+    # offset = config_data['parameter']['graph']['offset']
     cutoff_percents = config_data['parameter']['graph']['cutoff_percent']
     cutoff_cluster = config_data['parameter']['graph']['cutoff_cluster']
 
@@ -68,7 +68,7 @@ if __name__ == '__main__':
     for chromosome in all_chromosome:
         create_data(num_clusters, chromosome, dim,
                     cutoff_percents, cutoff_cluster, 
-                    max_len, iteration, offset,
+                    max_len, iteration,
                     cool_data_path, cool_file,
                     [feature_path, graph_path])
 

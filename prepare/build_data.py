@@ -11,7 +11,7 @@ from .build_feature import create_feature, save_feature
 
 def create_data(num_clusters, chromosome, dim,
                 cutoff_percent, cutoff_cluster, 
-                max_len, iteration, offset,
+                max_len, iteration,
                 cool_data_path, cool_file,
                 data_path
                 ):
@@ -32,7 +32,7 @@ def create_data(num_clusters, chromosome, dim,
     print(output_g_path)
     output_prefix_file = 'G_chr-{}'.format(chromosome)
     cluster_weight, cw_mat = create_graph_1lvl(norm_hic,
-                                       num_clusters, max_len, iteration, offset,
+                                       num_clusters, max_len, iteration,
                                        cutoff_percent, cutoff_cluster,
                                        output_g_path, output_prefix_file)
 

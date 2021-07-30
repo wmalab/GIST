@@ -65,7 +65,7 @@ def create_subgraph_(ID, mat_hic, mat_chic, idx,
 
 
 def create_graph_1lvl(norm_hic,
-                      num_clusters, max_len, itn, offset,
+                      num_clusters, max_len, itn,
                       cutoff_percent, cutoff_cluster,
                       output_path, output_prefix_filename):
     log_hic = log1p_hic(norm_hic)
