@@ -193,6 +193,7 @@ def run_epoch(dataset, model, loss_fc, optimizer, iterations, device, writer=Non
                         x1 = param.to('cpu').detach().numpy()
 
                 plot_lines(np.cumsum(np.abs(x1+1e-4))+0.1, writer, '2,3 hop_dist/center', step=epoch)
+            torch.cuda.empty_cache()
 
         ll = np.array(loss_list)
         plot_scaler(np.nanmean(ll[:,0]), writer, 'Loss/l_nll' ,step = epoch)
