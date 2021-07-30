@@ -1,12 +1,12 @@
-{   "id": "1",
+{   "id": "2",
     "cool_data_path":"",
     "cool_file": "Dixon2012-H1hESC-HindIII-allreps-filtered.100kb.cool", 
     "cell_name": "Dixon2012-H1hESC-HindIII-allreps-filtered",
     "resolution": 10000,
-    "all_chromosomes": ["20", "21", "22"],
-    "train_chromosomes": ["20", "21", "22", "X"],
-    "valid_chromosomes": ["22", "1"],
-    "test_chromosomes": ["20", "2"],
+    "all_chromosomes": ["1", "2", "3", "20", "21", "22"],
+    "train_chromosomes": ["1", "2", "3", "20"],
+    "valid_chromosomes": ["21"],
+    "test_chromosomes": ["22"],
     "root":"",
     "graph_path":"",
     "feature_path":"",
@@ -17,9 +17,8 @@
     "parameter": {
         "graph":{
             "max_len": 500,
-            "iteration": 5,
-            "offset": 2,
-            "num_clusters": 9,
+            "iteration": 10,
+            "num_clusters": 8,
             "cutoff_percent": 1,
             "cutoff_cluster": 5
         },
@@ -30,7 +29,7 @@
         "G3DM":{
             "iteration": 2000,
             "batchsize": 100,
-            "num_heads": 6,
+            "num_heads": 15,
             "graph_dim":{"in_dim":15, "hidden_dim":6, "out_dim": 3}
         }
     }
