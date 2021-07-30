@@ -323,6 +323,8 @@ class decoder(torch.nn.Module):
         lowones = torch.triu(lowones, diagonal=1)
         self.lowones = torch.nn.Parameter( lowones, requires_grad=False)
 
+        self.v_cluster = torch.nn.Parameter( torch.arange(num_clusters, dtype=torch.int32), requires_grad=False)
+
     def aritficial_fc(self, x):
         upper = self.upper_bound - x
         lower = x - self.lower_bound
@@ -338,7 +340,12 @@ class decoder(torch.nn.Module):
         weight = torch.nn.functional.softmax(self.w, dim=0)
         dist = torch.sum(n2*weight, dim=-1, keepdim=True)
         outputs_dist = self.aritficial_fc(dist)
-        std = torch.sqrt(torch.mean((n2 - dist)**2, dim=-1, keepdim=True))
+
+        prob = torch.softmax(outputs_dist, dim=-1)
+        mean = torch.floor(torch.sum(prob * self.v_cluster.view(1,-1), dim=-1, keepdim=True))
+        diff = prob * (self.v_cluster.view(1,-1) - mean)
+        std = torch.sqrt(torch.sum(diff**2, dim=-1, keepdim=True))
+
         return {'dist_pred': outputs_dist, 'std': std}
 
     def forward(self, g, h):
