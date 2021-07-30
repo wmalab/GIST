@@ -16,7 +16,7 @@
     "saved_model": {"path": "", "name": ""},
     "parameter": {
         "graph":{
-            "max_len": 500,
+            "max_len": 2000,
             "iteration": 10,
             "num_clusters": 8,
             "cutoff_percent": 1,
