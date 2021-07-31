@@ -78,23 +78,25 @@ class encoder_chain(torch.nn.Module):
 
         l1 = dict()
         for et in etypes:
-            '''l1[et] = dgl.nn.GraphConv( in_dim, hidden_dim, 
-            norm='right', weight=True, allow_zero_in_degree=True)'''
             l1[et] = dgl.nn.GATConv( in_dim, hidden_dim, 
                                     num_heads=1, residual=False, 
                                     allow_zero_in_degree=True)
         self.layer1 = dgl.nn.HeteroGraphConv( l1, aggregate = 'mean')
-        
+
         l2 = dict()
         for et in etypes:
-            '''l2[et] = dgl.nn.GraphConv( hidden_dim, out_dim, 
-                                        norm='right', weight=True, 
-                                        allow_zero_in_degree=True)'''
             l2[et] = dgl.nn.GATConv( hidden_dim, out_dim, 
                                     num_heads=1, residual=False, 
                                     allow_zero_in_degree=True)
-        self.layer2 = dgl.nn.HeteroGraphConv( l2, aggregate = self.agg_func)
-        
+        self.layer2 = dgl.nn.HeteroGraphConv( l2, aggregate = self.agg_func2)
+
+        l3 = dict()
+        for et in etypes:
+            l3[et] = dgl.nn.GATConv( out_dim, out_dim, 
+                                    num_heads=1, residual=False, 
+                                    allow_zero_in_degree=True)
+        self.layer3 = dgl.nn.HeteroGraphConv( l3, aggregate = self.agg_func3)
+
         lMH = dict()
         for et in etypes:
             lMH[et] = dgl.nn.GATConv( out_dim, out_dim, 
@@ -105,17 +107,26 @@ class encoder_chain(torch.nn.Module):
         '''self.chain = constrainLayer(out_dim)'''
         self.num_heads = num_heads
 
-        self.fc = torch.nn.Linear(len(etypes), len(etypes), bias=False)
+        self.fc2 = torch.nn.Linear(len(etypes), len(etypes), bias=False)
         gain = torch.nn.init.calculate_gain('relu')
-        torch.nn.init.xavier_normal_(self.fc.weight, gain=gain)
+        torch.nn.init.xavier_normal_(self.fc2.weight, gain=gain)
+
+        self.fc3 = torch.nn.Linear(len(etypes), len(etypes), bias=False)
+        gain = torch.nn.init.calculate_gain('relu')
+        torch.nn.init.xavier_normal_(self.fc3.weight, gain=gain)
 
         self.r = torch.nn.Parameter(torch.empty((1)), requires_grad=True)
         self.register_parameter('r', self.r)
         torch.nn.init.uniform_(self.r, a=0.1, b=0.2)
 
-    def agg_func(self, tensors, dsttype):
+    def agg_func2(self, tensors, dsttype):
         stacked = torch.stack(tensors, dim=-1)
-        res = self.fc(stacked)
+        res = self.fc2(stacked)
+        return torch.mean(res, dim=-1)
+
+    def agg_func3(self, tensors, dsttype):
+        stacked = torch.stack(tensors, dim=-1)
+        res = self.fc3(stacked)
         return torch.mean(res, dim=-1)
 
     def forward(self, g, x, etypes, efeat, ntype):
@@ -124,9 +135,8 @@ class encoder_chain(torch.nn.Module):
         # edge_weight = subg_interacts.edata[efeat[0]]
 
         h = self.layer1(subg_interacts, {ntype[0]: x })
-        
         h = self.layer2(subg_interacts, h)
-
+        h = self.layer3(subg_interacts, h)
         h = self.layerMHs(subg_interacts, h)
 
         res = list()

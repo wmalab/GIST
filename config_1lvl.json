@@ -17,7 +17,7 @@
     "parameter": {
         "graph":{
             "max_len": 1000,
-            "iteration": 20,
+            "iteration": 40,
             "num_clusters": 8,
             "cutoff_percent": 1,
             "cutoff_cluster": 5
