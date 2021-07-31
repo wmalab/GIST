@@ -1,4 +1,4 @@
-{   "id": "2",
+{   "id": "0",
     "cool_data_path":"",
     "cool_file": "Dixon2012-H1hESC-HindIII-allreps-filtered.100kb.cool", 
     "cell_name": "Dixon2012-H1hESC-HindIII-allreps-filtered",
@@ -18,7 +18,7 @@
         "graph":{
             "max_len": 1000,
             "iteration": 40,
-            "num_clusters": 8,
+            "num_clusters": 9,
             "cutoff_percent": 1,
             "cutoff_cluster": 5
         },
