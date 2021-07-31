@@ -97,7 +97,7 @@ def create_graph_1lvl(norm_hic,
                          cutoff_percent, cutoff_cluster,
                          output_path, output_prefix_filename)
     else:
-        idx_list = permutation_list(idxs, max_len)
+        idx_list = permutation_list(idxs, max_len, iteration=itn)
         pool_num = np.min([len(idx_list), multiprocessing.cpu_count()])
         pool = multiprocessing.Pool(pool_num)
         result_objs=[]
