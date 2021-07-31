@@ -177,16 +177,21 @@ def run_epoch(dataset, model, loss_fc, optimizer, iterations, device, writer=Non
 
             if epoch%3==0 and j == 0 and writer is not None and config is not None:
                 num_heads = int(config['parameter']['G3DM']['num_heads'])
-                [center_X,
-                center_cluster_mat, 
-                center_true] = inference(graphs, h_feat, num_heads, 
-                                        int(config['parameter']['graph']['num_clusters']), 
-                                        em_networks, ae_networks, device)
+                [center_X, 
+                center_pred_mat, 
+                center_true_mat] = inference(graphs, h_feat, num_heads, 
+                                            int(config['parameter']['graph']['num_clusters']), 
+                                            em_networks, ae_networks, device)
                 plot_X(center_X, writer, '1, 3D/center', step=epoch)
-                plot_cluster(center_cluster_mat, writer, 
+                plot_cluster(center_pred_mat, writer, 
                             int(config['parameter']['graph']['num_clusters']),
-                            '2,1 cluster/center', step=epoch)
-                plot_confusion_mat(center_cluster_mat, center_true,  writer, '2,2 confusion matrix/center', step=epoch)
+                            '2,1 cluster/prediction', step=epoch)
+                
+                plot_cluster(center_pred_mat, writer, 
+                            int(config['parameter']['graph']['num_clusters']),
+                            '2,1 cluster/true', step=epoch)
+
+                plot_confusion_mat(center_pred_mat, center_true_mat,  writer, '2,2 confusion matrix/center', step=epoch)
 
                 for name, param in ae_networks[1].named_parameters():
                     if name == 'r_dist':
