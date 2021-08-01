@@ -171,10 +171,10 @@ def run_epoch(dataset, model, loss_fc, optimizer, iterations, device, writer=Non
             ll = fit_one_step( False, graphs, h_feat, cw, em_networks, ae_networks, loss_fc, optimizer, device)
             loss_list.append(ll)
 
-            # if epoch == 0 and j == 0 and writer is not None:
-            #     m = cluster_weights['mat']
-            #     plot_feature(h_f_vn, h_f_hn, h_p, writer, '0, features/h')
-            #     plot_cluster(m, writer, int(config['parameter']['graph']['num_clusters']),'0 cluster/bead', step=None)
+            if epoch == 0 and j == 0 and writer is not None:
+                m = cluster_weights['mat']
+                plot_feature(h_f_vn, h_f_hn, h_p, writer, '0, features/h')
+                plot_cluster(m, writer, int(config['parameter']['graph']['num_clusters']),'0 cluster/bead', step=None)
 
             if epoch%3==0 and j == 0 and writer is not None and config is not None:
                 num_heads = int(config['parameter']['G3DM']['num_heads'])
@@ -183,6 +183,7 @@ def run_epoch(dataset, model, loss_fc, optimizer, iterations, device, writer=Non
                 center_true_mat] = inference(graphs, h_feat, num_heads, 
                                             int(config['parameter']['graph']['num_clusters']), 
                                             em_networks, ae_networks, device)
+                print(center_X.shape)
                 plot_X(center_X, writer, '1, 3D/center', step=epoch)
                 plot_cluster(center_pred_mat, writer, 
                             int(config['parameter']['graph']['num_clusters']),
