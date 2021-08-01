@@ -87,7 +87,7 @@ def create_graph_1lvl(norm_hic,
                                      density=True)
     cluster_weight = np.append(cluster_weight, [1.0])
     # 1/density
-    cluster_weight = (1.0/(cluster_weight+10e-7).astype(np.double))
+    cluster_weight = np.sqrt(1.0/(cluster_weight+10e-7).astype(np.double))
     print('# hic: {} clusters, weights: {}'.format(num_clusters, cluster_weight))
     # -----------------------------------------------------------------------------
 
