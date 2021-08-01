@@ -84,7 +84,6 @@ def create_graph_1lvl(norm_hic,
     cluster_weight, _ = np.histogram(mats_.view(-1, 1),
                                      bins=np.arange(num_clusters),
                                      density=True)
-    cluster_weight = cluster_weight/3
     cluster_weight = np.append(cluster_weight, [1.0])
     # 1/density
     cluster_weight = (1.0/(cluster_weight+10e-7).astype(np.double))

@@ -190,7 +190,7 @@ def run_epoch(dataset, model, loss_fc, optimizer, iterations, device, writer=Non
                             int(config['parameter']['graph']['num_clusters']),
                             '2,1 cluster/prediction', step=epoch)
                 
-                plot_cluster(center_pred_mat, writer, 
+                plot_cluster(center_true_mat, writer, 
                             int(config['parameter']['graph']['num_clusters']),
                             '2,1 cluster/true', step=epoch)
 
