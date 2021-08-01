@@ -168,8 +168,7 @@ def run_epoch(dataset, model, loss_fc, optimizer, iterations, device, writer=Non
                                     torch.tensor(h_p, dtype=torch.float)], 
                                     dim=1).to(device)
 
-            # ll = fit_one_step( False, graphs, h_feat, cw, em_networks, ae_networks, loss_fc, optimizer, device)
-            ll = 0
+            ll = fit_one_step( False, graphs, h_feat, cw, em_networks, ae_networks, loss_fc, optimizer, device)
             loss_list.append(ll)
 
             # if epoch == 0 and j == 0 and writer is not None:
