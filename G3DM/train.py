@@ -183,7 +183,7 @@ def run_epoch(dataset, model, loss_fc, optimizer, iterations, device, writer=Non
                 center_true_mat] = inference(graphs, h_feat, num_heads, 
                                             int(config['parameter']['graph']['num_clusters']), 
                                             em_networks, ae_networks, device)
-                print(center_X.shape)
+                print(chro, center_X.shape)
                 plot_X(center_X, writer, '1, 3D/center', step=epoch)
                 plot_cluster(center_pred_mat, writer, 
                             int(config['parameter']['graph']['num_clusters']),
