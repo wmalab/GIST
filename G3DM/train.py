@@ -131,13 +131,14 @@ def inference(graphs, features, num_heads, num_clusters, em_networks, ae_network
         tp1 = graphs['top_graph'].edges['interacts'].data['label'].cpu().detach().numpy()
 
         pred_X = h_center.cpu().detach().numpy()
-        pred_cluster_mat = np.ones((pred_X.shape[0], pred_X.shape[0]))*(num_clusters-1)
         xs,ys = graphs['top_graph'].edges(etype='interacts', form='uv')[0], graphs['top_graph'].edges(etype='interacts', form='uv')[1]
+
+        pred_cluster_mat = np.ones((pred_X.shape[0], pred_X.shape[0]))*(num_clusters-1)
         pred_cluster_mat[xs, ys] = np.argmax(p1, axis=1)
 
         true_cluster_mat = np.ones((pred_X.shape[0], pred_X.shape[0]))*(num_clusters-1)
         true_cluster_mat[xs, ys] = tp1
-
+        print(pred_X.shape)
         return pred_X, pred_cluster_mat, true_cluster_mat
 
 
@@ -167,13 +168,14 @@ def run_epoch(dataset, model, loss_fc, optimizer, iterations, device, writer=Non
                                     torch.tensor(h_p, dtype=torch.float)], 
                                     dim=1).to(device)
 
-            ll = fit_one_step( False, graphs, h_feat, cw, em_networks, ae_networks, loss_fc, optimizer, device)
+            # ll = fit_one_step( False, graphs, h_feat, cw, em_networks, ae_networks, loss_fc, optimizer, device)
+            ll = 0
             loss_list.append(ll)
 
-            if epoch == 0 and j == 0 and writer is not None:
-                m = cluster_weights['mat']
-                plot_feature(h_f_vn, h_f_hn, h_p, writer, '0, features/h')
-                plot_cluster(m, writer, int(config['parameter']['graph']['num_clusters']),'0 cluster/bead', step=None)
+            # if epoch == 0 and j == 0 and writer is not None:
+            #     m = cluster_weights['mat']
+            #     plot_feature(h_f_vn, h_f_hn, h_p, writer, '0, features/h')
+            #     plot_cluster(m, writer, int(config['parameter']['graph']['num_clusters']),'0 cluster/bead', step=None)
 
             if epoch%3==0 and j == 0 and writer is not None and config is not None:
                 num_heads = int(config['parameter']['G3DM']['num_heads'])
