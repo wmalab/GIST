@@ -138,7 +138,6 @@ def inference(graphs, features, num_heads, num_clusters, em_networks, ae_network
 
         true_cluster_mat = np.ones((pred_X.shape[0], pred_X.shape[0]))*(num_clusters-1)
         true_cluster_mat[xs, ys] = tp1
-        print(pred_X.shape)
         return pred_X, pred_cluster_mat, true_cluster_mat
 
 

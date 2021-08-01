@@ -52,6 +52,7 @@ if __name__ == '__main__':
     # load dataset
     print('load dataset: {}'.format(os.path.join( dataset_path, dataset_name)))
     HiCDataset = load_dataset(dataset_path, dataset_name)
+    HiCDataset = torch.utils.data.DataLoader(HiCDataset, shuffle=True).dataset
     # graphs, features, label, _ = HiCDataset[0]
 
     # creat network model
