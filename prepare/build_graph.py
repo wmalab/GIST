@@ -42,7 +42,7 @@ def create_subgraph_(ID, mat_hic, mat_chic, idx,
             return False
         fid.append(np.where(chic == i))
         graph_data[('bead', 'interacts_c{}'.format(str(i)), 'bead')] = (u, v)
-
+    print('num of idx: {}'.format(len(idx)))
     num_nodes_dict = {'bead': len(idx)}
     g = dgl.heterograph(graph_data, num_nodes_dict, idtype=torch.long)
 
@@ -102,6 +102,7 @@ def create_graph_1lvl(norm_hic,
         pool = multiprocessing.Pool(pool_num)
         result_objs=[]
         for i, idx in enumerate(idx_list):
+            print('num of idx: {}'.format(len(idx)))
             data_args = (i, log_hic, mats_, idx,
                          cutoff_percent, cutoff_cluster,
                          output_path, output_prefix_filename)
