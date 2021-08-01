@@ -84,6 +84,7 @@ def create_graph_1lvl(norm_hic,
     cluster_weight, _ = np.histogram(mats_.view(-1, 1),
                                      bins=np.arange(num_clusters),
                                      density=True)
+    cluster_weight = cluster_weight/3
     cluster_weight = np.append(cluster_weight, [1.0])
     # 1/density
     cluster_weight = (1.0/(cluster_weight+10e-7).astype(np.double))
@@ -97,10 +98,12 @@ def create_graph_1lvl(norm_hic,
                          output_path, output_prefix_filename)
     else:
         idx_list = permutation_list(idxs, max_len, iteration=itn)
-        pool_num = np.min([len(idx_list), multiprocessing.cpu_count()])
-        pool = multiprocessing.Pool(pool_num)
+        print('split len of idx: [', end=' ')
         for i, l in enumerate(idx_list):
             print(len(l), end=' ')
+        print(']')
+        pool_num = np.min([len(idx_list), multiprocessing.cpu_count()])
+        pool = multiprocessing.Pool(pool_num)
 
         result_objs=[]
         for i, idx in enumerate(idx_list):
@@ -145,7 +148,7 @@ def permutation_list(idx, max_len, iteration=10):
     #             idx_list.append( np.sort(sub) )
 
     # 2 random
-    num = np.ceil(len(idx)/max_len).astype(int)
+    num = np.ceil(len(idx)/max_len + 1).astype(int)
     for epoch in np.arange(iteration):
         rand_idx = np.random.permutation(idx)
         sub_idx = np.array_split(rand_idx, num)

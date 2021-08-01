@@ -128,7 +128,9 @@ def inference(graphs, features, num_heads, num_clusters, em_networks, ae_network
         xp1, _ = de_net(top_graph, h_center)
 
         p1 = xp1.cpu().detach().numpy()
-        tp1 = graphs['top_graph'].edges['interacts'].data['label'].cpu().detach().numpy()
+        tp1 = top_graph.edges['interacts'].data['label'].cpu().detach().numpy()
+
+        # tp1 = graphs['top_graph'].edges['interacts'].data['label'].cpu().detach().numpy()
 
         pred_X = h_center.cpu().detach().numpy()
         xs,ys = graphs['top_graph'].edges(etype='interacts', form='uv')[0], graphs['top_graph'].edges(etype='interacts', form='uv')[1]
