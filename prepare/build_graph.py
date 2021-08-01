@@ -42,7 +42,6 @@ def create_subgraph_(ID, mat_hic, mat_chic, idx,
             return False
         fid.append(np.where(chic == i))
         graph_data[('bead', 'interacts_c{}'.format(str(i)), 'bead')] = (u, v)
-    print('num {}, len idx: {}'.format(ID, len(idx)))
     num_nodes_dict = {'bead': len(idx)}
     g = dgl.heterograph(graph_data, num_nodes_dict, idtype=torch.long)
 
@@ -59,7 +58,7 @@ def create_subgraph_(ID, mat_hic, mat_chic, idx,
 
     output_file = output_prefix_file+'_{}'.format(ID)
     save_graph(g_list, output_path, output_file)
-    print('#{} Done graphs saved in \n \t{}'.format(ID, output_path))
+    print('#{} Done graphs, len idx: {} saved in \n \t{}'.format(ID, len(idx), output_path))
 
     return True
 
@@ -100,6 +99,9 @@ def create_graph_1lvl(norm_hic,
         idx_list = permutation_list(idxs, max_len, iteration=itn)
         pool_num = np.min([len(idx_list), multiprocessing.cpu_count()])
         pool = multiprocessing.Pool(pool_num)
+        for i, l in enumerate(idx_list):
+            print(len(l), end=' ')
+
         result_objs=[]
         for i, idx in enumerate(idx_list):
             data_args = (i, log_hic, mats_, idx,
