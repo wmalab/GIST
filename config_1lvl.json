@@ -24,12 +24,12 @@
         },
         "feature":{
             "in_dim": 50,
-            "out_dim": 12
+            "out_dim": 15
         },
         "G3DM":{
             "iteration": 2000,
-            "num_heads": 30,
-            "graph_dim":{"in_dim":12, "hidden_dim":6, "out_dim": 3}
+            "num_heads": 26,
+            "graph_dim":{"in_dim":15, "hidden_dim":6, "out_dim": 3}
         }
     }
 }
