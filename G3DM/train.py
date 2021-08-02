@@ -31,7 +31,7 @@ def create_network(configuration, device):
     ind = int(config['feature']['in_dim'])
     outd = int(config['feature']['out_dim'])
 
-    em_bead = embedding(in_dim=ind, out_dim=outd, in_num_channels=3).to(device)
+    em_bead = embedding(in_dim=ind, out_dim=outd, in_num_channels=2).to(device)
 
     nh = int(config['G3DM']['num_heads'])
 
