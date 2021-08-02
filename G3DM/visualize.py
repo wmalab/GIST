@@ -11,10 +11,11 @@ def plot_feature(data, writer, item_dir):
     # data = [featsv, featsh, position]
     fig = plt.figure()
     fig, axs = plt.subplots(1, len(data))
-    cmaps = ['RdBu_r', 'RdBu_r', 'viridis']
+    cmaps = ['RdBu_r', 'viridis']
     for col in range(len(data)):
         ax = axs[col]
-        pcm = ax.pcolormesh(data[col] * (col + 1), cmap=cmaps[col])
+        c = cmaps[col] if col < len(data)-1 else cmaps[-1]
+        pcm = ax.pcolormesh(data[col] * (col + 1), cmap=c)
         fig.colorbar(pcm, ax=ax)
     writer.add_figure(item_dir, fig)
 

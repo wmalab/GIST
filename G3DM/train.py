@@ -237,16 +237,12 @@ def run_epoch(datasets, model, loss_fc, optimizer, iterations, device, writer=No
         test_ll = np.array(test_loss_list)
         valid_ll = np.array(valid_loss_list)
 
-        plot_scaler(np.nanmean(test_ll[:,0]), writer, 'NLL/train' ,step = epoch)
-        plot_scaler(np.nanmean(test_ll[:,1]), writer, 'WNL/train' ,step = epoch)
-        plot_scaler(np.nanmean(test_ll[:,2]), writer, 'STDL/train' ,step = epoch)
-
-        plot_scaler(np.nanmean(valid_ll[:,0]), writer, 'NLL/validation' ,step = epoch)
-        plot_scaler(np.nanmean(valid_ll[:,1]), writer, 'WNL/validation' ,step = epoch)
-        plot_scaler(np.nanmean(valid_ll[:,2]), writer, 'STDL/validation' ,step = epoch)
+        plot_scaler(np.nanmean({'test':test_ll[:,0], 'validation': valid_ll[:,0]}), writer, 'NL Loss' ,step = epoch)
+        plot_scaler(np.nanmean({'test':test_ll[:,1], 'validation': valid_ll[:,1]}), writer, 'Wasserstein Loss' ,step = epoch)
+        plot_scaler(np.nanmean({'test':test_ll[:,2], 'validation': valid_ll[:,2]}), writer, 'STD Loss' ,step = epoch)
 
         dur.append(time.time() - t0)
-        print("Loss:", np.nanmean(ll, axis=0), "| Time(s) {:.4f} ".format( np.mean(dur)), sep =" " )
+        print("Loss:", np.nanmean(test_ll, axis=0), "| Time(s) {:.4f} ".format( np.mean(dur)), sep =" " )
         if epoch%10==0:
             GPUtil.showUtilization()
 
