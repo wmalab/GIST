@@ -1,10 +1,10 @@
-{   "id": "4",
+{   "id": "5",
     "cool_data_path":"",
     "cool_file": "Dixon2012-H1hESC-HindIII-allreps-filtered.100kb.cool", 
     "cell_name": "Dixon2012-H1hESC-HindIII-allreps-filtered",
     "resolution": 10000,
-    "all_chromosomes": ["20", "21", "22"],
-    "train_valid_chromosomes": ["20", "21"],
+    "all_chromosomes": ["1", "2", "3", "4", "20", "21", "22"],
+    "train_valid_chromosomes": ["1", "2", "3", "4", "20", "21"],
     "test_chromosomes": ["22"],
     "root":"",
     "graph_path":"",
@@ -16,7 +16,7 @@
     "parameter": {
         "graph":{
             "max_len": 1000,
-            "iteration": 20,
+            "iteration": 40,
             "num_clusters": 9,
             "cutoff_percent": 1,
             "cutoff_cluster": 5
