@@ -54,7 +54,7 @@ if __name__ == '__main__':
     train_valid_indices = np.array(HiCDataset.train_list)
     test_indices = np.array(HiCDataset.test_list)
 
-    train_size = int(0.8 * len(train_valid_indices))
+    train_size = int(0.7 * len(train_valid_indices))
     valid_size = len(train_valid_indices) - train_size
     dataset = torch.utils.data.Subset(HiCDataset, train_valid_indices)
 
