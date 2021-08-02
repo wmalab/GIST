@@ -61,8 +61,8 @@ def create_network(configuration, device):
 
 def setup_train(configuration):
     itn = int(configuration['parameter']['G3DM']['iteration'])
-    batch_size = int(configuration['parameter']['G3DM']['batchsize'])
-    return itn, batch_size
+    # batch_size = int(configuration['parameter']['G3DM']['batchsize'])
+    return itn
 
 
 def fit_one_step(flg_wnl, graphs, features, cluster_weights, em_networks, ae_networks, loss_fc, optimizer, device):
@@ -201,6 +201,7 @@ def run_epoch(dataset, model, loss_fc, optimizer, iterations, device, writer=Non
                         x1 = param.to('cpu').detach().numpy()
 
                 plot_lines(np.cumsum(np.abs(x1+1e-4))+0.1, writer, '2,3 hop_dist/center', step=epoch)
+            
             torch.cuda.empty_cache()
 
         ll = np.array(loss_list)

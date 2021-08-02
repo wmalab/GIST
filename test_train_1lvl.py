@@ -59,7 +59,7 @@ if __name__ == '__main__':
     em_networks, ae_networks, nll, opt = create_network(config_data, device)
 
     # setup and call train
-    itn, batch_size = setup_train(config_data)
+    itn = setup_train(config_data)
     log_fie = time.strftime("%Y%m%d-%H%M%S")
     log_dir = config_data['log_dir'] if config_data['log_dir'] else os.path.join( root, 'log', cell, hyper, log_fie)
     os.makedirs(log_dir, exist_ok=True)
