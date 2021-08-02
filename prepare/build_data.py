@@ -9,7 +9,8 @@ from .build_graph import create_graph_1lvl
 from .build_feature import create_feature, save_feature
 
 
-def create_data(num_clusters, chromosome, dim,
+def create_data(num_clusters, chromosome, for_test,
+                dim,
                 cutoff_percent, cutoff_cluster, 
                 max_len, iteration,
                 cool_data_path, cool_file,
@@ -18,8 +19,7 @@ def create_data(num_clusters, chromosome, dim,
     [feature_path, graph_path] = data_path
 
     cool = os.path.join(cool_data_path, cool_file)
-    norm_hic = hic_prepare(
-        rawfile=cool, chromosome='chr{}'.format(str(chromosome)))
+    norm_hic = hic_prepare( rawfile=cool, chromosome='chr{}'.format(str(chromosome)))
 
     print('create featrue chromosome {}, iced normalization Hi-C shape: {}'.format(chromosome, norm_hic.shape))
 
@@ -29,9 +29,9 @@ def create_data(num_clusters, chromosome, dim,
 
     output_g_path = os.path.join(graph_path, 'chr{}'.format(chromosome))
     os.makedirs(output_g_path, exist_ok=True)
-    print(output_g_path)
+    print('saved graph in: ', output_g_path)
     output_prefix_file = 'G_chr-{}'.format(chromosome)
-    cluster_weight, cw_mat = create_graph_1lvl(norm_hic,
+    cluster_weight, cw_mat = create_graph_1lvl(norm_hic, for_test,
                                        num_clusters, max_len, iteration,
                                        cutoff_percent, cutoff_cluster,
                                        output_g_path, output_prefix_file)

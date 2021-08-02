@@ -377,3 +377,21 @@ class decoder(torch.nn.Module):
             g.apply_edges(self.edge_distance, etype=self.etype)
             return g.edata.pop('dist_pred'), g.edata.pop('std')
 
+def save_model_state_dict(models, optimizer, path, epoch=None, loss=None):
+    state_dict = {
+        'embedding_model_state_dict': models['embedding_model'].state_dict(),
+        'encoder_model_state_dict': models['encoder_model'].state_dict(),
+        'decoder_model_state_dict': models['decoder_model'].state_dict(),
+        'optimizer_state_dict': optimizer.state_dict()
+    }
+
+    if epoch is not None:
+        state_dict['epoch'] = epoch
+    if loss is not None:
+        state_dict['nll_loss'] = loss
+
+    torch.save(state_dict, path)
+
+
+def save_model_entire():
+    pass

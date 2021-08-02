@@ -5,7 +5,7 @@ import torch
 import torch_optimizer as optim
 import numpy as np
 
-from .model import embedding, encoder_chain, decoder
+from .model import embedding, encoder_chain, decoder, save_model_state_dict
 from .loss import nllLoss, stdLoss, WassersteinLoss, ClusterWassersteinLoss
 from .visualize import plot_feature, plot_X, plot_cluster, plot_confusion_mat, plot_lines
 from .visualize import plot_scaler
@@ -65,7 +65,7 @@ def setup_train(configuration):
     return itn
 
 
-def fit_one_step(flg_wnl, graphs, features, cluster_weights, em_networks, ae_networks, loss_fc, optimizer, device):
+def fit_one_step(require_grad, graphs, features, cluster_weights, em_networks, ae_networks, loss_fc, optimizer, device):
     top_graph = graphs['top_graph'].to(device)
     top_subgraphs = graphs['top_subgraphs'].to(device)
 
@@ -92,16 +92,12 @@ def fit_one_step(flg_wnl, graphs, features, cluster_weights, em_networks, ae_net
     l_nll = loss_fc[0](xp, xt, cw)
     l_wnl = loss_fc[1](xp, xt, ncluster)
     l_stdl = loss_fc[2](std, xt, ncluster)
-    # if flg_wnl : 
-    #     loss = l_nll + l_wnl
-    # else:
-    #     loss = l_nll
-    loss = l_nll + l_stdl
-    # loss = l_nll
 
-    optimizer[0].zero_grad()
-    loss.backward(retain_graph=False)  # retain_graph=False,
-    optimizer[0].step()
+    if require_grad:
+        loss = l_nll + l_stdl
+        optimizer[0].zero_grad()
+        loss.backward(retain_graph=False)  # retain_graph=False,
+        optimizer[0].step()
 
     return [l_nll.item(), l_wnl.item(), l_stdl.item()]
 
@@ -143,38 +139,76 @@ def inference(graphs, features, num_heads, num_clusters, em_networks, ae_network
         return pred_X, pred_cluster_mat, true_cluster_mat
 
 
-def run_epoch(dataset, model, loss_fc, optimizer, iterations, device, writer=None, config=None):
-    em_networks, ae_networks = model
-    loss_list = []
-    dur = []
+def run_epoch(datasets, model, loss_fc, optimizer, iterations, device, writer=None, config=None, saved_model=None):
+    train_dataset = datasets[0]
+    valid_dataset = datasets[1] if len(datasets) > 1 else None
+    test_dataset = datasets[2] if len(datasets) > 2 else None
 
+    model_saved_path = saved_model[0] if saved_model is not None else None
+    model_saved_name = saved_model[1] if saved_model is not None else None
+
+    em_networks, ae_networks = model
+    models_dict = {
+        'embedding_model': em_networks[0],
+        'encoder_model': ae_networks[0],
+        'decoder_model': ae_networks[1]
+    }
+
+    test_loss_list, valid_loss_list, dur = [], [], []
+    best_nll_loss = 10
     for epoch in np.arange(iterations):
         print("epoch {:d} ".format(epoch), end=' ')
-        if epoch >=3:
-            t0 = time.time()
-        for j, data in enumerate(dataset):
+        t0 = time.time()
+        for j, data in enumerate(train_dataset):
+            graphs, features, chro, cluster_weights = data
+
+            # 1 over density of cluster
+            cw = torch.tensor(cluster_weights['cw']).to(device)
+
+            h_f, h_p = features['feat'], features['pos']
+            h_f_n = torch.nn.functional.normalize(torch.tensor(h_f, dtype=torch.float), p=1.0, dim=1)
+            h_feat = torch.stack([h_f_n, torch.tensor(h_p, dtype=torch.float)], dim=1).to(device)
+
+            ll = fit_one_step( True, graphs, h_feat, cw, em_networks, ae_networks, loss_fc, optimizer, device)
+            test_loss_list.append(ll)
+
+            for key, m in models_dict.items():
+                for param in list(m.parameters()):
+                    if param.isnan().any() and model_saved_path is not None:
+                        path = os.path.join(model_saved_path, 'ckpt_state_dict_'+ model_saved_name)
+                        checkpoint = torch.load(path, map_location=device)
+                        em_networks[0].load_state_dict(checkpoint['embedding_model_state_dict'])
+                        ae_networks[0].load_state_dict(checkpoint['encoder_model_state_dict'])
+                        ae_networks[1].load_state_dict(checkpoint['decoder_model_state_dict'])
+                        optimizer = checkpoint['optimizer_state_dict']
+                        rollback_epoch = checkpoint['epoch']
+                        rollback_nll = checkpoint['nll_loss']
+                        print('Detected NaN in the parameters, rollback to epoch #{}, nll loss: {}'.format(rollback_epoch, rollback_nll))
+
+            if ll[0] < best_nll_loss:
+                os.makedirs(model_saved_path, exist_ok=True)
+                path = os.path.join(model_saved_path, 'ckpt_state_dict_' + model_saved_name)
+                best_nll_loss = ll[0]
+                save_model_state_dict(models_dict, optimizer[0], path, epoch, best_nll_loss)
+
+            torch.cuda.empty_cache()
+
+        for j, data in enumerate(valid_dataset):
             graphs, features, chro, cluster_weights = data
 
             # 1 over density of cluster
             cw = torch.tensor(cluster_weights['cw']).to(device)
  
-            h_f = features['feat']
-            h_p = features['pos']
+            h_f, h_p = features['feat'], features['pos']
+            h_f_n = torch.nn.functional.normalize(torch.tensor(h_f, dtype=torch.float), p=1.0, dim=1)
+            h_feat = torch.stack( [h_f_n, torch.tensor(h_p, dtype=torch.float)], dim=1).to(device)
 
-            # h_f_vn = torch.nn.functional.normalize(torch.tensor(h_f, dtype=torch.float), p=1.0, dim=0)
-            h_f_vn = torch.tensor(h_f, dtype=torch.float)
-            h_f_hn = torch.nn.functional.normalize(torch.tensor(h_f, dtype=torch.float), p=1.0, dim=1)
-
-            h_feat = torch.stack( [h_f_vn, h_f_hn,
-                                    torch.tensor(h_p, dtype=torch.float)], 
-                                    dim=1).to(device)
-
-            ll = fit_one_step( False, graphs, h_feat, cw, em_networks, ae_networks, loss_fc, optimizer, device)
-            loss_list.append(ll)
+            ll = fit_one_step(False, graphs, h_feat, cw, em_networks, ae_networks, loss_fc, optimizer, device)
+            valid_loss_list.append(ll)
 
             if epoch == 0 and j == 0 and writer is not None:
                 m = cluster_weights['mat']
-                plot_feature(h_f_vn, h_f_hn, h_p, writer, '0, features/h')
+                plot_feature(h_f_n, h_p, writer, '0, features/h')
                 plot_cluster(m, writer, int(config['parameter']['graph']['num_clusters']),'0 cluster/bead', step=None)
 
             if epoch%3==0 and j == 0 and writer is not None and config is not None:
@@ -184,34 +218,38 @@ def run_epoch(dataset, model, loss_fc, optimizer, iterations, device, writer=Non
                 center_true_mat] = inference(graphs, h_feat, num_heads, 
                                             int(config['parameter']['graph']['num_clusters']), 
                                             em_networks, ae_networks, device)
-                print(chro, center_X.shape)
                 plot_X(center_X, writer, '1, 3D/center', step=epoch)
                 plot_cluster(center_pred_mat, writer, 
                             int(config['parameter']['graph']['num_clusters']),
                             '2,1 cluster/prediction', step=epoch)
-                
                 plot_cluster(center_true_mat, writer, 
                             int(config['parameter']['graph']['num_clusters']),
                             '2,1 cluster/true', step=epoch)
-
                 plot_confusion_mat(center_pred_mat, center_true_mat,  writer, '2,2 confusion matrix/center', step=epoch)
 
                 for name, param in ae_networks[1].named_parameters():
                     if name == 'r_dist':
                         x1 = param.to('cpu').detach().numpy()
-
                 plot_lines(np.cumsum(np.abs(x1+1e-4))+0.1, writer, '2,3 hop_dist/center', step=epoch)
-            
+
             torch.cuda.empty_cache()
 
-        ll = np.array(loss_list)
-        plot_scaler(np.nanmean(ll[:,0]), writer, 'Loss/l_nll' ,step = epoch)
-        plot_scaler(np.nanmean(ll[:,1]), writer, 'Loss/l_wnl' ,step = epoch)
-        plot_scaler(np.nanmean(ll[:,2]), writer, 'Loss/l_stdl' ,step = epoch)
+        test_ll = np.array(test_loss_list)
+        valid_ll = np.array(valid_loss_list)
 
-        if epoch >=3:
-            dur.append(time.time() - t0)
+        plot_scaler(np.nanmean(test_ll[:,0]), writer, 'NLL/train' ,step = epoch)
+        plot_scaler(np.nanmean(test_ll[:,1]), writer, 'WNL/train' ,step = epoch)
+        plot_scaler(np.nanmean(test_ll[:,2]), writer, 'STDL/train' ,step = epoch)
+
+        plot_scaler(np.nanmean(valid_ll[:,0]), writer, 'NLL/validation' ,step = epoch)
+        plot_scaler(np.nanmean(valid_ll[:,1]), writer, 'WNL/validation' ,step = epoch)
+        plot_scaler(np.nanmean(valid_ll[:,2]), writer, 'STDL/validation' ,step = epoch)
+
+        dur.append(time.time() - t0)
         print("Loss:", np.nanmean(ll, axis=0), "| Time(s) {:.4f} ".format( np.mean(dur)), sep =" " )
         if epoch%10==0:
             GPUtil.showUtilization()
 
+    os.makedirs(model_saved_path, exist_ok=True)
+    path = os.path.join(model_saved_path, 'finial_' + model_saved_name)
+    save_model_state_dict(models_dict, optimizer[0], path)

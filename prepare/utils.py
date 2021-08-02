@@ -50,7 +50,7 @@ def load_hic(name='Dixon2012-H1hESC-HindIII-allreps-filtered.500kb.cool', chromo
 def log1p_hic(mat):
     HiC = np.log1p(mat)
     HiC = (HiC/np.max(HiC))
-    print('shape of HiC: {}'.format(HiC.shape))
+    # print('shape of HiC: {}'.format(HiC.shape))
     return HiC
 
 def remove_nan_col(hic):
@@ -172,17 +172,17 @@ def hic_prepare_pooling(rawfile, chromosome, ratios, strides, remove_zero_col = 
 def hic_prepare(rawfile, chromosome):
     raw_hic, resolution, cooler = load_hic(rawfile, chromosome = chromosome)
     # raw_hic = np.nan_to_num(raw_hic)
-    raw_hic = torch.tensor(raw_hic).float()
-    n = raw_hic.shape[0]
+    # raw_hic = torch.tensor(raw_hic).float()
+    # n = raw_hic.shape[0]
 
-    #smoothing
-    wl = 3
-    pool1d = torch.nn.AvgPool2d(kernel_size=(wl,wl), stride=1, padding=int(wl/2), count_include_pad=False)
-    m = pool1d(raw_hic.view(1,1,n,n))
-    m = np.array(torch.squeeze(m))
-    m = (m+np.transpose(m))/2
-    np.fill_diagonal(m, 0)
-    hic = m
+    # #smoothing
+    # wl = 3
+    # pool1d = torch.nn.AvgPool2d(kernel_size=(wl,wl), stride=1, padding=int(wl/2), count_include_pad=False)
+    # m = pool1d(raw_hic.view(1,1,n,n))
+    # m = np.array(torch.squeeze(m))
+    # m = (m+np.transpose(m))/2
+    np.fill_diagonal(raw_hic, 0)
+    hic = raw_hic
 
     norm_hic = iced_normalization(hic)
     return norm_hic

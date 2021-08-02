@@ -17,8 +17,8 @@ warnings.filterwarnings('ignore')
 
 
 if __name__ == '__main__':
-    # root = '.'
-    root = '/rhome/yhu/bigdata/proj/experiment_G3DM'
+    root = '.'
+    # root = '/rhome/yhu/bigdata/proj/experiment_G3DM'
 
     configuration_src_path = os.path.join(root, 'data')
     configuration_name = 'config_1lvl.json'
@@ -52,8 +52,7 @@ if __name__ == '__main__':
     os.makedirs(saved_model_path, exist_ok=True)
 
     all_chromosome = config_data['all_chromosomes']
-    train_chromosomes = config_data['train_chromosomes']
-    valid_chromosomes = config_data['valid_chromosomes']
+    train_chromosomes = config_data['train_valid_chromosomes']
     test_chromosomes = config_data['test_chromosomes']
 
     num_clusters = config_data['parameter']['graph']['num_clusters']
@@ -66,7 +65,9 @@ if __name__ == '__main__':
     dim = config_data['parameter']['feature']['in_dim']
 
     for chromosome in all_chromosome:
-        create_data(num_clusters, chromosome, dim,
+        for_test = True if chromosome in test_chromosomes else False
+        create_data(num_clusters, chromosome, for_test,
+                    dim,
                     cutoff_percents, cutoff_cluster, 
                     max_len, iteration,
                     cool_data_path, cool_file,
@@ -75,7 +76,7 @@ if __name__ == '__main__':
     graph_dict = dict()
     feature_dict = dict()
     cluster_weight_dict = dict()
-    train_list, valid_list, test_list = list(), list(), list()
+    train_list, test_list = list(), list()
     for chromosome in all_chromosome:
         feature_dict[str(chromosome)] = load_feature(feature_path, 'F_chr-{}'.format(chromosome))
         cluster_weight_dict[str(chromosome)] = feature_dict[str(chromosome)]['cluster_weight']
@@ -92,13 +93,11 @@ if __name__ == '__main__':
 
         if str(chromosome) in train_chromosomes:
             train_list.append(str(chromosome))
-        if str(chromosome) in valid_chromosomes:
-            valid_list.append(str(chromosome))
         if str(chromosome) in test_chromosomes:
             test_list.append(str(chromosome))
     
     # create HiCDataset and save
-    HD = HiCDataset(graph_dict, feature_dict, cluster_weight_dict, train_list, valid_list, test_list, dataset_path, dataset_name)
+    HD = HiCDataset(graph_dict, feature_dict, cluster_weight_dict, train_list, test_list, dataset_path, dataset_name)
     torch.save(HD, os.path.join( dataset_path, dataset_name))
 
     '''load_HD = torch.load(os.path.join( dataset_path, dataset_name))

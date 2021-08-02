@@ -63,7 +63,7 @@ def create_subgraph_(ID, mat_hic, mat_chic, idx,
     return True
 
 
-def create_graph_1lvl(norm_hic,
+def create_graph_1lvl(norm_hic, for_test,
                       num_clusters, max_len, itn,
                       cutoff_percent, cutoff_cluster,
                       output_path, output_prefix_filename):
@@ -86,12 +86,13 @@ def create_graph_1lvl(norm_hic,
                                      density=True)
     cluster_weight = np.append(cluster_weight, [1.0])
     # 1/density
-    cluster_weight = (1.0/(cluster_weight+10e-7).astype(np.double))
+    cluster_weight = np.sqrt(1.0/(cluster_weight+10e-7).astype(np.double))
     print('# hic: {} clusters, weights: {}'.format(num_clusters, cluster_weight))
     # -----------------------------------------------------------------------------
 
     # permutation idx in idex
-    if len(idxs) <= max_len:
+    print(max_len, 'and', len(idxs))
+    if len(idxs) <= max_len or for_test:
         create_subgraph_(0, log_hic, mats_, idxs,
                          cutoff_percent, cutoff_cluster,
                          output_path, output_prefix_filename)
