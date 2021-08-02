@@ -20,8 +20,8 @@ device = torch.device('cpu' if len(gpuIDs) == 0 else 'cuda:0')
 print(device)
 
 if __name__ == '__main__':
-    root = os.path.join('.') #
-    # root = os.path.join('/rhome/yhu/bigdata/proj/experiment_G3DM')
+    # root = os.path.join('.') #
+    root = os.path.join('/rhome/yhu/bigdata/proj/experiment_G3DM')
     configuration_src_path = os.path.join(root, 'data')
     configuration_name = 'config_1lvl.json'
     with open(os.path.join(configuration_src_path, configuration_name)) as f:
