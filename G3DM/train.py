@@ -160,7 +160,7 @@ def run_epoch(datasets, model, loss_fc, optimizer, iterations, device, writer=No
         print("epoch {:d} ".format(epoch), end=' ')
         t0 = time.time()
         for j, data in enumerate(train_dataset):
-            graphs, features, chro, cluster_weights = data
+            graphs, features, _, cluster_weights, _ = data
 
             # 1 over density of cluster
             cw = torch.tensor(cluster_weights['cw']).to(device)
@@ -194,7 +194,7 @@ def run_epoch(datasets, model, loss_fc, optimizer, iterations, device, writer=No
             torch.cuda.empty_cache()
 
         for j, data in enumerate(valid_dataset):
-            graphs, features, chro, cluster_weights = data
+            graphs, features, _, cluster_weights, _ = data
 
             # 1 over density of cluster
             cw = torch.tensor(cluster_weights['cw']).to(device)
