@@ -134,18 +134,6 @@ def permutation_list(idx, max_len, iteration=10):
         idx_list.append(sub)
     idx_list.append(idx[-max_len:])
 
-    # # 2 random
-    # num = np.ceil(len(idx)/max_len).astype(int)
-    # offset = np.min([offset, 2*num])
-    # for epoch in np.arange(iteration):
-    #     rand_idx = np.random.permutation(idx)
-    #     sub_idx = np.array_split(rand_idx, 2*num)
-    #     for i in np.arange(0, 2*num):
-    #         for j in np.arange(i+1, offset):
-    #             sub = np.concatenate((sub_idx[i], sub_idx[j]), axis=0)
-    #             sub = np.unique(sub.flatten())
-    #             idx_list.append( np.sort(sub) )
-
     # 2 random
     num = np.ceil(len(idx)/max_len + 1).astype(int)
     print('spilt num: {}'.format(num))
