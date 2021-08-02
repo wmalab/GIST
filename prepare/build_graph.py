@@ -148,6 +148,7 @@ def permutation_list(idx, max_len, iteration=10):
 
     # 2 random
     num = np.ceil(len(idx)/max_len + 1).astype(int)
+    print('spilt num: {}'.format(num))
     for epoch in np.arange(iteration):
         rand_idx = np.random.permutation(idx)
         sub_idx = np.array_split(rand_idx, num)
