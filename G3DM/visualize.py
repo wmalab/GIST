@@ -79,4 +79,4 @@ def plot_lines(x, writer, item_dir, step=None):
     writer.add_figure(item_dir, fig, global_step=step)
 
 def plot_scaler(value, writer, item_dir, step):
-    writer.add_scalar(item_dir, value, step)
+    writer.add_scalars(item_dir, value, step)
