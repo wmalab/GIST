@@ -11,4 +11,4 @@ date
 hostname
 source activate env_G3DM
 echo python test_prepare_1lvl_data.py
-test_prepare_1lvl_data.py
+python test_prepare_1lvl_data.py
