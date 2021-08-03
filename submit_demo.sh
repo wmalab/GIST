@@ -5,8 +5,8 @@
 #SBATCH --time=2-20:00:00
 #SBATCH -p gpu
 #SBATCH --gres=gpu:k80:1
-#SBATCH --job-name=G3DM
-#SBATCH --output=Job-G3DM-%J.log
+#SBATCH --job-name=G3DM_train
+#SBATCH --output=Job-G3DM-train-%J.log
 
 date
 hostname
