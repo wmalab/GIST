@@ -24,6 +24,6 @@
         - tensorboard
         - iced
         - torch_optimizer
-        - tensorboard
-        - pykeops
-        - geomloss
+#        - torchinfo
+#        - pykeops
+#        - geomloss
