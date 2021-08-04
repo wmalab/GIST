@@ -8,6 +8,7 @@ import GPUtil
 
 import numpy as np
 from G3DM.train import load_dataset, create_network, setup_train, run_epoch
+from G3DM.model import save_model_state_dict
 
 import warnings
 warnings.filterwarnings('ignore')
@@ -66,6 +67,16 @@ if __name__ == '__main__':
 
     # creat network model
     em_networks, ae_networks, nll, opt = create_network(config_data, device)
+
+    #save init model
+    models_dict = {
+        'embedding_model': em_networks[0],
+        'encoder_model': ae_networks[0],
+        'decoder_model': ae_networks[1]
+    }
+    os.makedirs(saved_model_path, exist_ok=True)
+    path = os.path.join(saved_model_path, 'ckpt_state_dict_' + saved_model_name)
+    save_model_state_dict(models_dict, opt[0], path, 0, None)
 
     # setup and call train
     itn = setup_train(config_data)
