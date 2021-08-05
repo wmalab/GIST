@@ -229,9 +229,10 @@ def run_epoch(datasets, model, loss_fc, optimizer, iterations, device, writer=No
                 plot_confusion_mat(center_pred_mat, center_true_mat,  writer, '2,2 confusion matrix/center', step=epoch)
 
                 for name, param in ae_networks[1].named_parameters():
-                    if name == 'r_dist':
+                    if name == 'in_dist':
                         x1 = param.to('cpu').detach().numpy()
-                plot_lines(np.cumsum(np.abs(x1+1e-4))+0.1, writer, '2,3 hop_dist/center', step=epoch)
+                    x = np.concatenate([[0], x1,[30]])
+                plot_lines(x, writer, '2,3 hop_dist/center', step=epoch)
 
             torch.cuda.empty_cache()
 
