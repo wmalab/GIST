@@ -222,9 +222,10 @@ def run_epoch(datasets, model, loss_fc, optimizer, iterations, device, writer=No
                 plot_cluster(center_pred_mat, writer, 
                             int(config['parameter']['graph']['num_clusters']),
                             '2,1 cluster/prediction', step=epoch)
-                plot_cluster(center_true_mat, writer, 
-                            int(config['parameter']['graph']['num_clusters']),
-                            '2,1 cluster/true', step=epoch)
+                if epoch==0:
+                    plot_cluster(center_true_mat, writer, 
+                                int(config['parameter']['graph']['num_clusters']),
+                                '2,1 cluster/true', step=epoch)
                 plot_confusion_mat(center_pred_mat, center_true_mat,  writer, '2,2 confusion matrix/center', step=epoch)
 
                 for name, param in ae_networks[1].named_parameters():

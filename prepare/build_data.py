@@ -11,7 +11,7 @@ from .build_feature import create_feature, save_feature
 
 def create_data(num_clusters, chromosome, for_test,
                 dim,
-                cutoff_percent, cutoff_cluster, 
+                cutoff_clusters_limits, cutoff_cluster, 
                 max_len, iteration,
                 cool_data_path, cool_file,
                 data_path
@@ -33,7 +33,8 @@ def create_data(num_clusters, chromosome, for_test,
     output_prefix_file = 'G_chr-{}'.format(chromosome)
     cluster_weight, cw_mat = create_graph_1lvl(norm_hic, for_test,
                                        num_clusters, max_len, iteration,
-                                       cutoff_percent, cutoff_cluster,
+                                       cutoff_clusters_limits, 
+                                       cutoff_cluster,
                                        output_g_path, output_prefix_file)
 
     feature_dict['cluster_weight'] = {'cw':cluster_weight, 'mat':cw_mat}

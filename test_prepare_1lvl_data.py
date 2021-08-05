@@ -17,8 +17,8 @@ warnings.filterwarnings('ignore')
 
 
 if __name__ == '__main__':
-    # root = '.'
-    root = '/rhome/yhu/bigdata/proj/experiment_G3DM'
+    root = '.'
+    # root = '/rhome/yhu/bigdata/proj/experiment_G3DM'
 
     configuration_src_path = os.path.join(root, 'data')
     configuration_name = 'config_1lvl.json'
@@ -59,7 +59,8 @@ if __name__ == '__main__':
     max_len = config_data['parameter']['graph']['max_len']
     iteration = config_data['parameter']['graph']['iteration']
     # offset = config_data['parameter']['graph']['offset']
-    cutoff_percents = config_data['parameter']['graph']['cutoff_percent']
+    # cutoff_percents = config_data['parameter']['graph']['cutoff_percent']
+    cutoff_clusters_limits = config_data['parameter']['graph']['cutoff_clusters']
     cutoff_cluster = config_data['parameter']['graph']['cutoff_cluster']
 
     dim = config_data['parameter']['feature']['in_dim']
@@ -68,7 +69,8 @@ if __name__ == '__main__':
         for_test = True if chromosome in test_chromosomes else False
         create_data(num_clusters, chromosome, for_test,
                     dim,
-                    cutoff_percents, cutoff_cluster, 
+                    cutoff_clusters_limits, 
+                    cutoff_cluster, 
                     max_len, iteration,
                     cool_data_path, cool_file,
                     [feature_path, graph_path])

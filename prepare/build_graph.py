@@ -8,8 +8,8 @@ from .utils import save_graph
 # from embedding.model import embedding, tilt_hic, position_hic
 
 
-def create_subgraph_(ID, mat_hic, mat_chic, idx,
-                     cutoff_percent, cutoff_cluster,
+def create_subgraph_(ID, mat_hic, mat_chic, idx, 
+                     cutoff_cluster,
                      output_path, output_prefix_file):
     '''
         mat_hic: entire Hi-C
@@ -23,7 +23,7 @@ def create_subgraph_(ID, mat_hic, mat_chic, idx,
 
     # creat graph
     graph_data = dict()
-    cutoff = np.percentile(hic, cutoff_percent)
+    cutoff = 0 # np.percentile(hic, cutoff_percent)
     fid = np.where(hic > cutoff)
     if len(fid[0])==0 or len(fid[1])==0:
         return False
@@ -65,28 +65,26 @@ def create_subgraph_(ID, mat_hic, mat_chic, idx,
 
 def create_graph_1lvl(norm_hic, for_test,
                       num_clusters, max_len, itn,
-                      cutoff_percent, cutoff_cluster,
+                      cutoff_clusters_limits, 
+                      cutoff_cluster,
                       output_path, output_prefix_filename):
+
     log_hic = log1p_hic(norm_hic)
-
-    # # fill diagonal offset 1 to make a chain of one chromosome
-    # diag_1 = np.diagonal(log_hic, offset=1)
-    # mean_diag_1 = np.nanmean(diag_1)
-    # x_nan_diag_1 = np.argwhere(np.isnan(diag_1))
-    # y_nan_diag_1 = x_nan_diag_1 + 1
-    # log_hic[x_nan_diag_1, y_nan_diag_1] = mean_diag_1
-
     n_idx = np.sort(np.argwhere(np.sum(log_hic, axis=0)!=0)).flatten()
     idxs = n_idx
     # only 1 log Hi-C
-
-    mats_, matpbs_ = cluster_hic(log_hic, log_hic, n_cluster=num_clusters)
+    cp_low, cp_high = float(cutoff_clusters_limits['low']), float(cutoff_clusters_limits['high'])
+    low = np.nanpercentile(log_hic, cp_low)
+    high = np.nanpercentile(log_hic, cp_high)
+    threshold = ((log_hic>low) & (log_hic<high))
+    fit_log_hic = log_hic[threshold]
+    mats_, matpbs_ = cluster_hic(log_hic, fit_log_hic, n_cluster=num_clusters)
     cluster_weight, _ = np.histogram(mats_.view(-1, 1),
                                      bins=np.arange(num_clusters),
                                      density=True)
     cluster_weight = np.append(cluster_weight, [1.0])
     # 1/density
-    cluster_weight = np.sqrt(1.0/(cluster_weight+10e-7).astype(np.double))
+    cluster_weight = 1.0/(cluster_weight+10e-7).astype(np.double)
     print('# hic: {} clusters, weights: {}'.format(num_clusters, cluster_weight))
     # -----------------------------------------------------------------------------
 
@@ -94,7 +92,7 @@ def create_graph_1lvl(norm_hic, for_test,
     print(max_len, 'and', len(idxs))
     if len(idxs) <= max_len or for_test:
         create_subgraph_(0, log_hic, mats_, idxs,
-                         cutoff_percent, cutoff_cluster,
+                         cutoff_cluster,
                          output_path, output_prefix_filename)
     else:
         idx_list = permutation_list(idxs, max_len, iteration=itn)
@@ -108,7 +106,7 @@ def create_graph_1lvl(norm_hic, for_test,
         result_objs=[]
         for i, idx in enumerate(idx_list):
             data_args = (i, log_hic, mats_, idx,
-                         cutoff_percent, cutoff_cluster,
+                         cutoff_cluster,
                          output_path, output_prefix_filename)
             res = pool.apply_async(create_subgraph_, args=data_args)
             result_objs.append(res)
