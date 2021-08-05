@@ -76,7 +76,7 @@ if __name__ == '__main__':
     }
     os.makedirs(saved_model_path, exist_ok=True)
     path = os.path.join(saved_model_path, 'ckpt_state_dict_' + saved_model_name)
-    save_model_state_dict(models_dict, opt[0], path, 0, None)
+    save_model_state_dict(models_dict, opt[0], path, 0, -1.0)
 
     # setup and call train
     itn = setup_train(config_data)

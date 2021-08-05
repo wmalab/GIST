@@ -180,7 +180,7 @@ def run_epoch(datasets, model, loss_fc, optimizer, iterations, device, writer=No
                         em_networks[0].load_state_dict(checkpoint['embedding_model_state_dict'])
                         ae_networks[0].load_state_dict(checkpoint['encoder_model_state_dict'])
                         ae_networks[1].load_state_dict(checkpoint['decoder_model_state_dict'])
-                        optimizer = checkpoint['optimizer_state_dict']
+                        optimizer[0].load_state_dict(checkpoint['optimizer_state_dict'])
                         rollback_epoch = checkpoint['epoch']
                         rollback_nll = checkpoint['nll_loss']
                         print('Detected NaN in the parameters, rollback to epoch #{}, nll loss: {}'.format(rollback_epoch, rollback_nll))

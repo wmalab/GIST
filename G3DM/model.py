@@ -306,7 +306,7 @@ class encoder_chain(torch.nn.Module):
             # merge using average
             return torch.mean(torch.stack(head_outs))"""
 
-class decoder(torch.nn.Module):
+"""class decoder(torch.nn.Module):
     ''' num_heads, num_clusters, ntype, etype '''
     def __init__(self, num_heads, num_clusters, ntype, etype):
         # True: increasing, Flase: decreasing
@@ -348,10 +348,6 @@ class decoder(torch.nn.Module):
         score = (upper*lower)/(self.r_dist.view(1,1,-1)**2 + 1)
         return score
 
-        '''m = torch.relu(mean)
-        score = 1.0/((x - m)**2 + self.b)
-        return score'''
-
     def edge_distance(self, edges):
         n2 = torch.norm((edges.dst['z'] - edges.src['z']), dim=-1, keepdim=False)
         weight = torch.nn.functional.softmax(self.w, dim=0)
@@ -374,6 +370,90 @@ class decoder(torch.nn.Module):
             # r = 10/torch.sum(torch.abs(self.r_dist))
             self.upper_bound = (torch.matmul(torch.abs(self.r_dist), self.upones)+0.1) # *r
             self.lower_bound = (torch.matmul(torch.abs(self.r_dist), self.lowones)) # *r
+
+            g.apply_edges(self.edge_distance, etype=self.etype)
+            return g.edata.pop('dist_pred'), g.edata.pop('std')"""
+
+class decoder(torch.nn.Module):
+    ''' num_heads, num_clusters, ntype, etype '''
+    def __init__(self, num_heads, num_clusters, ntype, etype):
+        # True: increasing, Flase: decreasing
+        super(decoder, self).__init__()
+        self.num_heads = num_heads
+        self.num_clusters = num_clusters
+        self.ntype = ntype
+        self.etype = etype
+
+        num_seq = num_clusters
+
+        self.w = torch.nn.Parameter(torch.empty( (self.num_heads)), requires_grad=True)
+        self.register_parameter('w', self.w)
+        torch.nn.init.uniform_(self.w, a=0.0, b=1.0)
+
+        self.in_dist = torch.nn.Parameter( torch.range(1, num_seq-1)*0.1, requires_grad=True)
+        self.register_parameter('in_dist', self.in_dist)
+
+        self.bottom = torch.tensor(0, dtype=torch.float32)
+        self.register_buffer('bottom_const', self.bottom)
+
+        self.top = torch.tensor(30, dtype=torch.float32)
+        self.register_buffer('top_const', self.top)
+
+        mat = torch.diag( -1*torch.ones((num_seq+1)), diagonal=0) + torch.diag( torch.ones((num_seq)), diagonal=-1)
+        self.subtract_mat = torch.nn.Parameter(mat[:,:-1], requires_grad=False)
+
+        self.v_cluster = torch.nn.Parameter( torch.arange(num_clusters, dtype=torch.float32), requires_grad=False)
+        # self.register_buffer('v_cluster', self.v_cluster)
+
+    def dim2_score(self, x):
+        upper = self.upper_bound - x
+        lower = x - self.lower_bound
+        score = (upper*lower)/(self.r_dist**2 + 1)
+        return score
+
+    def dim3_score(self, x):
+        upper = self.upper_bound.view(1,1,-1) - torch.unsqueeze(x, dim=-1)
+        lower = torch.unsqueeze(x, dim=-1) - self.lower_bound.view(1,1,-1)
+        score = (upper*lower)/(self.r_dist.view(1,1,-1)**2 + 1)
+        return score
+
+    def edge_distance(self, edges):
+        n2 = torch.norm((edges.dst['z'] - edges.src['z']), dim=-1, keepdim=False)
+        weight = torch.nn.functional.softmax(self.w, dim=0)
+
+        dist = torch.sum(n2*weight, dim=-1, keepdim=True)
+        outputs_score = self.dim2_score(dist)
+
+        # score = self.dim3_score(n2)
+        # prob = torch.softmax(score, dim=-1)
+        # # clusters = torch.sum(prob * self.v_cluster.view(1,1,-1), dim=-1, keepdim=False)
+        # clusters = torch.matmul(prob, self.v_cluster.view(-1,))
+
+        # # mean = torch.sum(clusters*weight.view(1,-1), dim=-1, keepdim=True)
+        # # diff = clusters - mean
+        # # std = torch.sqrt(torch.sum(diff**2, dim=-1, keepdim=True))
+
+        std = torch.std(n2, dim=-1, unbiased=False, keepdim=False)
+
+        return {'dist_pred': outputs_score, 'std': std}
+
+    def forward(self, g, h):
+        with g.local_scope():
+            g.nodes[self.ntype].data['z'] = h
+            sorted_in_d = self.in_dist.view(1,-1)
+            # sorted_in_d, _ = torch.sort( self.in_dist.view(1,-1), dim=-1)
+
+            self.lower_bound = torch.cat( (self.bottom_const.view(1,-1), 
+                                        sorted_in_d), 
+                                        dim=1)
+            self.upper_bound = torch.cat( (sorted_in_d, 
+                                        self.top_const.view(1,-1)), 
+                                        dim=1)
+            self.bound = torch.cat( (self.bottom_const.view(1,-1), 
+                                    sorted_in_d, 
+                                    self.top_const.view(1,-1)), 
+                                    dim=1)
+            self.r_dist = torch.relu(torch.matmul(self.bound, self.subtract_mat))
             g.apply_edges(self.edge_distance, etype=self.etype)
             return g.edata.pop('dist_pred'), g.edata.pop('std')
 
