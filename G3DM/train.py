@@ -228,7 +228,7 @@ def run_epoch(datasets, model, loss_fc, optimizer, iterations, device, writer=No
                                 '2,1 cluster/true', step=epoch)
                 plot_confusion_mat(center_pred_mat, center_true_mat,  writer, '2,2 confusion matrix/center', step=epoch)
 
-                x1 = None
+                x1 = []
                 for name, param in ae_networks[1].named_parameters():
                     if name == 'in_dist':
                         x1 = param.to('cpu').detach().numpy()
