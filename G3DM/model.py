@@ -411,11 +411,11 @@ class decoder(torch.nn.Module):
         score = (upper*lower)/(self.r_dist**2 + 1)
         return score
 
-    def dim3_score(self, x):
-        upper = self.upper_bound.view(1,1,-1) - torch.unsqueeze(x, dim=-1)
-        lower = torch.unsqueeze(x, dim=-1) - self.lower_bound.view(1,1,-1)
-        score = (upper*lower)/(self.r_dist.view(1,1,-1)**2 + 1)
-        return score
+    # def dim3_score(self, x):
+    #     upper = self.upper_bound.view(1,1,-1) - torch.unsqueeze(x, dim=-1)
+    #     lower = torch.unsqueeze(x, dim=-1) - self.lower_bound.view(1,1,-1)
+    #     score = (upper*lower)/(self.r_dist.view(1,1,-1)**2 + 1)
+    #     return score
 
     def edge_distance(self, edges):
         n2 = torch.norm((edges.dst['z'] - edges.src['z']), dim=-1, keepdim=False)
@@ -440,8 +440,8 @@ class decoder(torch.nn.Module):
     def forward(self, g, h):
         with g.local_scope():
             g.nodes[self.ntype].data['z'] = h
-            sorted_in_d = self.in_dist.view(1,-1)
-            # sorted_in_d, _ = torch.sort( self.in_dist.view(1,-1), dim=-1)
+            # sorted_in_d = self.in_dist.view(1,-1)
+            sorted_in_d, _ = torch.sort( self.in_dist.view(1,-1), dim=-1)
 
             self.lower_bound = torch.cat( (self.bottom_const.view(1,-1), 
                                         sorted_in_d), 

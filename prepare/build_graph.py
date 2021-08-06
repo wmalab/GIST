@@ -86,8 +86,8 @@ def create_graph_1lvl(norm_hic, for_test,
     # 1/density
     cluster_weight = 1.0/(cluster_weight+10e-7).astype(np.double)
     print('# hic: {} clusters, weights: {}'.format(num_clusters, cluster_weight))
-    # -----------------------------------------------------------------------------
 
+    # -----------------------------------------------------------------------------
     # permutation idx in idex
     print(max_len, 'and', len(idxs))
     if len(idxs) <= max_len or for_test:
@@ -115,8 +115,8 @@ def create_graph_1lvl(norm_hic, for_test,
             #              output_path, output_prefix_filename)
         pool.close()
         pool.join()
-
     # -----------------------------------------------------------------------------
+
     remove_mats_ = mats_[n_idx, :]
     remove_mats_ = remove_mats_[:, n_idx]
     return cluster_weight, remove_mats_
