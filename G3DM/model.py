@@ -396,7 +396,7 @@ class decoder(torch.nn.Module):
         self.bottom = torch.tensor(0, dtype=torch.float32)
         self.register_buffer('bottom_const', self.bottom)
 
-        self.top = torch.tensor(30, dtype=torch.float32)
+        self.top = torch.tensor(20, dtype=torch.float32)
         self.register_buffer('top_const', self.top)
 
         mat = torch.diag( -1*torch.ones((num_seq+1)), diagonal=0) + torch.diag( torch.ones((num_seq)), diagonal=-1)
