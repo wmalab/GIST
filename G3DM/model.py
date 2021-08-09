@@ -405,24 +405,26 @@ class decoder(torch.nn.Module):
         self.v_cluster = torch.nn.Parameter( torch.arange(num_clusters, dtype=torch.float32), requires_grad=False)
         # self.register_buffer('v_cluster', self.v_cluster)
 
-    def dim2_score(self, x):
-        upper = self.upper_bound - x
-        lower = x - self.lower_bound
-        score = (upper*lower)/(self.r_dist**2 + 1)
-        return score
-
-    # def dim3_score(self, x):
-    #     upper = self.upper_bound.view(1,1,-1) - torch.unsqueeze(x, dim=-1)
-    #     lower = torch.unsqueeze(x, dim=-1) - self.lower_bound.view(1,1,-1)
-    #     score = (upper*lower)/(self.r_dist.view(1,1,-1)**2 + 1)
+    # def dim2_score(self, x):
+    #     upper = self.upper_bound - x
+    #     lower = x - self.lower_bound
+    #     score = (upper*lower)/(self.r_dist**2 + 1)
     #     return score
+
+    def dim3_score(self, x):
+        upper = self.upper_bound.view(1,1,-1) - torch.unsqueeze(x, dim=-1)
+        lower = torch.unsqueeze(x, dim=-1) - self.lower_bound.view(1,1,-1)
+        score = (upper*lower)/(self.r_dist.view(1,1,-1)**2 + 1)
+        return score
 
     def edge_distance(self, edges):
         n2 = torch.norm((edges.dst['z'] - edges.src['z']), dim=-1, keepdim=False)
         weight = torch.nn.functional.softmax(self.w, dim=0)
 
         dist = torch.sum(n2*weight, dim=-1, keepdim=True)
-        outputs_score = self.dim2_score(dist)
+        score = self.dim3_score(n2)
+        outputs_score = torch.sum(score*weight.view(1,-1,1), dim=1)
+        # outputs_score = self.dim2_score(dist)
 
         # score = self.dim3_score(n2)
         # prob = torch.softmax(score, dim=-1)
