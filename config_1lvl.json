@@ -1,4 +1,4 @@
-{   "id": "6",
+{   "id": "5",
     "cool_data_path":"",
     "cool_file": "Rao2014-GM12878-MboI-allreps-filtered.10kb.cool", 
     "cell_name": "Rao2014-GM12878-MboI-allreps-filtered",
@@ -16,11 +16,11 @@
     "parameter": {
         "graph":{
             "max_len": 1000,
-            "iteration": 30,
+            "iteration": 10,
             "num_clusters": 8,
             "cutoff_clusters":{"low": 5.0, "high": 99.5},
             "cutoff_percent": 0,
-            "cutoff_cluster": 6
+            "cutoff_cluster": 7
         },
         "feature":{
             "in_dim": 80,
