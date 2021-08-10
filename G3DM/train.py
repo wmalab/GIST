@@ -232,7 +232,7 @@ def run_epoch(datasets, model, loss_fc, optimizer, iterations, device, writer=No
                 for name, param in ae_networks[1].named_parameters():
                     if name == 'in_dist':
                         x1 = param.to('cpu').detach().numpy()
-                x = np.concatenate([[0], x1,[20]])
+                x = np.concatenate([[0], x1,[15.0]])
                 plot_lines(x, writer, '2,3 hop_dist/center', step=epoch) 
 
             torch.cuda.empty_cache()
