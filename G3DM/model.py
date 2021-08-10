@@ -414,14 +414,15 @@ class decoder(torch.nn.Module):
     def dim3_score(self, x):
         upper = self.upper_bound.view(1,1,-1) - torch.unsqueeze(x, dim=-1)
         lower = torch.unsqueeze(x, dim=-1) - self.lower_bound.view(1,1,-1)
-        score = (upper*lower)/(self.r_dist.view(1,1,-1)**2 + 1)
+        score = (4.0*upper*lower)/(self.r_dist.view(1,1,-1)**2 + 1.0)
+        score = (torch.nn.functional.sigmoid(score)*2.0-1)*10.0
         return score
 
     def edge_distance(self, edges):
         n2 = torch.norm((edges.dst['z'] - edges.src['z']), dim=-1, keepdim=False)
         weight = torch.nn.functional.softmax(self.w, dim=0)
 
-        dist = torch.sum(n2*weight, dim=-1, keepdim=True)
+        # dist = torch.sum(n2*weight, dim=-1, keepdim=True)
         score = self.dim3_score(n2)
         outputs_score = torch.sum(score*weight.view(1,-1,1), dim=1)
         # outputs_score = self.dim2_score(dist)
