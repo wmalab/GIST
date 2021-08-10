@@ -5,7 +5,7 @@
     "resolution": 10000,
     "all_chromosomes": ["22"],
     "train_valid_chromosomes": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "20", "21", "22"],
-    "test_chromosomes": ["22"],
+    "test_chromosomes": ["21"],
     "root":"",
     "graph_path":"",
     "feature_path":"",
