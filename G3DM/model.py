@@ -390,13 +390,13 @@ class decoder(torch.nn.Module):
         self.register_parameter('w', self.w)
         torch.nn.init.uniform_(self.w, a=0.0, b=1.0)
 
-        self.in_dist = torch.nn.Parameter( torch.range(1, num_seq-1)*0.1, requires_grad=True)
+        self.in_dist = torch.nn.Parameter( torch.range(1, num_seq-1)*0.3, requires_grad=True)
         self.register_parameter('in_dist', self.in_dist)
 
         self.bottom = torch.tensor(0, dtype=torch.float32)
         self.register_buffer('bottom_const', self.bottom)
 
-        self.top = torch.tensor(20, dtype=torch.float32)
+        self.top = torch.tensor(20.0, dtype=torch.float32)
         self.register_buffer('top_const', self.top)
 
         mat = torch.diag( -1*torch.ones((num_seq+1)), diagonal=0) + torch.diag( torch.ones((num_seq)), diagonal=-1)
