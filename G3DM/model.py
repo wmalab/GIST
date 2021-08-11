@@ -107,17 +107,17 @@ class encoder_chain(torch.nn.Module):
         '''self.chain = constrainLayer(out_dim)'''
         self.num_heads = num_heads
 
-        self.fc2 = torch.nn.Linear(len(etypes), len(etypes), bias=False)
-        gain = torch.nn.init.calculate_gain('relu')
+        self.fc2 = torch.nn.Linear(len(etypes), len(etypes), bias=True)
+        gain = torch.nn.init.calculate_gain('leaky_relu', 0.2)
         torch.nn.init.xavier_normal_(self.fc2.weight, gain=gain)
 
-        self.fc3 = torch.nn.Linear(len(etypes), len(etypes), bias=False)
-        gain = torch.nn.init.calculate_gain('relu')
+        self.fc3 = torch.nn.Linear(len(etypes), len(etypes), bias=True)
+        gain = torch.nn.init.calculate_gain('leaky_relu', 0.2)
         torch.nn.init.xavier_normal_(self.fc3.weight, gain=gain)
 
-        self.r = torch.nn.Parameter(torch.empty((1)), requires_grad=True)
-        self.register_parameter('r', self.r)
-        torch.nn.init.uniform_(self.r, a=0.1, b=0.2)
+        # self.r = torch.nn.Parameter(torch.empty((1)), requires_grad=True)
+        # self.register_parameter('r', self.r)
+        # torch.nn.init.uniform_(self.r, a=0.1, b=0.2)
 
     def agg_func2(self, tensors, dsttype):
         stacked = torch.stack(tensors, dim=-1)
@@ -143,10 +143,8 @@ class encoder_chain(torch.nn.Module):
         res = list()
         for i in torch.arange(self.num_heads):
             x = h[ntype[0]][:,i,:]
-            vmin, _ = torch.min(x, dim=0, keepdim=True)
-            vmax, _ = torch.max(x, dim=0, keepdim=True)
-            vamx = vmax + 1e-5
-            x = (x - vmin)/vmax * 8
+            vmean = torch.mean(x, dim=0, keepdim=True)
+            x = (x - vmean)
             res.append(x)
         res = torch.stack(res, dim=1)
         return res
