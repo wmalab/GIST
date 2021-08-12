@@ -40,7 +40,7 @@ def create_network(configuration, device):
     e_list = ['interacts_c{}'.format(i) for i in np.arange( int(config['graph']['cutoff_cluster']))]
     en_net = encoder_chain( cin, chidden, cout, num_heads=nh, etypes=e_list).to(device)
 
-    nc = int(config['graph']['num_clusters']) # - 1
+    nc = int(config['graph']['num_clusters']) - 1
     de_net = decoder(nh, nc, 'bead', 'interacts').to(device)
 
     nll = nllLoss().to(device)
