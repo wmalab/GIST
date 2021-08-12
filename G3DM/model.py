@@ -449,7 +449,7 @@ class decoder(torch.nn.Module):
             g.nodes[self.ntype].data['z'] = h
             # sorted_in_d = self.in_dist.view(1,-1)
             sorted_in_d, _ = torch.sort( self.in_dist.view(1,-1), dim=-1)
-            sorted_in_d = torch.clamp(sorted_dist, min=self.bottom_const, max=self.top_const)
+            # sorted_in_d = torch.clamp(sorted_dist, min=self.bottom_const, max=self.top_const)
 
             self.lower_bound = torch.cat( (self.bottom_const.view(1,-1), 
                                         sorted_in_d), 
