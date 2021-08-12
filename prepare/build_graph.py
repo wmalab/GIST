@@ -106,7 +106,7 @@ def create_graph_1lvl(norm_hic, for_test,
         result_objs=[]
         for i, idx in enumerate(idx_list):
             data_args = (i, log_hic, mats_, idx,
-                         num_clusters, cutoff_cluster,
+                         cutoff_cluster,
                          output_path, output_prefix_filename)
             res = pool.apply_async(create_subgraph_, args=data_args)
             result_objs.append(res)
