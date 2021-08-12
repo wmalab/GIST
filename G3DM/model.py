@@ -415,7 +415,7 @@ class decoder(torch.nn.Module):
         upper = self.upper_bound.view(1,1,-1) - torch.unsqueeze(x, dim=-1)
         lower = torch.unsqueeze(x, dim=-1) - self.lower_bound.view(1,1,-1)
         score = (4.0*upper*lower)/(self.r_dist.view(1,1,-1)**2 + 1) #! + 1 bias is important
-        # score = (torch.nn.functional.sigmoid(score)*2.0-1)*10.0
+        score = (torch.nn.functional.sigmoid(score)*2.0-1)*10.0
         return score
 
     def edge_distance(self, edges):
