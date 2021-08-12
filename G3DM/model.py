@@ -108,11 +108,11 @@ class encoder_chain(torch.nn.Module):
         self.num_heads = num_heads
 
         self.fc2 = torch.nn.Linear(len(etypes), len(etypes), bias=False)
-        gain = torch.nn.init.calculate_gain('relu')
+        gain = torch.nn.init.calculate_gain('leaky_relu', 0.2)
         torch.nn.init.xavier_normal_(self.fc2.weight, gain=gain)
 
         self.fc3 = torch.nn.Linear(len(etypes), len(etypes), bias=False)
-        gain = torch.nn.init.calculate_gain('relu')
+        gain = torch.nn.init.calculate_gain('leaky_relu', 0.2)
         torch.nn.init.xavier_normal_(self.fc3.weight, gain=gain)
 
         # self.r = torch.nn.Parameter(torch.empty((1)), requires_grad=True)
