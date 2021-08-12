@@ -24,7 +24,7 @@ def create_subgraph_(ID, mat_hic, mat_chic, idx,
     # creat graph
     graph_data = dict()
     cutoff = num_clusters - 1 # np.percentile(hic, cutoff_percent)
-    fid = np.where(chic < cutoff)
+    fid = np.where(hic > 0 )
     if len(fid[0])==0 or len(fid[1])==0:
         return False
     fid_interacts = fid
