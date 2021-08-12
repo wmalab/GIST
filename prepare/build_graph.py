@@ -9,7 +9,7 @@ from .utils import save_graph
 
 
 def create_subgraph_(ID, mat_hic, mat_chic, idx, 
-                     cutoff_cluster,
+                     num_clusters, cutoff_cluster,
                      output_path, output_prefix_file):
     '''
         mat_hic: entire Hi-C
@@ -23,8 +23,9 @@ def create_subgraph_(ID, mat_hic, mat_chic, idx,
 
     # creat graph
     graph_data = dict()
-    cutoff = 0 # np.percentile(hic, cutoff_percent)
-    fid = np.where(hic > cutoff)
+    cutoff = num_clusters - 1 # 0 # np.percentile(hic, cutoff_percent)
+    # fid = np.where(hic > cutoff)
+    fid = np.where(chic < cutoff)
     if len(fid[0])==0 or len(fid[1])==0:
         return False
     fid_interacts = fid
@@ -82,7 +83,7 @@ def create_graph_1lvl(norm_hic, for_test,
     cluster_weight, _ = np.histogram(mats_.view(-1, 1),
                                      bins=np.arange(num_clusters),
                                      density=True)
-    cluster_weight = np.append(cluster_weight, [1.0])
+    # cluster_weight = np.append(cluster_weight, [1.0])
     # 1/density
     cluster_weight = 1.0/(cluster_weight+10e-7).astype(np.double)
     print('# hic: {} clusters, weights: {}'.format(num_clusters, cluster_weight))
@@ -92,7 +93,7 @@ def create_graph_1lvl(norm_hic, for_test,
     print(max_len, 'and', len(idxs))
     if len(idxs) <= max_len or for_test:
         create_subgraph_(0, log_hic, mats_, idxs,
-                         cutoff_cluster,
+                         num_clusters, cutoff_cluster,
                          output_path, output_prefix_filename)
     else:
         idx_list = permutation_list(idxs, max_len, iteration=itn)
@@ -106,7 +107,7 @@ def create_graph_1lvl(norm_hic, for_test,
         result_objs=[]
         for i, idx in enumerate(idx_list):
             data_args = (i, log_hic, mats_, idx,
-                         cutoff_cluster,
+                         num_clusters, cutoff_cluster,
                          output_path, output_prefix_filename)
             res = pool.apply_async(create_subgraph_, args=data_args)
             result_objs.append(res)
