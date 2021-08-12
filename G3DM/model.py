@@ -390,17 +390,14 @@ class decoder(torch.nn.Module):
         self.register_parameter('w', self.w)
         torch.nn.init.uniform_(self.w, a=0.0, b=1.0)
 
-        self.one = torch.tensor(0.6, dtype=torch.float32)
-        self.register_buffer('one_const', self.one)
+        self.in_dist = torch.nn.Parameter( torch.range(1, num_seq-1)*0.3, requires_grad=True)
+        self.register_parameter('in_dist', self.in_dist)
 
         self.bottom = torch.tensor(0, dtype=torch.float32)
         self.register_buffer('bottom_const', self.bottom)
 
         self.top = torch.tensor(15.0, dtype=torch.float32)
         self.register_buffer('top_const', self.top)
-
-        self.in_dist = torch.nn.Parameter( self.one_const + torch.range(1, num_seq-2)*0.3, requires_grad=True)
-        self.register_parameter('in_dist', self.in_dist)
 
         mat = torch.diag( -1*torch.ones((num_seq+1)), diagonal=0) + torch.diag( torch.ones((num_seq)), diagonal=-1)
         self.subtract_mat = torch.nn.Parameter(mat[:,:-1], requires_grad=False)
@@ -447,19 +444,16 @@ class decoder(torch.nn.Module):
         with g.local_scope():
             g.nodes[self.ntype].data['z'] = h
             # sorted_in_d = self.in_dist.view(1,-1)
-            sorted_in_d, _ = torch.sort( self.in_dist.view(1,-1), dim=-1)
-            # sorted_in_d = torch.clamp(sorted_dist, min=self.bottom_const, max=self.top_const)
+            sorted_dist, _ = torch.sort( self.in_dist.view(1,-1), dim=-1)
+            sorted_in_d = torch.clamp(sorted_dist, min=self.bottom_const, max=self.top_const)
 
             self.lower_bound = torch.cat( (self.bottom_const.view(1,-1), 
-                                        self.one_const.view(1,-1),
                                         sorted_in_d), 
                                         dim=1)
-            self.upper_bound = torch.cat( (self.one_const.view(1,-1), 
-                                        sorted_in_d, 
+            self.upper_bound = torch.cat( (sorted_in_d, 
                                         self.top_const.view(1,-1)), 
                                         dim=1)
             self.bound = torch.cat( (self.bottom_const.view(1,-1), 
-                                    self.one_const.view(1,-1),
                                     sorted_in_d, 
                                     self.top_const.view(1,-1)), 
                                     dim=1)
