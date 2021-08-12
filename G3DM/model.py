@@ -396,7 +396,7 @@ class decoder(torch.nn.Module):
         self.top = torch.tensor(15.0, dtype=torch.float32)
         self.register_buffer('top_const', self.top)
 
-        self.in_dist = torch.nn.Parameter( torch.range(1, num_seq-1), requires_grad=True)
+        self.in_dist = torch.nn.Parameter( torch.range(1, num_seq-1)*0.1, requires_grad=True)
         self.register_parameter('in_dist', self.in_dist)
 
         mat = torch.diag( -1*torch.ones((num_seq+1)), diagonal=0) + torch.diag( torch.ones((num_seq)), diagonal=-1)
@@ -414,7 +414,7 @@ class decoder(torch.nn.Module):
     def dim3_score(self, x):
         upper = self.upper_bound.view(1,1,-1) - torch.unsqueeze(x, dim=-1)
         lower = torch.unsqueeze(x, dim=-1) - self.lower_bound.view(1,1,-1)
-        score = (4.0*upper*lower)/(self.r_dist.view(1,1,-1)**2 + 0.1)
+        score = (4.0*upper*lower)/(self.r_dist.view(1,1,-1)**2 + 1)
         # score = (torch.nn.functional.sigmoid(score)*2.0-1)*10.0
         return score
 
@@ -437,7 +437,6 @@ class decoder(torch.nn.Module):
         # # std = torch.sqrt(torch.sum(diff**2, dim=-1, keepdim=True))
 
         std = torch.std(n2, dim=-1, unbiased=False, keepdim=False)
-
         return {'dist_pred': outputs_score, 'std': std}
 
     def forward(self, g, h):
