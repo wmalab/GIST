@@ -390,12 +390,11 @@ class decoder(torch.nn.Module):
         self.register_parameter('w', self.w)
         torch.nn.init.uniform_(self.w, a=0.0, b=1.0)
 
+        self.one = torch.tensor(0.6, dtype=torch.float32)
+        self.register_buffer('one_const', self.one)
 
         self.bottom = torch.tensor(0, dtype=torch.float32)
         self.register_buffer('bottom_const', self.bottom)
-
-        self.one = torch.tensor(0.6, dtype=torch.float32)
-        self.register_buffer('one_const', self.one)
 
         self.top = torch.tensor(15.0, dtype=torch.float32)
         self.register_buffer('top_const', self.top)
