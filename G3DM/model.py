@@ -421,27 +421,29 @@ class decoder(torch.nn.Module):
     def edge_distance(self, edges):
         n2 = torch.norm((edges.dst['z'] - edges.src['z']), dim=-1, keepdim=False)
         weight = torch.nn.functional.softmax(self.w, dim=0)
-        score = self.dim3_score(n2)
-
-        outputs_score = torch.sum(score*weight.view(1,-1,1), dim=1)
-        std = torch.std(n2, dim=-1, unbiased=False, keepdim=False)
-        return {'dist_pred': outputs_score, 'std': std}
 
         # dist = torch.sum(n2*weight, dim=-1, keepdim=True)
+        score = self.dim3_score(n2)
+        outputs_score = torch.sum(score*weight.view(1,-1,1), dim=1)
         # outputs_score = self.dim2_score(dist)
+
         # score = self.dim3_score(n2)
         # prob = torch.softmax(score, dim=-1)
         # # clusters = torch.sum(prob * self.v_cluster.view(1,1,-1), dim=-1, keepdim=False)
         # clusters = torch.matmul(prob, self.v_cluster.view(-1,))
+
         # # mean = torch.sum(clusters*weight.view(1,-1), dim=-1, keepdim=True)
         # # diff = clusters - mean
         # # std = torch.sqrt(torch.sum(diff**2, dim=-1, keepdim=True))
 
+        std = torch.std(n2, dim=-1, unbiased=False, keepdim=False)
+        return {'dist_pred': outputs_score, 'std': std}
+
     def forward(self, g, h):
         with g.local_scope():
             g.nodes[self.ntype].data['z'] = h
-            sorted_in_d, _ = torch.sort( torch.abs(self.in_dist.view(1,-1)), dim=-1)
-            # sorted_in_d = torch.clamp(sorted_dist, min=0.1, max=self.top_const)
+            sorted_dist, _ = torch.sort( self.in_dist.view(1,-1), dim=-1)
+            sorted_in_d = torch.clamp(sorted_dist, min=0.1, max=self.top_const)
 
             self.lower_bound = torch.cat( (self.bottom_const.view(1,-1), 
                                         sorted_in_d), 
