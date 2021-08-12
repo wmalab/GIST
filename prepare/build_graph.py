@@ -23,7 +23,7 @@ def create_subgraph_(ID, mat_hic, mat_chic, idx,
 
     # creat graph
     graph_data = dict()
-    cutoff = num_clusters - 1 # np.percentile(hic, cutoff_percent)
+    # cutoff = num_clusters - 1 # np.percentile(hic, cutoff_percent)
     fid = np.where(hic > 0 )
     if len(fid[0])==0 or len(fid[1])==0:
         return False
@@ -82,7 +82,7 @@ def create_graph_1lvl(norm_hic, for_test,
     cluster_weight, _ = np.histogram(mats_.view(-1, 1),
                                      bins=np.arange(num_clusters),
                                      density=True)
-    # cluster_weight = np.append(cluster_weight, [1.0])
+    cluster_weight = np.append(cluster_weight, [1.0])
     # 1/density
     cluster_weight = 1.0/(cluster_weight+10e-7).astype(np.double)
     print('# hic: {} clusters, weights: {}'.format(num_clusters, cluster_weight))
