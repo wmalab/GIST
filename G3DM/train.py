@@ -233,7 +233,6 @@ def run_epoch(datasets, model, loss_fc, optimizer, iterations, device, writer=No
                     if name == 'in_dist':
                         x1 = param.to('cpu').detach().numpy()
                 x = np.concatenate([[0],[0.6], x1,[15.0]])
-                print(x)
                 plot_lines(x, writer, '2,3 hop_dist/center', step=epoch) 
 
             torch.cuda.empty_cache()
