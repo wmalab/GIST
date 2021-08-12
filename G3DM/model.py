@@ -107,11 +107,11 @@ class encoder_chain(torch.nn.Module):
         '''self.chain = constrainLayer(out_dim)'''
         self.num_heads = num_heads
 
-        self.fc2 = torch.nn.Linear(len(etypes), len(etypes), bias=False)
+        self.fc2 = torch.nn.Linear(len(etypes), len(etypes), bias=True)
         gain = torch.nn.init.calculate_gain('leaky_relu', 0.2)
         torch.nn.init.xavier_normal_(self.fc2.weight, gain=gain)
 
-        self.fc3 = torch.nn.Linear(len(etypes), len(etypes), bias=False)
+        self.fc3 = torch.nn.Linear(len(etypes), len(etypes), bias=True)
         gain = torch.nn.init.calculate_gain('leaky_relu', 0.2)
         torch.nn.init.xavier_normal_(self.fc3.weight, gain=gain)
 
@@ -444,8 +444,7 @@ class decoder(torch.nn.Module):
         with g.local_scope():
             g.nodes[self.ntype].data['z'] = h
             sorted_dist, _ = torch.sort( self.in_dist.view(1,-1), dim=-1)
-            sorted_in_d = sorted_dist
-            # sorted_in_d = torch.clamp(sorted_dist, min=0.1, max=self.top_const)
+            sorted_in_d = torch.clamp(sorted_dist, min=0.1, max=self.top_const)
 
             self.lower_bound = torch.cat( (self.bottom_const.view(1,-1), 
                                         sorted_in_d), 
