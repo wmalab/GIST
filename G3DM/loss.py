@@ -11,7 +11,7 @@ class ClusterWassersteinLoss(nn.Module):
     def forward(self, pred, target, num_cluster):
         p = torch.softmax(pred, dim=-1)
         cp = torch.cumsum(p, dim=-1)
-        res = torch.square(num_cluster - target - torch.sum(cp, dim=-1))
+        res = torch.square(num_cluster - target - torch.sum(cp, dim=-1)) * (num_cluster - target)
         res = torch.mean(res)/(num_cluster-1)
         return res
 
