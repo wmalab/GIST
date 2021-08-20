@@ -75,7 +75,7 @@ if __name__ == '__main__':
     resolution = c.binsize
     raw_hic = c.matrix(balance=True).fetch(chro)
     raw_hic, idxy = remove_nan_col(raw_hic)
-    norm_hic = normalization.ICE_normalization(raw_hic) 
+    norm_hic,_ = normalization.ICE_normalization(raw_hic) 
 
     log1p_rhic = np.log1p(raw_hic)
     log1p_nhic = np.log1p(norm_hic)
