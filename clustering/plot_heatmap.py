@@ -75,5 +75,5 @@ if __name__ == '__main__':
     lows = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50]
     nums = np.arange(3, 21)
     path = '/rhome/yhu/bigdata/proj/experiment_G3DM/gmm_parameter'
-
-    plot_mat(path, '22', lows, nums)
+    for chro in chromosomes:
+        plot_mat(path, chro, lows, nums)
