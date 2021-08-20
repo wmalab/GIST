@@ -2,7 +2,6 @@ import sys, os
 import cooler
 import numpy as np
 from iced import normalization
-import matplotlib.pyplot as plt
 from scipy.stats import percentileofscore
 from sklearn import mixture
 
