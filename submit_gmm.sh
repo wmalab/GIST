@@ -11,3 +11,4 @@ date
 hostname
 source activate env_G3DM
 echo python /rhome/yhu/bigdata/proj/experiment_G3DM/chromosome_3D/clustering/gmm_clustering.py ${1} ${2} ${3}
+python /rhome/yhu/bigdata/proj/experiment_G3DM/chromosome_3D/clustering/gmm_clustering.py ${1} ${2} ${3}
