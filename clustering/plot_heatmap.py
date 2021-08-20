@@ -32,32 +32,34 @@ def plot_mat(path, chrom, lows, nums):
             a, b = load_aic_bic(path, chrom, lows[i], nums[j])
             aic_mat[i, j] = a
             bic_mat[i, j] = b
-    plot_hp(aic_mat, lows, nums, path, 'chr{}_aic'.format(chrom))
-    plot_hp(bic_mat, lows, nums, path, 'chr{}_bic'.format(chrom))
+    plot_hp(aic_mat, lows, nums, os.path.join(path, 'figure'), 'chr{}_aic'.format(chrom))
+    plot_hp(bic_mat, lows, nums, os.path.join(path, 'figure'), 'chr{}_bic'.format(chrom))
 
 def plot_hp(data, lows, nums, path, title):
     fig, ax = plt.subplots()
-    im = ax.imshow(data)
+    im = ax.imshow(data, cmap='hot')
 
-    # We want to show all ticks...
-    ax.set_xticks(np.arange(len(lows)))
-    ax.set_yticks(np.arange(len(nums)))
-    # ... and label them with the respective list entries
-    ax.set_xticklabels(lows)
-    ax.set_yticklabels(nums)
+    # # We want to show all ticks...
+    # ax.set_xticks(np.arange(len(lows)))
+    # ax.set_yticks(np.arange(len(nums)))
+    # # ... and label them with the respective list entries
+    # ax.set_xticklabels(lows)
+    # ax.set_yticklabels(nums)
 
-    # Rotate the tick labels and set their alignment.
-    plt.setp(ax.get_xticklabels(), rotation=45, ha="right",
-            rotation_mode="anchor")
+    # # Rotate the tick labels and set their alignment.
+    # plt.setp(ax.get_xticklabels(), rotation=45, ha="right",
+    #         rotation_mode="anchor")
 
     # Loop over data dimensions and create text annotations.
-    for i in range(len(lows)):
-        for j in range(len(nums)):
-            text = ax.text(j, i, data[i, j],
-                        ha="center", va="center", color="w")
+    # for i in range(len(lows)):
+    #     for j in range(len(nums)):
+    #         text = ax.text(j, i, data[i, j],
+    #                     ha="center", va="center", color="w")
 
     ax.set_title(title)
     fig.tight_layout()
+
+    os.makedirs(path, exist_ok=True)
     plt.savefig(os.path.join(path, '{}.pdf'.format(title)), format='pdf')
 
 if __name__ == '__main__':
