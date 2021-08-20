@@ -32,7 +32,7 @@ def save_aic_bic(X, model, path, name):
         fout.write(line)
         fout.close()
 
-    file = os.paht.join(path, 'bic')
+    file = os.path.join(path, 'bic')
     os.makedirs(file, exist_ok=True)
     file = os.path.join(file, name)
     line = "{}".format(bic_value)
