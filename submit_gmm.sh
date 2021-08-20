@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --mem=50G
+#SBATCH --mem=70G
 #SBATCH --time=2-20:00:00
 #SBATCH -p wmalab
 #SBATCH --job-name=G3DM_gmm
