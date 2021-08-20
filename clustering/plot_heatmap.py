@@ -32,31 +32,38 @@ def plot_mat(path, chrom, lows, nums):
             a, b = load_aic_bic(path, chrom, lows[i], nums[j])
             aic_mat[i, j] = a
             bic_mat[i, j] = b
-    plot_hp(aic_mat, lows, nums, os.path.join(path, 'figure'), 'chr{}_aic'.format(chrom))
-    plot_hp(bic_mat, lows, nums, os.path.join(path, 'figure'), 'chr{}_bic'.format(chrom))
+    plot_hp([aic_mat, bic_mat], lows, nums, os.path.join(path, 'figure'), 'chr{}'.format(chrom))
 
 def plot_hp(data, lows, nums, path, title):
-    fig, ax = plt.subplots()
-    im = ax.imshow(data, cmap='hot')
+    fig, ax = plt.subplots(2, 1)
+    im = ax[0].imshow(data[0], cmap='RdBu_r')
+    ax[0].colorbar()
 
     # We want to show all ticks...
-    ax.set_xticks(np.arange(len(nums)))
-    ax.set_yticks(np.arange(len(lows)))
+    ax[0].set_xticks(np.arange(len(nums)))
+    ax[0].set_yticks(np.arange(len(lows)))
     # ... and label them with the respective list entries
-    ax.set_xticklabels(nums)
-    ax.set_yticklabels(lows)
-
+    ax[0].set_xticklabels(nums)
+    ax[0].set_yticklabels(lows)
+    ax[0].set_title('{} aic'.format(title))
     # Rotate the tick labels and set their alignment.
-    plt.setp(ax.get_xticklabels(), rotation=45, ha="right",
-            rotation_mode="anchor")
+    # plt.setp(ax.get_xticklabels(), rotation=45, ha="right",
+    #         rotation_mode="anchor")
 
     # Loop over data dimensions and create text annotations.
     # for i in range(len(lows)):
     #     for j in range(len(nums)):
     #         text = ax.text(j, i, data[i, j],
     #                     ha="center", va="center", color="w")
-    plt.colorbar()
-    ax.set_title(title)
+
+    im = ax[1].imshow(data[0], cmap='RdBu_r')
+    # We want to show all ticks...
+    ax[1].set_xticks(np.arange(len(nums)))
+    ax[1].set_yticks(np.arange(len(lows)))
+    # ... and label them with the respective list entries
+    ax[1].set_xticklabels(nums)
+    ax[1].set_yticklabels(lows)
+    ax[1].set_title('{} bic'.format(title))
     fig.tight_layout()
 
     os.makedirs(path, exist_ok=True)
