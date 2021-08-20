@@ -5,7 +5,7 @@
 #SBATCH --time=2-20:00:00
 #SBATCH -p wmalab
 #SBATCH --job-name=G3DM_gmm
-#SBATCH --output=Job-G3DM-gmm-%J.log
+#SBATCH --output=/rhome/yhu/bigdata/proj/experiment_G3DM/chromosome_3D/log/Job-G3DM-gmm-%J.log
 
 date
 hostname
