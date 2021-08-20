@@ -14,15 +14,16 @@ from sklearn.cluster import KMeans
 def cluster_gmm(data, low, high, num_cluster):
     l = np.percentile(data, low)
     h = np.percentile(data, high)
-    data = data[data>0]
+    data = data[data>0].flatten()
     X = data[((data>l)&(data<h))].reshape(-1,1)
     gmm = GMM(num_cluster, covariance_type='full', init_params='kmeans')
     m = gmm.fit(X)
     return m
 
 def save_aic_bic(X, model, path, name):
-    aic_value = model.aic(X)
-    bic_value = model.bic(X)
+    print(X.shape)
+    aic_value = model.aic(X.flatten())
+    bic_value = model.bic(X.flatten())
     file = os.path.join(path, 'aic')
     os.makedirs(file, exist_ok=True)
     os.path.join(file, name)
