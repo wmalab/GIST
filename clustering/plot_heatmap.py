@@ -37,7 +37,7 @@ def plot_mat(path, chrom, lows, nums):
 def plot_hp(data, lows, nums, path, title):
     fig, ax = plt.subplots(2, 1)
     im = ax[0].imshow(data[0], cmap='RdBu_r')
-    ax[0].colorbar()
+    fig.colorbar(im)
 
     # We want to show all ticks...
     ax[0].set_xticks(np.arange(len(nums)))
