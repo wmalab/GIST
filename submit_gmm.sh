@@ -10,4 +10,4 @@
 date
 hostname
 source activate env_G3DM
-echo python ./clustering/gmm_clustering.py ${1} ${2} ${3}
+echo python /rhome/yhu/bigdata/proj/experiment_G3DM/chromosome_3D/clustering/gmm_clustering.py ${1} ${2} ${3}
