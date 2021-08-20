@@ -39,23 +39,23 @@ def plot_hp(data, lows, nums, path, title):
     fig, ax = plt.subplots()
     im = ax.imshow(data, cmap='hot')
 
-    # # We want to show all ticks...
-    # ax.set_xticks(np.arange(len(lows)))
-    # ax.set_yticks(np.arange(len(nums)))
-    # # ... and label them with the respective list entries
-    # ax.set_xticklabels(lows)
-    # ax.set_yticklabels(nums)
+    # We want to show all ticks...
+    ax.set_xticks(np.arange(len(nums)))
+    ax.set_yticks(np.arange(len(lows)))
+    # ... and label them with the respective list entries
+    ax.set_xticklabels(nums)
+    ax.set_yticklabels(lows)
 
-    # # Rotate the tick labels and set their alignment.
-    # plt.setp(ax.get_xticklabels(), rotation=45, ha="right",
-    #         rotation_mode="anchor")
+    # Rotate the tick labels and set their alignment.
+    plt.setp(ax.get_xticklabels(), rotation=45, ha="right",
+            rotation_mode="anchor")
 
     # Loop over data dimensions and create text annotations.
     # for i in range(len(lows)):
     #     for j in range(len(nums)):
     #         text = ax.text(j, i, data[i, j],
     #                     ha="center", va="center", color="w")
-
+    ax.colorbar()
     ax.set_title(title)
     fig.tight_layout()
 
