@@ -41,8 +41,10 @@ def save_aic_bic(X, model, path, name):
         fout.close()
 
 def run(data, low, high, num_cluster, path):
+    print(type(data))
     m = cluster_gmm(data, low, high, num_cluster)
     name = "{}_{}.txt".format(low, num_cluster)
+    print(type(data))
     save_aic_bic(data, m, path, name)
 
 # def plot_hist():
@@ -85,4 +87,6 @@ if __name__ == '__main__':
     high = float(99.5)
     num_cluster = int(sys.argv[3]) # 3 - 20
     save_path = os.path.join('/rhome/yhu', 'bigdata', 'proj', 'experiment_G3DM', 'gmm_parameter')
+
+    print(type(norm_hic))
     run(log1p_nhic, low, high, num_cluster, save_path)
