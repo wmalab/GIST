@@ -22,7 +22,7 @@ def load_aic_bic(path, chrom, low, num):
         bic = None
     return aic, bic
 
-def plot_mat(path, chrom, lows, nums):
+def get_mat(path, chrom, lows, nums):
     nrow = len(lows)
     ncol = len(nums)
     aic_mat = np.empty((nrow, ncol))
@@ -32,7 +32,7 @@ def plot_mat(path, chrom, lows, nums):
             a, b = load_aic_bic(path, chrom, lows[i], nums[j])
             aic_mat[i, j] = a
             bic_mat[i, j] = b
-    plot_hp([aic_mat, bic_mat], lows, nums, os.path.join(path, 'figure'), 'chr{}'.format(chrom))
+    return aic_mat, bic_mat
 
 def plot_hp(data, lows, nums, path, title):
     fig, ax = plt.subplots(2, 1)
@@ -69,11 +69,29 @@ def plot_hp(data, lows, nums, path, title):
 
     os.makedirs(path, exist_ok=True)
     plt.savefig(os.path.join(path, '{}.pdf'.format(title)), format='pdf')
+    plt.close()
 
 if __name__ == '__main__':
     chromosomes = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', 'X']
     lows = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50]
     nums = np.arange(3, 21)
     path = '/rhome/yhu/bigdata/proj/experiment_G3DM/gmm_parameter'
+
+    aic_list = []
+    bic_list = []
     for chro in chromosomes:
-        plot_mat(path, chro, lows, nums)
+        a, b = get_mat(path, chro, lows, nums)
+        plot_hp([a, b], lows, nums, os.path.join(path, 'figure'), 'chr{}'.format(chro))
+        aic_list.append(a)
+        bic_list.append(b)
+    
+    aic_all = np.stack(aic_list, axis=2)
+    bic_all = np.satck(bic_list, axis=2)
+
+    aic_mean = np.nanmean(aic_all, axis=2, keepdims=False)
+    bic_mean = np.nanmean(bic_all, axis=2, keepdims=False)
+    plot_hp([aic_mean, bic_mean], lows, nums, os.path.join(path, 'figure'), 'all chromosomes mean')
+
+    aic_med = np.nanmedian(aic_all, axis=2, keepdims=False)
+    bic_med = np.nanmedian(bic_all, axis=2, keepdims=False)
+    plot_hp([aic_med, bic_med], lows, nums, os.path.join(path, 'figure'), 'all chromosomes median')
