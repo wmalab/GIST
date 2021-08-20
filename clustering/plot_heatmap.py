@@ -58,7 +58,7 @@ def plot_hp(data, lows, nums, path, title):
 
     ax.set_title(title)
     fig.tight_layout()
-    plt.savefig(os.path.join(path, '{}'.format(title)), format='pdf')
+    plt.savefig(os.path.join(path, '{}.pdf'.format(title)), format='pdf')
 
 if __name__ == '__main__':
     chromosomes = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', 'X']
