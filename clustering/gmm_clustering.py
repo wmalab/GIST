@@ -17,7 +17,7 @@ def cluster_gmm(data, low, high, num_cluster):
     X = data[((data>l)&(data<h))].reshape(-1,1)
     gmm = GMM(num_cluster, covariance_type='full', init_params='kmeans')
     m = gmm.fit(X)
-    return m
+    return m, X
 
 def save_aic_bic(X, model, path, name):
     data = X.reshape(-1,1)
@@ -40,9 +40,9 @@ def save_aic_bic(X, model, path, name):
         fout.close()
 
 def run(data, low, high, num_cluster, path):
-    m = cluster_gmm(data, low, high, num_cluster)
-    name = "{}_{}.txt".format(int(low), num_cluster)
-    save_aic_bic(data, m, path, name)
+    m, X = cluster_gmm(data, low, high, num_cluster)
+    name = "cutoff_{}_{}.txt".format(int(low), num_cluster)
+    save_aic_bic(X, m, path, name)
 
 # def plot_hist():
 #     fig, axs = plt.subplots()
