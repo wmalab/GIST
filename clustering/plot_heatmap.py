@@ -55,7 +55,7 @@ def plot_hp(data, lows, nums, path, title):
     #     for j in range(len(nums)):
     #         text = ax.text(j, i, data[i, j],
     #                     ha="center", va="center", color="w")
-    ax.colorbar()
+    plt.colorbar()
     ax.set_title(title)
     fig.tight_layout()
 
