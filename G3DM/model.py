@@ -448,7 +448,7 @@ class decoder(torch.nn.Module):
         with g.local_scope():
             g.nodes[self.ntype].data['z'] = h
             # sorted_in_d = self.in_dist.view(1,-1)
-            dist_mat = torch.nn.functional.normalize(torch.relu(self.in_dist), p=1.0, dim=0)
+            dist_mat = torch.softmax(self.in_dist, dim=0)
             in_d = torch.matmul(self.dist_range, dist_mat).clamp(min=0.01).view(1,-1)
             sorted_in_d, _ = torch.sort( in_d, dim=-1)
 

@@ -245,7 +245,7 @@ def run_epoch(datasets, model, loss_fc, optimizer, iterations, device, writer=No
                 for name, param in ae_networks[1].named_parameters():
                     if name == 'in_dist':
                         mat = param.to('cpu').detach()
-                        mat = torch.nn.functional.normalize(torch.relu(mat), p=1.0, dim=0).numpy()
+                        mat = torch.softmax(mat, dim=0).numpy()
                         x1 = np.matmul(x1, mat)
                         break
                 x = np.concatenate([[0], x1, [15.0]])
