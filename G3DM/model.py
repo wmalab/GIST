@@ -404,7 +404,8 @@ class decoder(torch.nn.Module):
         self.register_buffer('top_const', self.top)
 
         num_step = 50
-        self.dist_range = torch.linspace(self.bottom_const, self.top_const, num_step, dtype=torch.float)
+        drange = torch.linspace(self.bottom_const, self.top_const, num_step, dtype=torch.float)
+        self.register_buffer('dist_range', drange)
 
         self.in_dist = torch.nn.Parameter( torch.empty((num_step, num_seq-1)), requires_grad=True)
         self.register_parameter('in_dist', self.in_dist)
