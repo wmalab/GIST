@@ -6,7 +6,7 @@ import torch_optimizer as optim
 import numpy as np
 
 from .model import embedding, encoder_chain, decoder, save_model_state_dict
-from .loss import nllLoss, stdLoss, WassersteinLoss, ClusterWassersteinLoss
+from .loss import nllLoss, stdLoss, ClusterWassersteinLoss
 from .visualize import plot_feature, plot_X, plot_cluster, plot_confusion_mat, plot_lines
 from .visualize import plot_scaler
 
@@ -46,13 +46,10 @@ def create_network(configuration, device):
     nll = nllLoss().to(device)
     stdl = stdLoss().to(device)
     cwnl = ClusterWassersteinLoss(device).to(device)
-    # cwnl = WassersteinLoss(device).to(device)
 
     opt = optim.AdaBound(list(em_bead.parameters()) + list(en_net.parameters()) + list(de_net.parameters()),
                         lr=2*1e-3, betas=(0.9, 0.999), final_lr=0.1, gamma=1e-3, eps=1e-8, weight_decay=0,
-                        amsbound=False,
-                        )
-                         
+                        amsbound=False)
 
     em_networks = [em_bead]
     ae_networks = [en_net, de_net]
@@ -87,14 +84,20 @@ def fit_one_step(require_grad, graphs, features, cluster_weights, em_networks, a
     xt = top_graph.edges['interacts'].data['label']
 
     if xp.shape[0]==0 or xp.shape[0]!= xt.shape[0]:
-        return [0, 0]
+        return [None, None, None]
+
 
     l_nll = loss_fc[0](xp, xt, cw)
     l_wnl = loss_fc[1](xp, xt, ncluster)
     l_stdl = loss_fc[2](std, xt, ncluster)
 
+    if l_nll > 1e4 or l_wnl > 1e4 or l_stdl > 1e4:
+        print(xp.min(), xp.max(), xp.mean())
+        print(X1.mean(dim=0))
+        return [None, None, None]
+
     if require_grad:
-        loss = l_nll + 0.1*l_stdl + 10*l_wnl
+        loss = l_nll + 10*l_wnl + l_stdl 
         optimizer[0].zero_grad()
         loss.backward(retain_graph=False)  # retain_graph=False,
         optimizer[0].step()
@@ -170,6 +173,9 @@ def run_epoch(datasets, model, loss_fc, optimizer, iterations, device, writer=No
             h_feat = torch.stack([h_f_n, torch.tensor(h_p, dtype=torch.float)], dim=1).to(device)
 
             ll = fit_one_step( True, graphs, h_feat, cw, em_networks, ae_networks, loss_fc, optimizer, device)
+            if None in ll:
+                continue
+            
             test_loss_list.append(ll)
 
             for key, m in models_dict.items():
@@ -204,9 +210,12 @@ def run_epoch(datasets, model, loss_fc, optimizer, iterations, device, writer=No
             h_feat = torch.stack( [h_f_n, torch.tensor(h_p, dtype=torch.float)], dim=1).to(device)
 
             ll = fit_one_step(False, graphs, h_feat, cw, em_networks, ae_networks, loss_fc, optimizer, device)
+            if None in ll:
+                continue
             valid_loss_list.append(ll)
 
             if epoch == 0 and j == 0 and writer is not None:
+                # pass
                 m = cluster_weights['mat']
                 plot_feature([h_f_n, h_p], writer, '0, features/h')
                 plot_cluster(m, writer, int(config['parameter']['graph']['num_clusters']),'0, cluster/bead', step=None)
@@ -228,11 +237,20 @@ def run_epoch(datasets, model, loss_fc, optimizer, iterations, device, writer=No
                                 '2,1 cluster/true', step=epoch)
                 plot_confusion_mat(center_pred_mat, center_true_mat,  writer, '2,2 confusion matrix/center', step=epoch)
 
-                x1 = []
+                x1 = np.linspace(0.0, 15.0, num=50)
                 for name, param in ae_networks[1].named_parameters():
                     if name == 'in_dist':
-                        x1 = param.to('cpu').detach().numpy()
-                x = np.concatenate([[0], x1,[15.0]])
+                        mat = param.to('cpu').detach()
+                        mat = torch.softmax(mat, dim=0).numpy()
+                        x1 = np.matmul(x1, mat)
+                        break
+                x = np.concatenate([[0], x1, [15.0]])
+                x = np.sort(x)
+                # for name, param in ae_networks[1].named_parameters():
+                #     if name == 'r_dist':
+                #         x1 = param.to('cpu').detach().numpy()
+                # x = np.cumsum(np.abs(x1), dtype = float)
+                # x = np.concatenate([[0], x])
                 plot_lines(x, writer, '2,3 hop_dist/center', step=epoch) 
 
             torch.cuda.empty_cache()

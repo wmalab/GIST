@@ -26,7 +26,7 @@ class WassersteinLoss(nn.Module):
 
     def forward(self, pred, target, num_cluster):
         self.ncluster = torch.arange(0, num_cluster, dtype= torch.float, device=self.device,requires_grad=False)
-    
+
         p = torch.relu(pred)
         p = torch.nn.functional.normalize(p)
         p = torch.sum(p * self.ncluster.view(1, -1), dim=-1, keepdim=True)
@@ -37,9 +37,9 @@ class RMSLELoss(nn.Module):
     def __init__(self):
         super().__init__()
         self.mse = nn.MSELoss()
-        
+
     def forward(self, pred, target):
-        return torch.sqrt(self.mse(torch.log1p(pred), torch.log1p(target)))
+        return torch.sqrt( self.mse(torch.log1p(pred), torch.log1p(target)) )
 
 class stdLoss(nn.Module):
     def __init__(self):
@@ -49,7 +49,8 @@ class stdLoss(nn.Module):
         # cluster = torch.argmax(pred, dim=-1)
         # weight = torch.relu( torch.abs(cluster - num_cluster/2) - (num_cluster/4) )
         # res = torch.mean(std*weight.view(-1,)) # *weight.view(-1,1)
-        res = torch.mean(std) # *weight.view(-1,1)
+        # res = torch.mean(std) # *weight.view(-1,1)
+        res = torch.nansum(std)/std.shape[0]
         return res
 
 class nllLoss(torch.nn.Module):
@@ -65,18 +66,18 @@ class nllLoss(torch.nn.Module):
             loss = torch.nn.functional.nll_loss(logp, target.long(), reduce=True, reduction='mean')
         return loss
 
-class crossNllLoss(nn.Module):
-    def __init__(self):
-        super(crossNllLoss, self).__init__()
+# class crossNllLoss(nn.Module):
+#     def __init__(self):
+#         super(crossNllLoss, self).__init__()
     
-    def forward(self, pred, target):
-        class_p = torch.argmax(pred, dim=-1, keepdim=False)
-        class_t = torch.argmax(target, dim=-1, keepdim=False)
+#     def forward(self, pred, target):
+#         class_p = torch.argmax(pred, dim=-1, keepdim=False)
+#         class_t = torch.argmax(target, dim=-1, keepdim=False)
 
-        logp = nn.log_softmax(pred, 1)
-        logt = nn.log_softmax(target, 1)
-        loss_pt = nn.nll_loss(logp, class_t.long(), reduce=True, reduction='mean')
-        loss_pp = nn.nll_loss(logp, class_p.long(),  reduce=True, reduction='mean')
-        loss_tt = nn.nll_loss(logt, class_t.long(), reduce=True, reduction='mean')
-        loss = loss_pt + loss_pp + loss_tt
-        return loss
+#         logp = nn.log_softmax(pred, 1)
+#         logt = nn.log_softmax(target, 1)
+#         loss_pt = nn.nll_loss(logp, class_t.long(), reduce=True, reduction='mean')
+#         loss_pp = nn.nll_loss(logp, class_p.long(),  reduce=True, reduction='mean')
+#         loss_tt = nn.nll_loss(logt, class_t.long(), reduce=True, reduction='mean')
+#         loss = loss_pt + loss_pp + loss_tt
+#         return loss

@@ -70,7 +70,7 @@ def create_graph_1lvl(norm_hic, for_test,
                       cutoff_cluster,
                       output_path, output_prefix_filename):
 
-    log_hic = norm_hic # log1p_hic(norm_hic)
+    log_hic = log1p_hic(norm_hic)
     n_idx = np.sort(np.argwhere(np.sum(log_hic, axis=0)!=0)).flatten()
     idxs = n_idx
     # only 1 log Hi-C
