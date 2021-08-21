@@ -91,10 +91,10 @@ if __name__ == '__main__':
 
     aic_mean = np.nanmean(aic_all, axis=2, keepdims=False)
     bic_mean = np.nanmean(bic_all, axis=2, keepdims=False)
-    plot_hp([aic_mean, bic_mean], lows, nums, os.path.join(path, 'figure'), 'all chromosomes mean')
+    plot_hp([aic_mean, bic_mean], lows, nums, os.path.join(path, 'cut_figure'), 'all chromosomes mean')
     print('chromosomes mean plot done')
 
     aic_med = np.nanmedian(aic_all, axis=2, keepdims=False)
     bic_med = np.nanmedian(bic_all, axis=2, keepdims=False)
-    plot_hp([aic_med, bic_med], lows, nums, os.path.join(path, 'figure'), 'all chromosomes median')
+    plot_hp([aic_med, bic_med], lows, nums, os.path.join(path, 'cut_figure'), 'all chromosomes median')
     print('chromosomes median plot done')
