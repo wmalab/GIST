@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 
 def load_aic_bic(path, chrom, low, num):
-    name = 'cutoff_{}_{}.txt'.format(int(low), num)
+    name = '{}_{}.txt'.format(int(low), num)
     file = os.path.join(path, 'chr{}'.format(chrom), 'aic', name)
     if os.path.isfile(file):
         with open(file, 'r') as fin:
@@ -81,7 +81,7 @@ if __name__ == '__main__':
     bic_list = []
     for chro in chromosomes:
         a, b = get_mat(path, chro, lows, nums)
-        plot_hp([a, b], lows, nums, os.path.join(path, 'cut_figure'), 'chr{}'.format(chro))
+        plot_hp([a, b], lows, nums, os.path.join(path, 'figure'), 'chr{}'.format(chro))
         aic_list.append(a)
         bic_list.append(b)
         print('chromosome {} plot done'.format(chro))
@@ -91,10 +91,10 @@ if __name__ == '__main__':
 
     aic_mean = np.nanmean(aic_all, axis=2, keepdims=False)
     bic_mean = np.nanmean(bic_all, axis=2, keepdims=False)
-    plot_hp([aic_mean, bic_mean], lows, nums, os.path.join(path, 'cut_figure'), 'all chromosomes mean')
+    plot_hp([aic_mean, bic_mean], lows, nums, os.path.join(path, 'figure'), 'all chromosomes mean')
     print('chromosomes mean plot done')
 
     aic_med = np.nanmedian(aic_all, axis=2, keepdims=False)
     bic_med = np.nanmedian(bic_all, axis=2, keepdims=False)
-    plot_hp([aic_med, bic_med], lows, nums, os.path.join(path, 'cut_figure'), 'all chromosomes median')
+    plot_hp([aic_med, bic_med], lows, nums, os.path.join(path, 'figure'), 'all chromosomes median')
     print('chromosomes median plot done')
