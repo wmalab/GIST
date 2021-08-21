@@ -407,7 +407,7 @@ class decoder(torch.nn.Module):
         drange = torch.linspace(self.bottom_const, self.top_const, num_step, dtype=torch.float)
         self.register_buffer('dist_range', drange)
 
-        self.in_dist = torch.nn.Parameter( torch.eye((num_step, num_seq-1)), requires_grad=True)
+        self.in_dist = torch.nn.Parameter( torch.empty((num_step, num_seq-1)), requires_grad=True)
         self.register_parameter('in_dist', self.in_dist)
         torch.nn.init.xavier_normal_(self.in_dist)
 
