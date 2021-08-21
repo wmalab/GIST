@@ -170,7 +170,8 @@ def run_epoch(datasets, model, loss_fc, optimizer, iterations, device, writer=No
 
             h_f, h_p = features['feat'], features['pos']
             h_f_n = torch.nn.functional.normalize(torch.tensor(h_f, dtype=torch.float), p=1.0, dim=1)
-            h_feat = torch.stack([h_f_n, torch.tensor(h_p, dtype=torch.float)], dim=1).to(device)
+            h_p_n =torch.nn.functional.normalize(torch.tensor(h_p, dtype=torch.float), p=1.0, dim=1)
+            h_feat = torch.stack([h_f_n, h_p_n], dim=1).to(device)
 
             ll = fit_one_step( True, graphs, h_feat, cw, em_networks, ae_networks, loss_fc, optimizer, device)
             if None in ll:
@@ -217,7 +218,7 @@ def run_epoch(datasets, model, loss_fc, optimizer, iterations, device, writer=No
             if epoch == 0 and j == 0 and writer is not None:
                 # pass
                 m = cluster_weights['mat']
-                plot_feature([h_f_n, h_p], writer, '0, features/h')
+                plot_feature([h_f_n, h_p_n], writer, '0, features/h')
                 plot_cluster(m, writer, int(config['parameter']['graph']['num_clusters']),'0, cluster/bead', step=None)
 
             if epoch%3==0 and j == 0 and writer is not None and config is not None:
