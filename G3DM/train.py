@@ -47,9 +47,12 @@ def create_network(configuration, device):
     stdl = stdLoss().to(device)
     cwnl = ClusterWassersteinLoss(device).to(device)
 
-    opt = optim.AdaBound(list(em_bead.parameters()) + list(en_net.parameters()) + list(de_net.parameters()),
-                        lr=2*1e-3, betas=(0.9, 0.999), final_lr=0.1, gamma=1e-3, eps=1e-8, weight_decay=0,
-                        amsbound=False)
+    # opt = optim.AdaBound(list(em_bead.parameters()) + list(en_net.parameters()) + list(de_net.parameters()),
+    #                     lr=2*1e-3, betas=(0.9, 0.999), final_lr=0.1, gamma=1e-3, eps=1e-8, weight_decay=0,
+    #                     amsbound=False)
+    opt = optim.Lamb(list(em_bead.parameters()) + list(en_net.parameters()) + list(de_net.parameters()),
+                    lr= 1e-3, betas=(0.9, 0.999), eps=1e-8, weight_decay=0,
+                    )
 
     em_networks = [em_bead]
     ae_networks = [en_net, de_net]
@@ -242,7 +245,7 @@ def run_epoch(datasets, model, loss_fc, optimizer, iterations, device, writer=No
                 for name, param in ae_networks[1].named_parameters():
                     if name == 'in_dist':
                         mat = param.to('cpu').detach()
-                        mat = torch.softmax(mat, dim=0).numpy()
+                        mat = torch.nn.functional.normalize(torch.relu(mat), p=1.0, dim=0).numpy()
                         x1 = np.matmul(x1, mat)
                         break
                 x = np.concatenate([[0], x1, [15.0]])

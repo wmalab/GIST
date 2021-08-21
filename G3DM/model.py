@@ -407,7 +407,7 @@ class decoder(torch.nn.Module):
         drange = torch.linspace(self.bottom_const, self.top_const, num_step, dtype=torch.float)
         self.register_buffer('dist_range', drange)
 
-        self.in_dist = torch.nn.Parameter( torch.empty((num_step, num_seq-1)), requires_grad=True)
+        self.in_dist = torch.nn.Parameter( torch.eye((num_step, num_seq-1)), requires_grad=True)
         self.register_parameter('in_dist', self.in_dist)
         torch.nn.init.xavier_normal_(self.in_dist)
 
@@ -419,7 +419,8 @@ class decoder(torch.nn.Module):
     def dim2_score(self, x):
         upper = self.upper_bound - x
         lower = x - self.lower_bound
-        score = (upper*lower)/(self.r_dist**2 + 1)
+        score = (4.0*upper*lower)/(self.r_dist**2 + 1)
+        score = (torch.nn.functional.sigmoid(score)*2.0-1)*10.0
         return score
 
     # def dim3_score(self, x):
@@ -447,7 +448,7 @@ class decoder(torch.nn.Module):
         with g.local_scope():
             g.nodes[self.ntype].data['z'] = h
             # sorted_in_d = self.in_dist.view(1,-1)
-            dist_mat = torch.softmax(self.in_dist, dim=0)
+            dist_mat = torch.nn.functional.normalize(torch.relu(self.in_dist), p=1.0, dim=0)
             in_d = torch.matmul(self.dist_range, dist_mat).clamp(min=0.01).view(1,-1)
             sorted_in_d, _ = torch.sort( in_d, dim=-1)
 
