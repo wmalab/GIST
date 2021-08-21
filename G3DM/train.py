@@ -50,14 +50,14 @@ def create_network(configuration, device):
     # opt = optim.AdaBound(list(em_bead.parameters()) + list(en_net.parameters()) + list(de_net.parameters()),
     #                     lr=2*1e-3, betas=(0.9, 0.999), final_lr=0.1, gamma=1e-3, eps=1e-8, weight_decay=0,
     #                     amsbound=False)
-    opt = optim.Adahessian(list(em_bead.parameters()) + list(en_net.parameters()) + list(de_net.parameters()),
-                    lr= 1e-3, betas=(0.9, 0.999), eps=1e-5,
-                    weight_decay=0, hessian_power=1.0,
-                    )
+    opt = torch.optim.AdamW(list(em_bead.parameters()) + list(en_net.parameters()) + list(de_net.parameters()), 
+                            lr=0.001, betas=(0.9, 0.999), eps=1e-08, 
+                            weight_decay=0.01, amsgrad=False)
+    scheduler = torch.optim.lr_scheduler.ExponentialLR(opt, gamma=0.9)
 
     em_networks = [em_bead]
     ae_networks = [en_net, de_net]
-    return em_networks, ae_networks, [nll, cwnl, stdl], [opt]
+    return em_networks, ae_networks, [nll, cwnl, stdl], [opt], scheduler
 
 
 def setup_train(configuration):
@@ -146,7 +146,7 @@ def inference(graphs, features, num_heads, num_clusters, em_networks, ae_network
         return pred_X, pred_cluster_mat, true_cluster_mat
 
 
-def run_epoch(datasets, model, loss_fc, optimizer, iterations, device, writer=None, config=None, saved_model=None):
+def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device, writer=None, config=None, saved_model=None):
     train_dataset = datasets[0]
     valid_dataset = datasets[1] if len(datasets) > 1 else None
     test_dataset = datasets[2] if len(datasets) > 2 else None
@@ -259,7 +259,7 @@ def run_epoch(datasets, model, loss_fc, optimizer, iterations, device, writer=No
                 plot_lines(x, writer, '2,3 hop_dist/center', step=epoch) 
 
             torch.cuda.empty_cache()
-
+        scheduler.step()
         test_ll = np.array(test_loss_list)
         valid_ll = np.array(valid_loss_list)
 

@@ -66,7 +66,7 @@ if __name__ == '__main__':
     # graphs, features, label, _ = HiCDataset[0]
 
     # creat network model
-    em_networks, ae_networks, nll, opt = create_network(config_data, device)
+    em_networks, ae_networks, nll, opt, scheduler = create_network(config_data, device)
 
     #save init model
     models_dict = {
@@ -86,5 +86,5 @@ if __name__ == '__main__':
     writer = tensorboard.SummaryWriter(log_dir)
     
     run_epoch([train_dataset, valid_dataset], [em_networks, ae_networks],
-              nll, opt, itn, device, writer=writer, config=config_data, saved_model=[saved_model_path, saved_model_name])
+              nll, opt, scheduler, itn, device, writer=writer, config=config_data, saved_model=[saved_model_path, saved_model_name])
     writer.close()
