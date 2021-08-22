@@ -125,9 +125,9 @@ class encoder_chain(torch.nn.Module):
         gain = torch.nn.init.calculate_gain('relu')
         torch.nn.init.xavier_normal_(self.fc3.weight, gain=gain)
 
-        self.r = torch.nn.Parameter(torch.empty((1)), requires_grad=True)
-        self.register_parameter('r', self.r)
-        torch.nn.init.uniform_(self.r, a=0.1, b=0.2)
+        # self.r = torch.nn.Parameter(torch.empty((1)), requires_grad=True)
+        # self.register_parameter('r', self.r)
+        # torch.nn.init.uniform_(self.r, a=0.1, b=0.2)
 
         # self.scale = torch.nn.Parameter(torch.ones((1)), requires_grad=True)
 
@@ -156,7 +156,8 @@ class encoder_chain(torch.nn.Module):
         for i in torch.arange(self.num_heads):
             x = h[ntype[0]][:,i,:]
             vmean = torch.mean(x, dim=0, keepdim=True)
-            x = torch.relu(x)
+            x = x - vmean
+            # x = torch.relu(x)
             # x = x.clamp(min=-20.0, max=20.0)
             res.append(x)
         res = torch.stack(res, dim=1)
@@ -412,11 +413,11 @@ class decoder(torch.nn.Module):
         self.bottom = torch.tensor(0, dtype=torch.float32)
         self.register_buffer('bottom_const', self.bottom)
 
-        self.top = torch.tensor(2.0, dtype=torch.float32)
+        self.top = torch.tensor(50.0, dtype=torch.float32)
         self.register_buffer('top_const', self.top)
 
         num_step = 50
-        drange = torch.linspace(self.bottom_const, self.top_const, num_step, dtype=torch.float)
+        drange = torch.linspace(self.bottom_const, self.top_const-45.0, num_step, dtype=torch.float)
         self.register_buffer('dist_range', drange)
 
         self.in_dist = torch.nn.Parameter( torch.empty((num_step, num_seq-1)), requires_grad=True)

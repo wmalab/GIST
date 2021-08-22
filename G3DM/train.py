@@ -243,14 +243,14 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                                 '2,1 cluster/true', step=epoch)
                 plot_confusion_mat(center_pred_mat, center_true_mat,  writer, '2,2 confusion matrix/center', step=epoch)
 
-                x1 = np.linspace(0.0, 2.0, num=50)
+                x1 = np.linspace(0.0, 5.0, num=50)
                 for name, param in ae_networks[1].named_parameters():
                     if name == 'in_dist':
                         mat = param.to('cpu').detach()
                         mat = torch.softmax(mat, dim=0).numpy()
                         x1 = np.matmul(x1, mat)
                         break
-                x = np.concatenate([[0], x1, [2.0]])
+                x = np.concatenate([[0], x1, [10.0]])
                 x = np.sort(x)
                 # for name, param in ae_networks[1].named_parameters():
                 #     if name == 'r_dist':
