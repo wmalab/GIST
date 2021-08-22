@@ -243,22 +243,21 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                                 '2,1 cluster/true', step=epoch)
                 plot_confusion_mat(center_pred_mat, center_true_mat,  writer, '2,2 confusion matrix/center', step=epoch)
 
-                x1 = np.linspace(0.0, 0.01, num=50)
+                # x1 = np.linspace(0.0, 0.01, num=50)
+                # for name, param in ae_networks[1].named_parameters():
+                #     if name == 'in_dist':
+                #         mat = param.to('cpu').detach()
+                #         mat = torch.softmax(mat, dim=0).numpy()
+                #     if name == 'r':
+                #         r = param.to('cpu').detach().numpy()
+                # x1 = np.matmul(x1*r, mat)
+                # x = np.concatenate([[0], x1, [2.0]])
+                # x = np.sort(x)
                 for name, param in ae_networks[1].named_parameters():
                     if name == 'in_dist':
-                        mat = param.to('cpu').detach()
-                        mat = torch.softmax(mat, dim=0).numpy()
-                    if name == 'r':
-                        r = param.to('cpu').detach().numpy()
-                x1 = np.matmul(x1*r, mat)
-
-                x = np.concatenate([[0], x1, [2.0]])
-                x = np.sort(x)
-                # for name, param in ae_networks[1].named_parameters():
-                #     if name == 'r_dist':
-                #         x1 = param.to('cpu').detach().numpy()
-                # x = np.cumsum(np.abs(x1), dtype = float)
-                # x = np.concatenate([[0], x])
+                        x1 = param.to('cpu').detach().numpy()
+                x = np.cumsum(np.abs(x1), dtype = float)
+                x = np.concatenate([[0], x])
                 plot_lines(x, writer, '2,3 hop_dist/center', step=epoch) 
 
             torch.cuda.empty_cache()

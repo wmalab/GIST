@@ -50,7 +50,7 @@ class stdLoss(nn.Module):
         # weight = torch.relu( torch.abs(cluster - num_cluster/2) - (num_cluster/4) )
         # res = torch.mean(std*weight.view(-1,)) # *weight.view(-1,1)
         # res = torch.mean(std) # *weight.view(-1,1)
-        res = torch.nansum(std)/std.shape[0]
+        res = torch.sum(std)/std.shape[0]
         return res
 
 class nllLoss(torch.nn.Module):
