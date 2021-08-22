@@ -38,7 +38,7 @@ class embedding(torch.nn.Module):
         X = self.conv1d_4(X) # ceil( (Lin+2)/3 )
         X = torch.nn.functional.leaky_relu(X)
         X = self.pool(X)
-        X = self.fc1(X)
+        X = self.fc1(X)*10
         # X = torch.nn.functional.leaky_relu(X)
         # X = self.fc2(X)
         # X = torch.nn.functional.normalize(X, p=2.0, dim=-1)
@@ -420,7 +420,7 @@ class decoder(torch.nn.Module):
 
         num_step = 50
         self.r = torch.nn.Parameter( torch.ones((1), dtype=torch.float), requires_grad=True)
-        drange = torch.linspace(self.bottom_const, 1.0, num_step, dtype=torch.float)
+        drange = torch.linspace(self.bottom_const, 0.01, num_step, dtype=torch.float)
         self.register_buffer('dist_range', drange)
 
         self.in_dist = torch.nn.Parameter( torch.eye(num_step, num_seq-1), requires_grad=True)
