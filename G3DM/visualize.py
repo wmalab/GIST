@@ -73,8 +73,8 @@ def plot_lines(x, writer, item_dir, step=None):
     cmaps = ['tab20']
     z = np.arange(len(x.flatten()))
     scatter = axs.scatter(x.flatten(),y, c=z, cmap=cmaps[0])
-    legend = axs.legend(*scatter.legend_elements(),
-                    loc="lower left", title="Classes")
+    legend = axs.legend(x,
+                    loc="lower right", title="Classes")
     axs.add_artist(legend)
     axs.plot(x.flatten(), y)
     plt.xlim(left=-0.01)
