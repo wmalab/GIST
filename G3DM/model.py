@@ -419,7 +419,7 @@ class decoder(torch.nn.Module):
         self.register_buffer('top_const', self.top)
 
         self.num_step = 50
-        self.r = torch.nn.Parameter( torch.ones((1.0)), requires_grad=True)
+        self.r = torch.nn.Parameter( torch.ones((1), dtype=torch.float), requires_grad=True)
 
         self.in_dist = torch.nn.Parameter( torch.eye(num_step, num_seq-1), requires_grad=True)
         # self.in_dist = torch.nn.Parameter( torch.empty((num_step, num_seq-1)), requires_grad=True)
