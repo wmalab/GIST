@@ -145,7 +145,7 @@ class encoder_chain(torch.nn.Module):
             x = h[ntype[0]][:,i,:]
             vmean = torch.mean(x, dim=0, keepdim=True)
             x = (x - vmean)
-            # x = x.clamp(min=-50.0, max=50.0)
+            x = x.clamp(min=-20.0, max=20.0)
             res.append(x)
         res = torch.stack(res, dim=1)
         return res
@@ -400,7 +400,7 @@ class decoder(torch.nn.Module):
         self.bottom = torch.tensor(0, dtype=torch.float32)
         self.register_buffer('bottom_const', self.bottom)
 
-        self.top = torch.tensor(15.0, dtype=torch.float32)
+        self.top = torch.tensor(5.0, dtype=torch.float32)
         self.register_buffer('top_const', self.top)
 
         num_step = 50
@@ -409,7 +409,7 @@ class decoder(torch.nn.Module):
 
         self.in_dist = torch.nn.Parameter( torch.empty((num_step, num_seq-1)), requires_grad=True)
         self.register_parameter('in_dist', self.in_dist)
-        torch.nn.init.uniform_(self.in_dist, a=-10.0, b=10.0)
+        torch.nn.init.uniform_(self.in_dist, a=-1.0, b=1.0)
 
         mat = torch.diag( -1*torch.ones((num_seq+1)), diagonal=0) + torch.diag( torch.ones((num_seq)), diagonal=-1)
         self.subtract_mat = torch.nn.Parameter(mat[:,:-1], requires_grad=False)
