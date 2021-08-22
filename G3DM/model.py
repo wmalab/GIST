@@ -82,8 +82,8 @@ class encoder_chain(torch.nn.Module):
                                     num_heads=1, residual=False, 
                                     allow_zero_in_degree=True)
         self.layer1 = dgl.nn.HeteroGraphConv( l1, aggregate = 'mean')
-        gain = torch.nn.init.calculate_gain('relu')
-        torch.nn.init.xavier_normal_(self.layer1.weight, gain=gain)
+        # gain = torch.nn.init.calculate_gain('relu')
+        # torch.nn.init.xavier_normal_(self.layer1.weight, gain=gain)
 
         l2 = dict()
         for et in etypes:
@@ -91,8 +91,8 @@ class encoder_chain(torch.nn.Module):
                                     num_heads=1, residual=False, 
                                     allow_zero_in_degree=True)
         self.layer2 = dgl.nn.HeteroGraphConv( l2, aggregate = self.agg_func2)
-        gain = torch.nn.init.calculate_gain('relu')
-        torch.nn.init.xavier_normal_(self.layer2.weight, gain=gain)
+        # gain = torch.nn.init.calculate_gain('relu')
+        # torch.nn.init.xavier_normal_(self.layer2.weight, gain=gain)
 
         l3 = dict()
         for et in etypes:
@@ -100,8 +100,8 @@ class encoder_chain(torch.nn.Module):
                                     num_heads=1, residual=False, 
                                     allow_zero_in_degree=True)
         self.layer3 = dgl.nn.HeteroGraphConv( l3, aggregate = self.agg_func3)
-        gain = torch.nn.init.calculate_gain('relu')
-        torch.nn.init.xavier_normal_(self.layer3.weight, gain=gain)
+        # gain = torch.nn.init.calculate_gain('relu')
+        # torch.nn.init.xavier_normal_(self.layer3.weight, gain=gain)
 
 
         lMH = dict()
@@ -110,8 +110,8 @@ class encoder_chain(torch.nn.Module):
                                     num_heads=num_heads, residual=False, 
                                     allow_zero_in_degree=True)
         self.layerMHs = dgl.nn.HeteroGraphConv( lMH, aggregate='mean')
-        gain = torch.nn.init.calculate_gain('relu')
-        torch.nn.init.xavier_normal_(self.layerMHs.weight, gain=gain)
+        # gain = torch.nn.init.calculate_gain('relu')
+        # torch.nn.init.xavier_normal_(self.layerMHs.weight, gain=gain)
 
 
         '''self.chain = constrainLayer(out_dim)'''
