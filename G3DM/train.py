@@ -248,8 +248,10 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                     if name == 'in_dist':
                         mat = param.to('cpu').detach()
                         mat = torch.softmax(mat, dim=0).numpy()
-                        x1 = np.matmul(x1, mat)
-                        break
+                    if name == 'r':
+                        r = param.to('cpu').detach().numpy()
+                x1 = np.matmul(x1*r, mat)
+
                 x = np.concatenate([[0], x1, [2.0]])
                 x = np.sort(x)
                 # for name, param in ae_networks[1].named_parameters():
