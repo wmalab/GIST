@@ -464,7 +464,7 @@ class decoder(torch.nn.Module):
             
             dist_mat = torch.softmax(self.in_dist, dim=0)
 
-            drange = torch.linspace(self.bottom_const, self.r, self.num_step, dtype=torch.float)
+            drange = torch.linspace(self.bottom_const, 1.0, self.num_step, dtype=torch.float)*self.r
             in_d = torch.matmul(drange, dist_mat).clamp(min=0.01).view(1,-1)
             sorted_in_d, _ = torch.sort( in_d, dim=-1)
 
