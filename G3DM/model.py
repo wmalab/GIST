@@ -418,9 +418,8 @@ class decoder(torch.nn.Module):
         self.top = torch.tensor(50.0, dtype=torch.float32)
         self.register_buffer('top_const', self.top)
 
-        num_step = 50
-        drange = torch.linspace(self.bottom_const, self.top_const-49.0, num_step, dtype=torch.float)
-        self.register_buffer('dist_range', drange)
+        self.num_step = 50
+        self.r = torch.nn.Parameter( torch.ones((1.0)), requires_grad=True)
 
         self.in_dist = torch.nn.Parameter( torch.eye(num_step, num_seq-1), requires_grad=True)
         # self.in_dist = torch.nn.Parameter( torch.empty((num_step, num_seq-1)), requires_grad=True)
@@ -462,8 +461,11 @@ class decoder(torch.nn.Module):
         with g.local_scope():
             g.nodes[self.ntype].data['z'] = h
             # sorted_in_d = self.in_dist.view(1,-1)
+            
             dist_mat = torch.softmax(self.in_dist, dim=0)
-            in_d = torch.matmul(self.dist_range, dist_mat).clamp(min=0.01).view(1,-1)
+
+            drange = torch.linspace(self.bottom_const, self.r, self.num_step, dtype=torch.float)
+            in_d = torch.matmul(drange, dist_mat).clamp(min=0.01).view(1,-1)
             sorted_in_d, _ = torch.sort( in_d, dim=-1)
 
             self.lower_bound = torch.cat( (self.bottom_const.view(1,-1), 
