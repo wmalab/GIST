@@ -72,8 +72,10 @@ def plot_lines(x, writer, item_dir, step=None):
     fig, axs = plt.subplots(1, 1)
     cmaps = ['tab20']
     z = np.arange(len(x.flatten()))
-    axs.scatter(x.flatten(),y, c=z, cmap=cmaps[0])
-    axs.legend()
+    scatter = axs.scatter(x.flatten(),y, c=z, cmap=cmaps[0])
+    legend = axs.legend(*scatter.legend_elements(),
+                    loc="lower left", title="Classes")
+    axs.add_artist(legend)
     axs.plot(x.flatten(), y)
     plt.xlim(left=-0.01)
     step = 0 if step is None else step
