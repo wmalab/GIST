@@ -420,6 +420,8 @@ class decoder(torch.nn.Module):
 
         self.num_step = 50
         self.r = torch.nn.Parameter( torch.ones((1), dtype=torch.float), requires_grad=True)
+        drange = torch.linspace(self.bottom_const, 1.0, num_step, dtype=torch.float)
+        self.register_buffer('dist_range', drange)
 
         self.in_dist = torch.nn.Parameter( torch.eye(self.num_step, num_seq-1), requires_grad=True)
         # self.in_dist = torch.nn.Parameter( torch.empty((num_step, num_seq-1)), requires_grad=True)
@@ -464,8 +466,7 @@ class decoder(torch.nn.Module):
             
             dist_mat = torch.softmax(self.in_dist, dim=0)
 
-            drange = torch.linspace(self.bottom_const, 1.0, self.num_step, dtype=torch.float)*self.r
-            in_d = torch.matmul(drange, dist_mat).clamp(min=0.01).view(1,-1)
+            in_d = torch.matmul(self.dist_range*self.r, dist_mat).clamp(min=0.01).view(1,-1)
             sorted_in_d, _ = torch.sort( in_d, dim=-1)
 
             self.lower_bound = torch.cat( (self.bottom_const.view(1,-1), 
