@@ -15,6 +15,7 @@ class embedding(torch.nn.Module):
         self.fc1 = torch.nn.Linear(self.hidden_dim, out_dim, bias=True)
         # self.fc2 = torch.nn.Linear(out_dim, out_dim, bias=True)
         self.pool = torch.nn.MaxPool1d(3, stride=1, padding=1)
+        self.bn = torch.nn.BatchNorm1d(num_features=out_dim)
         self.reset()
 
     def reset(self):
@@ -38,12 +39,13 @@ class embedding(torch.nn.Module):
         X = self.conv1d_4(X) # ceil( (Lin+2)/3 )
         X = torch.nn.functional.leaky_relu(X)
         X = self.pool(X)
-        X = self.fc1(X)*10
+        X = self.fc1(X)
         # X = torch.nn.functional.leaky_relu(X)
         # X = self.fc2(X)
         # X = torch.nn.functional.normalize(X, p=2.0, dim=-1)
         # X = torch.nn.functional.leaky_relu(X)
         X = torch.squeeze(X, dim=1)
+        X = self.bn(X)
         return X
 
 """class constrainLayer(torch.nn.Module):
@@ -157,6 +159,9 @@ class encoder_chain(torch.nn.Module):
             x = h[ntype[0]][:,i,:]
             vmean = torch.mean(x, dim=0, keepdim=True)
             x = x - vmean
+            xp = torch.cat([x[1:, :], x[0:1,:]], dim=0)
+            dmean = torch.mean( torch.norm(x-xp, dim=1))+1e-4
+            x = torch.div(x, dmean)
             # dmean = torch.mean( torch.norm(x, dim=-1))
             # x = torch.div(x, dmean)
 
