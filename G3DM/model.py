@@ -409,7 +409,7 @@ class decoder(torch.nn.Module):
 
         self.in_dist = torch.nn.Parameter( torch.empty((num_step, num_seq-1)), requires_grad=True)
         self.register_parameter('in_dist', self.in_dist)
-        torch.nn.init.xavier_normal_(self.in_dist)
+        torch.nn.init.uniform_(self.in_dist, a=-10.0, b=10.0)
 
         mat = torch.diag( -1*torch.ones((num_seq+1)), diagonal=0) + torch.diag( torch.ones((num_seq)), diagonal=-1)
         self.subtract_mat = torch.nn.Parameter(mat[:,:-1], requires_grad=False)
