@@ -82,6 +82,8 @@ class encoder_chain(torch.nn.Module):
                                     num_heads=1, residual=False, 
                                     allow_zero_in_degree=True)
         self.layer1 = dgl.nn.HeteroGraphConv( l1, aggregate = 'mean')
+        gain = torch.nn.init.calculate_gain('relu')
+        torch.nn.init.xavier_normal_(self.layer1.weight, gain=gain)
 
         l2 = dict()
         for et in etypes:
@@ -89,6 +91,8 @@ class encoder_chain(torch.nn.Module):
                                     num_heads=1, residual=False, 
                                     allow_zero_in_degree=True)
         self.layer2 = dgl.nn.HeteroGraphConv( l2, aggregate = self.agg_func2)
+        gain = torch.nn.init.calculate_gain('relu')
+        torch.nn.init.xavier_normal_(self.layer2.weight, gain=gain)
 
         l3 = dict()
         for et in etypes:
@@ -96,6 +100,9 @@ class encoder_chain(torch.nn.Module):
                                     num_heads=1, residual=False, 
                                     allow_zero_in_degree=True)
         self.layer3 = dgl.nn.HeteroGraphConv( l3, aggregate = self.agg_func3)
+        gain = torch.nn.init.calculate_gain('relu')
+        torch.nn.init.xavier_normal_(self.layer3.weight, gain=gain)
+
 
         lMH = dict()
         for et in etypes:
@@ -103,6 +110,9 @@ class encoder_chain(torch.nn.Module):
                                     num_heads=num_heads, residual=False, 
                                     allow_zero_in_degree=True)
         self.layerMHs = dgl.nn.HeteroGraphConv( lMH, aggregate='mean')
+        gain = torch.nn.init.calculate_gain('relu')
+        torch.nn.init.xavier_normal_(self.layerMHs.weight, gain=gain)
+
 
         '''self.chain = constrainLayer(out_dim)'''
         self.num_heads = num_heads
@@ -118,6 +128,8 @@ class encoder_chain(torch.nn.Module):
         self.r = torch.nn.Parameter(torch.empty((1)), requires_grad=True)
         self.register_parameter('r', self.r)
         torch.nn.init.uniform_(self.r, a=0.1, b=0.2)
+
+        self.scale = torch.nn.Parameter(torch.ones((1)), requires_grad=True)
 
     def agg_func2(self, tensors, dsttype):
         stacked = torch.stack(tensors, dim=-1)
@@ -144,7 +156,7 @@ class encoder_chain(torch.nn.Module):
         for i in torch.arange(self.num_heads):
             x = h[ntype[0]][:,i,:]
             vmean = torch.mean(x, dim=0, keepdim=True)
-            x = (x - vmean)
+            x = (x - vmean)*self.scale
             x = x.clamp(min=-20.0, max=20.0)
             res.append(x)
         res = torch.stack(res, dim=1)
@@ -439,10 +451,8 @@ class decoder(torch.nn.Module):
 
         dist = torch.sum(n2*weight, dim=-1, keepdim=True)
         outputs_score = self.dim2_score(dist)
-
-        std = torch.std(n2, dim=-1, unbiased=False, keepdim=False)
-
-        return {'dist_pred': outputs_score, 'std': std}
+        std, mean = torch.std_mean(n2, dim=-1, unbiased=False, keepdim=False)
+        return {'dist_pred': outputs_score, 'std': std/(mean+1.0)}
 
     def forward(self, g, h):
         with g.local_scope():
