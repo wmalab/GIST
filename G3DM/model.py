@@ -129,7 +129,7 @@ class encoder_chain(torch.nn.Module):
         self.register_parameter('r', self.r)
         torch.nn.init.uniform_(self.r, a=0.1, b=0.2)
 
-        self.scale = torch.nn.Parameter(torch.ones((1)), requires_grad=True)
+        # self.scale = torch.nn.Parameter(torch.ones((1)), requires_grad=True)
 
     def agg_func2(self, tensors, dsttype):
         stacked = torch.stack(tensors, dim=-1)
@@ -156,7 +156,7 @@ class encoder_chain(torch.nn.Module):
         for i in torch.arange(self.num_heads):
             x = h[ntype[0]][:,i,:]
             vmean = torch.mean(x, dim=0, keepdim=True)
-            x = (x - vmean)*self.scale
+            x = torch.relu(x)
             # x = x.clamp(min=-20.0, max=20.0)
             res.append(x)
         res = torch.stack(res, dim=1)
