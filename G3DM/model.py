@@ -157,7 +157,7 @@ class encoder_chain(torch.nn.Module):
             x = h[ntype[0]][:,i,:]
             vmean = torch.mean(x, dim=0, keepdim=True)
             x = (x - vmean)*self.scale
-            x = x.clamp(min=-20.0, max=20.0)
+            # x = x.clamp(min=-20.0, max=20.0)
             res.append(x)
         res = torch.stack(res, dim=1)
         return res
