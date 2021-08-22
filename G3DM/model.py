@@ -417,12 +417,12 @@ class decoder(torch.nn.Module):
         self.register_buffer('top_const', self.top)
 
         num_step = 50
-        drange = torch.linspace(self.bottom_const, self.top_const-45.0, num_step, dtype=torch.float)
+        drange = torch.linspace(self.bottom_const, self.top_const-47.0, num_step, dtype=torch.float)
         self.register_buffer('dist_range', drange)
 
-        self.in_dist = torch.nn.Parameter( torch.empty((num_step, num_seq-1)), requires_grad=True)
+        self.in_dist = torch.nn.Parameter( torch.eye(num_step, num_seq-1), requires_grad=True)
         self.register_parameter('in_dist', self.in_dist)
-        torch.nn.init.uniform_(self.in_dist, a=-1.0, b=1.0)
+        # torch.nn.init.uniform_(self.in_dist, a=-1.0, b=1.0)
 
         mat = torch.diag( -1*torch.ones((num_seq+1)), diagonal=0) + torch.diag( torch.ones((num_seq)), diagonal=-1)
         self.subtract_mat = torch.nn.Parameter(mat[:,:-1], requires_grad=False)
