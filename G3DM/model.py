@@ -156,7 +156,7 @@ class encoder_chain(torch.nn.Module):
         for i in torch.arange(self.num_heads):
             x = h[ntype[0]][:,i,:]
             vmean = torch.mean(x, dim=0, keepdim=True)
-            x = x - vmean
+            x =(x - vmean)*50
             # x = torch.relu(x)
             # x = x.clamp(min=-20.0, max=20.0)
             res.append(x)
