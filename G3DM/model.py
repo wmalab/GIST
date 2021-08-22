@@ -418,12 +418,12 @@ class decoder(torch.nn.Module):
         self.top = torch.tensor(50.0, dtype=torch.float32)
         self.register_buffer('top_const', self.top)
 
-        self.num_step = 50
+        num_step = 50
         self.r = torch.nn.Parameter( torch.ones((1), dtype=torch.float), requires_grad=True)
         drange = torch.linspace(self.bottom_const, 1.0, num_step, dtype=torch.float)
         self.register_buffer('dist_range', drange)
 
-        self.in_dist = torch.nn.Parameter( torch.eye(self.num_step, num_seq-1), requires_grad=True)
+        self.in_dist = torch.nn.Parameter( torch.eye(num_step, num_seq-1), requires_grad=True)
         # self.in_dist = torch.nn.Parameter( torch.empty((num_step, num_seq-1)), requires_grad=True)
         # torch.nn.init.uniform_(self.in_dist, a=-10.0, b=10.0)
         self.register_parameter('in_dist', self.in_dist)
