@@ -144,8 +144,7 @@ class encoder_chain(torch.nn.Module):
         for i in torch.arange(self.num_heads):
             x = h[ntype[0]][:,i,:]
             vmean = torch.mean(x, dim=0, keepdim=True)
-            vmax = torch.max(torch.abs(x), dim=0, keepdim=True)
-            x = (x - vmean)/vmax * 10.0
+            x = (x - vmean)
             # x = x.clamp(min=-50.0, max=50.0)
             res.append(x)
         res = torch.stack(res, dim=1)
