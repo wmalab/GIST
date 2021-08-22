@@ -395,12 +395,12 @@ class decoder(torch.nn.Module):
 
         self.w = torch.nn.Parameter(torch.empty( (self.num_heads)), requires_grad=True)
         self.register_parameter('w', self.w)
-        torch.nn.init.uniform_(self.w, a=0.0, b=1.0)
+        torch.nn.init.uniform_(self.w, a=-10.0, b=10.0)
 
         self.bottom = torch.tensor(0, dtype=torch.float32)
         self.register_buffer('bottom_const', self.bottom)
 
-        self.top = torch.tensor(5.0, dtype=torch.float32)
+        self.top = torch.tensor(2.0, dtype=torch.float32)
         self.register_buffer('top_const', self.top)
 
         num_step = 50
