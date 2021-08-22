@@ -74,6 +74,7 @@ def plot_lines(x, writer, item_dir, step=None):
     z = np.arange(len(x.flatten()))
     axs.scatter(x.flatten(),y, c=z, cmap=cmaps[0])
     axs.plot(x.flatten(), y)
+    axs.legend()
     plt.xlim(left=-0.01)
     step = 0 if step is None else step
     writer.add_figure(item_dir, fig, global_step=step)
