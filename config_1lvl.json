@@ -18,7 +18,7 @@
             "max_len": 1000,
             "iteration": 3,
             "num_clusters": 7,
-            "cutoff_clusters":{"low": 20.0, "high": 99.9},
+            "cutoff_clusters":{"low": 35.0, "high": 99.9},
             "cutoff_percent": 0,
             "cutoff_cluster": 5
         },
