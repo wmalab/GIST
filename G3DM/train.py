@@ -101,7 +101,7 @@ def fit_one_step(require_grad, graphs, features, cluster_weights, em_networks, a
         return [None, None, None]
 
     if require_grad:
-        loss = l_nll + 100*l_wnl + l_stdl 
+        loss = l_nll # + 100*l_wnl + l_stdl 
         optimizer[0].zero_grad()
         loss.backward()  # retain_graph=False,
         optimizer[0].step()
@@ -263,7 +263,7 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                 plot_lines(x, writer, '2,3 hop_dist/center', step=epoch) 
 
             torch.cuda.empty_cache()
-        # scheduler.step()
+        scheduler.step()
         test_ll = np.array(test_loss_list)
         valid_ll = np.array(valid_loss_list)
 

@@ -471,7 +471,7 @@ class decoder(torch.nn.Module):
             # sorted_in_d = self.in_dist.view(1,-1)
             # dist_mat = torch.softmax(self.in_dist, dim=0)
 
-            in_d = (self.in_dist*torch.relu(self.r)).clamp(min=1.0).view(1,-1)
+            in_d = (self.in_dist*torch.relu(self.r)).clamp(min=1.0, max=50.0).view(1,-1)
             sorted_in_d, _ = torch.sort( in_d, dim=-1)
 
             self.lower_bound = torch.cat( (self.bottom_const.view(1,-1), 
