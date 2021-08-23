@@ -101,7 +101,7 @@ def fit_one_step(require_grad, graphs, features, cluster_weights, em_networks, a
         return [None, None, None]
 
     if require_grad:
-        loss = l_nll + 10*l_wnl + l_stdl 
+        loss = l_nll + 100*l_wnl + l_stdl 
         optimizer[0].zero_grad()
         loss.backward()  # retain_graph=False,
         optimizer[0].step()
@@ -256,7 +256,9 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                 for name, param in ae_networks[1].named_parameters():
                     if name == 'in_dist':
                         x1 = param.to('cpu').detach().numpy()
-                x = np.cumsum(np.abs(x1), dtype = float)
+                    if name == 'r':
+                        r = param.to('cpu').detach().numpy()
+                x = np.clip( np.abs(x1)*r, a_min=1.0)
                 x = np.concatenate([[0], x])
                 plot_lines(x, writer, '2,3 hop_dist/center', step=epoch) 
 
