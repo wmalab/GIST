@@ -417,14 +417,14 @@ class decoder(torch.nn.Module):
         self.register_parameter('w', self.w)
         torch.nn.init.uniform_(self.w, a=-10.0, b=10.0)
 
-        self.bottom = torch.tensor(0, dtype=torch.float32)
+        self.bottom = torch.tensor(0.0, dtype=torch.float32)
         self.register_buffer('bottom_const', self.bottom)
 
         self.top = torch.tensor(50.0, dtype=torch.float32)
         self.register_buffer('top_const', self.top)
 
-        self.drange = torch.linspace(self.bottom_const, 0.1, steps=num_seq, dtype=torch.float, requires_grad=True)
-        self.in_dist = torch.nn.Parameter(self.drange[1:], requires_grad=True)
+        self.drange = torch.linspace(self.bottom_const, 2.0, steps=num_seq, dtype=torch.float, requires_grad=True)
+        self.in_dist = torch.nn.Parameter(self.drange[1:]+1.0, requires_grad=True)
         self.register_parameter('in_dist', self.in_dist)
 
         # self.in_dist = torch.nn.Parameter( torch.eye(num_step, num_seq-1), requires_grad=True)
@@ -471,7 +471,7 @@ class decoder(torch.nn.Module):
             # sorted_in_d = self.in_dist.view(1,-1)
             # dist_mat = torch.softmax(self.in_dist, dim=0)
 
-            in_d = (self.in_dist*torch.relu(self.r)).clamp(min=0.01).view(1,-1)
+            in_d = (self.in_dist*torch.relu(self.r)).clamp(min=1.0).view(1,-1)
             sorted_in_d, _ = torch.sort( in_d, dim=-1)
 
             self.lower_bound = torch.cat( (self.bottom_const.view(1,-1), 
