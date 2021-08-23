@@ -442,7 +442,7 @@ class decoder(torch.nn.Module):
     def dim2_score(self, x):
         upper = self.upper_bound - x
         lower = x - self.lower_bound
-        score = (4.0*upper*lower)/(self.r_dist**2 + 1)
+        score = torch.clamp( (4.0*upper*lower)/(self.r_dist**2 + 1), min=-4.0, max=4.0)
         score = (torch.nn.functional.sigmoid(score)*2.0-1)*10.0
         return score
 
