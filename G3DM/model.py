@@ -420,7 +420,7 @@ class decoder(torch.nn.Module):
         self.bottom = torch.tensor(0.0, dtype=torch.float32)
         self.register_buffer('bottom_const', self.bottom)
 
-        self.top = torch.tensor(50.0, dtype=torch.float32)
+        self.top = torch.tensor(10000.0, dtype=torch.float32)
         self.register_buffer('top_const', self.top)
 
         self.drange = torch.linspace(self.bottom_const, 2.0, steps=num_seq, dtype=torch.float, requires_grad=True)
