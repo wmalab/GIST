@@ -19,8 +19,6 @@ gpuIDs = GPUtil.getAvailable(order='first', limit=1, maxLoad=0.05,
 # device = torch.device('cpu' if len(gpuIDs) == 0 else 'cuda:{}'.format(gpuIDs[0]))
 device = torch.device('cpu' if len(gpuIDs) == 0 else 'cuda:0')
 print(device)
-if 'cuda' in device: 
-    torch.cuda.empty_cache()
 
 if __name__ == '__main__':
     # root = os.path.join('.') #
