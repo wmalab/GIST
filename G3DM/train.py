@@ -258,7 +258,7 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                         x1 = param.to('cpu').detach().numpy()
                     if name == 'r':
                         r = param.to('cpu').detach().numpy()
-                x = np.clip( np.abs(x1)*r, a_min=1.0)
+                x = np.clip( np.abs(x1)*r, a_min=1.0, a_max=None)
                 x = np.concatenate([[0], x])
                 plot_lines(x, writer, '2,3 hop_dist/center', step=epoch) 
 
