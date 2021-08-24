@@ -545,7 +545,7 @@ class decoder_gmm(torch.nn.Module):
         dis_ms, dis_indices = torch.sort(self.distance_means, descending=False)
 
         # cnt_std = self.contact_stdevs[cnt_indices]
-        dis_std = self.distance_stdevs[cnt_indices]
+        dis_std = self.distance_stdevs[dis_indices]
 
         # cnt_cmp = D.Normal( torch.relu(cnt_ms), torch.relu(cnt_std)+1e-5 )
         dis_cmp = D.Normal( torch.relu(dis_ms), torch.relu(dis_std)+1e-5 )
