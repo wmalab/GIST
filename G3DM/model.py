@@ -469,8 +469,7 @@ class decoder(torch.nn.Module):
             g.nodes[self.ntype].data['z'] = h
             # sorted_in_d = self.in_dist.view(1,-1)
             # dist_mat = torch.softmax(self.in_dist, dim=0)
-
-            in_d = torch.cumsum(self.in_dist, dim=0)
+            in_d = torch.cumsum( (self.in_dist).clamp(min=0.05), dim=0)
             in_d = in_d.clamp(min=0.1, max=20.0).view(1,-1)
             sorted_in_d, _ = torch.sort( in_d, dim=-1)
 
