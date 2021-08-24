@@ -276,6 +276,7 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                 x = np.cumsum(x1)
                 x = np.clip( x, a_min=0.1, a_max=None)
                 x = np.concatenate([[0], x])
+                x = np.sort(x)
                 plot_lines(x, writer, '2,3 hop_dist/center', step=epoch) 
 
             torch.cuda.empty_cache()
