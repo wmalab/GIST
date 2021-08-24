@@ -58,7 +58,7 @@ class nllLoss(torch.nn.Module):
         super(nllLoss, self).__init__()
     
     def forward(self, pred, target, weights=None):
-        logp = torch.nn.functional.log_softmax(pred, 1)
+        logp = pred # torch.nn.functional.log_softmax(pred, 1)
         if weights is not None:
             w = weights/weights.mean() + 0.7 # torch.sqrt(weights/weights.mean() + 1.0)
             loss = torch.nn.functional.nll_loss(logp, target.long(), weight=w.float(), reduce=True, reduction='mean')

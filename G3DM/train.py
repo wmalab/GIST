@@ -5,8 +5,8 @@ import torch
 import torch_optimizer as optim
 import numpy as np
 
-from .model import embedding, encoder_chain, decoder, save_model_state_dict
-from .loss import nllLoss, stdLoss, ClusterWassersteinLoss
+from .model import embedding, encoder_chain, decoder_distance, decoder_gmm, save_model_state_dict
+from .loss import RMSLELoss, nllLoss # nllLoss, stdLoss, ClusterWassersteinLoss
 from .visualize import plot_feature, plot_X, plot_cluster, plot_confusion_mat, plot_lines
 from .visualize import plot_scaler
 
@@ -41,13 +41,16 @@ def create_network(configuration, device):
     en_net = encoder_chain( cin, chidden, cout, num_heads=nh, etypes=e_list).to(device)
 
     nc = int(config['graph']['num_clusters']) - 1
-    de_net = decoder(nh, nc, 'bead', 'interacts').to(device)
+    de_distance_net = decoder_distance(nh, nc, 'bead', 'interacts').to(device)
+    de_gmm_net = decoder_gmm(nc).to(device)
 
     nll = nllLoss().to(device)
-    stdl = stdLoss().to(device)
-    cwnl = ClusterWassersteinLoss(device).to(device)
+    # stdl = stdLoss().to(device)
+    # cwnl = ClusterWassersteinLoss(device).to(device)
+    rmslel = RMSLELoss().to(device)
 
-    opt0 = optim.AdaBound(list(em_bead.parameters()) + list(en_net.parameters()) + list(de_net.parameters()),
+    opt0 = optim.AdaBound( list(em_bead.parameters()) + list(en_net.parameters()) 
+                        + list(de_distance_net.parameters()) + list(de_gmm_net.parameters()),
                         lr=1e-3, betas=(0.9, 0.999), final_lr=0.1, gamma=1e-3, eps=1e-8, weight_decay=0,
                         amsbound=False)
 
@@ -57,8 +60,8 @@ def create_network(configuration, device):
     scheduler = torch.optim.lr_scheduler.ExponentialLR(opt0, gamma=0.9)
 
     em_networks = [em_bead]
-    ae_networks = [en_net, de_net]
-    return em_networks, ae_networks, [nll, cwnl, stdl], [opt0], scheduler
+    ae_networks = [en_net, de_distance_net, de_gmm_net]
+    return em_networks, ae_networks, [rmslel, nll], [opt0], scheduler
 
 
 def setup_train(configuration):
@@ -71,42 +74,52 @@ def fit_one_step(require_grad, graphs, features, cluster_weights, em_networks, a
     top_graph = graphs['top_graph'].to(device)
     top_subgraphs = graphs['top_subgraphs'].to(device)
 
-    cw = cluster_weights
-    ncluster = len(cluster_weights)
+    # cw = cluster_weights
+    # ncluster = len(cluster_weights)
 
     h_feat = features
 
     em_bead = em_networks[0]
     en_net = ae_networks[0]
-    de_net = ae_networks[1]
+    de_dis_net = ae_networks[1]
+    de_gmm_net = ae_networks[2]
 
     top_list = [e for e in top_subgraphs.etypes if 'interacts_c' in e]
 
     X1 = em_bead(h_feat)
     h_center = en_net(top_subgraphs, X1, top_list, ['w'], ['bead'])
-    xt = top_graph.edges['interacts'].data['label']
+    # xt = top_graph.edges['interacts'].data['label']
+    xt = top_graph.edges['interacts'].data['value']
+    lt = top_graph.edges['interacts'].data['label']
 
-    xp, std = de_net(top_graph, h_center)
+    xp, std = de_dis_net(top_graph, h_center)
     if xp.shape[0]==0 or xp.shape[0]!= xt.shape[0]:
         return [None, None, None, None]
 
-    l_nll = loss_fc[0](xp, xt, cw) 
-    l_nll_noweight = loss_fc[0](xp, xt, None)
-    l_wnl = loss_fc[1](xp, xt, ncluster)
-    l_stdl = loss_fc[2](std, xt, ncluster)
 
-    if l_nll > 1e4 or l_wnl > 1e4 or l_stdl > 1e4:
-        print(xp.min(), xp.max(), xp.mean())
-        print(X1.mean(dim=0))
-        return [None, None, None, None]
+    [dis_cdf, cnt_cdf], [dis_cmpt_cdf, cnt_cmpt_cdf], [dis_cmpt_lp, cnt_cmpt_lp], [cnt_gmm, dis_gmm] = de_gmm_net(xp, xt)
+    # l_nll = loss_fc[0](xp, xt, cw) 
+    # l_nll_noweight = loss_fc[0](xp, xt, None)
+    # l_wnl = loss_fc[1](xp, xt, ncluster)
+    # l_stdl = loss_fc[2](std, xt, ncluster)
+    # if l_nll > 1e4 or l_wnl > 1e4 or l_stdl > 1e4:
+    #     print(xp.min(), xp.max(), xp.mean())
+    #     print(X1.mean(dim=0))
+    #     return [None, None, None, None]
+
+    rmseloss_all = loss_fc[0](dis_cdf, cnt_cdf)
+    rmseloss_cmpt = loss_fc[0](dis_cmpt_cdf, cnt_cmpt_cdf)
+    l_nll = loss_fc[1](cnt_cmpt_lp, lt)
 
     if require_grad:
-        loss = l_nll + l_wnl*10 # + l_stdl # + 100*l_wnl + l_stdl + l_nll_noweight 
+        # loss = l_nll + l_wnl*10 # + l_stdl # + 100*l_wnl + l_stdl + l_nll_noweight 
+        loss = rmseloss_all + rmseloss_cmpt + l_nll
         optimizer[0].zero_grad()
         loss.backward()  # retain_graph=False,
         optimizer[0].step()
 
-    return [l_nll.item(), l_wnl.item(), l_stdl.item(), l_nll_noweight.item()]
+    # return [l_nll.item(), l_wnl.item(), l_stdl.item(), l_nll_noweight.item()]
+    return [rmseloss_all.item(), rmseloss_cmpt.item(), l_nll.item()]
 
 
 def inference(graphs, features, num_heads, num_clusters, em_networks, ae_networks, device):
@@ -117,7 +130,8 @@ def inference(graphs, features, num_heads, num_clusters, em_networks, ae_network
 
     em_bead = em_networks[0]
     en_net = ae_networks[0]
-    de_net = ae_networks[1]
+    de_dis_net = ae_networks[1]
+    de_gmm_net = ae_networks[2]
 
     top_list = [e for e in top_subgraphs.etypes if 'interacts_c' in e]
 
@@ -128,22 +142,28 @@ def inference(graphs, features, num_heads, num_clusters, em_networks, ae_network
         X1 = em_bead(h_feat)
         h_center = en_net( top_subgraphs, X1, top_list, ['w'], ['bead'])
 
-        xp1, _ = de_net(top_graph, h_center)
+        xp1, _ = de_dis_net(top_graph, h_center)
 
-        p1 = xp1.cpu().detach().numpy()
+        xt1 = top_graph.edges['interacts'].data['value']
+        [dis_cdf, cnt_cdf], [dis_cmpt_cdf, cnt_cmpt_cdf], [dis_cmpt_lp, cnt_cmpt_lp], [cnt_gmm, dis_gmm] = de_gmm_net(xp1, xt1)
+
+        dp1 = torch.exp(dis_cmpt_lp).cpu().detach().numpy()
+        cp1 = torch.exp(cnt_cmpt_lp).cpu().detach().numpy() # 
         tp1 = top_graph.edges['interacts'].data['label'].cpu().detach().numpy()
 
-        # tp1 = graphs['top_graph'].edges['interacts'].data['label'].cpu().detach().numpy()
 
         pred_X = h_center.cpu().detach().numpy()
         xs,ys = graphs['top_graph'].edges(etype='interacts', form='uv')[0], graphs['top_graph'].edges(etype='interacts', form='uv')[1]
 
-        pred_cluster_mat = np.ones((pred_X.shape[0], pred_X.shape[0]))*(num_clusters-1)
-        pred_cluster_mat[xs, ys] = np.argmax(p1, axis=1)
+        pred_distance_cluster_mat = np.ones((pred_X.shape[0], pred_X.shape[0]))*(num_clusters-1)
+        pred_distance_cluster_mat[xs, ys] = np.argmax(dp1, axis=1)
+
+        pred_contact_cluster_mat = np.ones((pred_X.shape[0], pred_X.shape[0]))*(num_clusters-1)
+        pred_contact_cluster_mat[xs, ys] = np.argmax(cp1, axis=1)
 
         true_cluster_mat = np.ones((pred_X.shape[0], pred_X.shape[0]))*(num_clusters-1)
         true_cluster_mat[xs, ys] = tp1
-        return pred_X, pred_cluster_mat, true_cluster_mat
+        return pred_X, pred_distance_cluster_mat, pred_contact_cluster_mat, true_cluster_mat, [cnt_gmm, dis_gmm]
 
 
 def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device, writer=None, config=None, saved_model=None):
@@ -158,7 +178,8 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
     models_dict = {
         'embedding_model': em_networks[0],
         'encoder_model': ae_networks[0],
-        'decoder_model': ae_networks[1]
+        'decoder_distance_model': ae_networks[1],
+        'decoder_gmm_model': ae_networks[2]
     }
 
     test_loss_list, valid_loss_list, dur = [], [], []
@@ -190,16 +211,17 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                         checkpoint = torch.load(path, map_location=device)
                         em_networks[0].load_state_dict(checkpoint['embedding_model_state_dict'])
                         ae_networks[0].load_state_dict(checkpoint['encoder_model_state_dict'])
-                        ae_networks[1].load_state_dict(checkpoint['decoder_model_state_dict'])
+                        ae_networks[1].load_state_dict(checkpoint['decoder_distance_model_state_dict'])
+                        ae_networks[2].load_state_dict(checkpoint['decoder_gmm_state_dict'])
                         optimizer[0].load_state_dict(checkpoint['optimizer_state_dict'])
                         rollback_epoch = checkpoint['epoch']
                         rollback_nll = checkpoint['nll_loss']
                         print('Detected NaN in the parameters, rollback to epoch #{}, nll loss: {}'.format(rollback_epoch, rollback_nll))
 
-            if ll[0] < best_nll_loss:
+            if ll[-1] < best_nll_loss:
                 os.makedirs(model_saved_path, exist_ok=True)
                 path = os.path.join(model_saved_path, 'ckpt_state_dict_' + model_saved_name)
-                best_nll_loss = ll[0]
+                best_nll_loss = ll[-1]
                 save_model_state_dict(models_dict, optimizer[0], path, epoch, best_nll_loss)
 
             torch.cuda.empty_cache()
@@ -229,19 +251,25 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
             if epoch%3==0 and j == 0 and writer is not None and config is not None:
                 num_heads = int(config['parameter']['G3DM']['num_heads'])
                 [center_X, 
-                center_pred_mat, 
-                center_true_mat] = inference(graphs, h_feat, num_heads, 
+                pred_distance_mat, pred_contact_mat, 
+                center_true_mat, [cnt_gmm, dis_gmm] ] = inference(graphs, h_feat, num_heads, 
                                             int(config['parameter']['graph']['num_clusters']), 
                                             em_networks, ae_networks, device)
+
                 plot_X(center_X, writer, '1, 3D/center', step=epoch)
-                plot_cluster(center_pred_mat, writer, 
+                plot_cluster(pred_distance_mat, writer, 
                             int(config['parameter']['graph']['num_clusters']),
-                            '2,1 cluster/prediction', step=epoch)
-                if epoch==0:
-                    plot_cluster(center_true_mat, writer, 
-                                int(config['parameter']['graph']['num_clusters']),
-                                '2,1 cluster/true', step=epoch)
-                plot_confusion_mat(center_pred_mat, center_true_mat,  writer, '2,2 confusion matrix/center', step=epoch)
+                            '2,1 cluster/prediction distance', step=epoch)
+                plot_cluster(pred_contact_mat, writer, 
+                            int(config['parameter']['graph']['num_clusters']),
+                            '2,1 cluster/prediction contact', step=epoch)
+                plot_cluster(center_true_mat, writer, 
+                            int(config['parameter']['graph']['num_clusters']),
+                            '2,1 cluster/true', step=epoch)
+
+                plot_confusion_mat(pred_distance_mat, pred_contact_mat,  writer, '2,2 confusion matrix/predicted distance - predicted contact', step=epoch)
+                plot_confusion_mat(pred_contact_mat, center_true_mat,  writer, '2,2 confusion matrix/predicted distance - true contact', step=epoch)
+                plot_confusion_mat(pred_contact_mat, center_true_mat,  writer, '2,2 confusion matrix/predicted contact - true contact', step=epoch)
 
                 # x1 = np.linspace(0.0, 0.01, num=50)
                 # for name, param in ae_networks[1].named_parameters():
@@ -253,12 +281,15 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                 # x1 = np.matmul(x1*r, mat)
                 # x = np.concatenate([[0], x1, [2.0]])
                 # x = np.sort(x)
-                for name, param in ae_networks[1].named_parameters():
-                    if name == 'in_dist':
-                        x1 = torch.abs(param.to('cpu')).detach().numpy()
-                x1 = x1 + np.ones_like(x1)*0.05
-                x = np.cumsum(x1)
-                x = np.clip( x, a_min=0.1, a_max=20.0)
+
+                # for name, param in ae_networks[2].named_parameters():
+                #     if name == 'in_dist':
+                #         x1 = torch.abs(param.to('cpu')).detach().numpy()
+                # x1 = x1 + np.ones_like(x1)*0.05
+                # x = np.cumsum(x1)
+                # x = np.clip( x, a_min=0.1, a_max=20.0)
+                
+                x = (dis_gmm.component_distribution.mean).to('cpu').detach().numpy()
                 x = np.concatenate([[0], x])
                 x = np.sort(x)
                 plot_lines(x, writer, '2,3 hop_dist/center', step=epoch) 
@@ -268,10 +299,9 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
         test_ll = np.array(test_loss_list)
         valid_ll = np.array(valid_loss_list)
 
-        plot_scaler({'test':np.nanmean(test_ll[:,0]), 'validation': np.nanmean(valid_ll[:,0])}, writer, 'NL Loss' ,step = epoch)
-        plot_scaler({'test':np.nanmean(test_ll[:,1]), 'validation': np.nanmean(valid_ll[:,1])}, writer, 'Wasserstein Loss' ,step = epoch)
-        plot_scaler({'test':np.nanmean(test_ll[:,2]), 'validation': np.nanmean(valid_ll[:,2])}, writer, 'STD Loss' ,step = epoch)
-        plot_scaler({'test':np.nanmean(test_ll[:,3]), 'validation': np.nanmean(valid_ll[:,3])}, writer, 'NL Loss no weight' ,step = epoch)
+        plot_scaler({'test':np.nanmean(test_ll[:,0]), 'validation': np.nanmean(valid_ll[:,0])}, writer, 'All cdf Loss' ,step = epoch)
+        plot_scaler({'test':np.nanmean(test_ll[:,1]), 'validation': np.nanmean(valid_ll[:,1])}, writer, 'Components cdf Loss' ,step = epoch)
+        plot_scaler({'test':np.nanmean(test_ll[:,2]), 'validation': np.nanmean(valid_ll[:,2])}, writer, 'NL Loss' ,step = epoch)
 
         dur.append(time.time() - t0)
         print("Loss:", np.nanmean(test_ll, axis=0), "| Time(s) {:.4f} ".format( np.mean(dur)), sep =" " )

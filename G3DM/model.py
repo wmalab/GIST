@@ -1,4 +1,5 @@
 import torch
+from torch import distributions as D 
 import dgl
 import numpy as np
 
@@ -402,7 +403,7 @@ class encoder_chain(torch.nn.Module):
             return g.edata.pop('dist_pred'), g.edata.pop('std')"""
 
 
-class decoder(torch.nn.Module):
+"""class decoder(torch.nn.Module):
     ''' num_heads, num_clusters, ntype, etype '''
     def __init__(self, num_heads, num_clusters, ntype, etype):
         # True: increasing, Flase: decreasing
@@ -487,14 +488,93 @@ class decoder(torch.nn.Module):
             self.r_dist = torch.relu( torch.matmul(self.bound, self.subtract_mat) )
             g.apply_edges(self.edge_distance, etype=self.etype)
             return g.edata.pop('dist_pred'), g.edata.pop('std')
+"""
 
+class decoder_distance(torch.nn.Module):
+    ''' num_heads, num_clusters, ntype, etype '''
+    def __init__(self, num_heads, num_clusters, ntype, etype):
+        # True: increasing, Flase: decreasing
+        super(decoder_distance, self).__init__()
+        self.num_heads = num_heads
+        self.num_clusters = num_clusters
+        self.ntype = ntype
+        self.etype = etype
+
+        num_seq = num_clusters
+
+        self.w = torch.nn.Parameter(torch.empty( (self.num_heads)), requires_grad=True)
+        self.register_parameter('w', self.w)
+        torch.nn.init.uniform_(self.w, a=-10.0, b=10.0)
+
+    def edge_distance(self, edges):
+        n2 = torch.norm((edges.dst['z'] - edges.src['z']), dim=-1, keepdim=False)
+        weight = torch.nn.functional.softmax(self.w, dim=0)
+        dist = torch.sum(n2*weight, dim=-1, keepdim=True)
+        std, mean = torch.std_mean(n2, dim=-1, unbiased=False, keepdim=False)
+        return {'dist_pred': dist, 'std': std/(mean+1.0)}
+
+    def forward(self, g, h):
+        with g.local_scope():
+            g.nodes[self.ntype].data['z'] = h
+            g.apply_edges(self.edge_distance, etype=self.etype)
+            return g.edata.pop('dist_pred'), g.edata.pop('std')
+
+class decoder_gmm(torch.nn.Module):
+    def __init__(self, num_clusters):
+        super(decoder_gmm, self).__init__()
+        self.num_clusters = num_clusters
+
+        self.probs = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
+        self.distance_means = torch.nn.Parameter( torch.empty( (self.num_clusters)), requires_grad=True)
+        self.contact_means = torch.nn.Parameter( torch.empty( (self.num_clusters)), requires_grad=True)
+        self.distance_stdevs = torch.nn.Parameter( torch.empty( (self.num_clusters)), requires_grad=True)
+        self.contact_stdevs = torch.nn.Parameter( torch.empty( (self.num_clusters)), requires_grad=True)
+        self.reset()
+
+    def reset(self):
+        gain = torch.nn.init.calculate_gain('relu')
+        # torch.nn.init.xavier_normal_(self.probs.view(-1,1), gain=gain)
+        torch.nn.init.xavier_normal_(self.distance_means.view(-1,1), gain=gain)
+        torch.nn.init.xavier_normal_(self.distance_stdevs.view(-1,1), gain=gain)
+        torch.nn.init.xavier_normal_(self.contact_means.view(-1,1), gain=gain)
+        torch.nn.init.xavier_normal_(self.contact_stdevs.view(-1,1), gain=gain)
+
+    def forward(self, distance, contact):
+        mix = D.Categorical(self.probs)
+        cnt_ms, cnt_indices = torch.sort(self.contact_means, descending=True)
+        dis_ms, dis_indices = torch.sort(self.distance_means, descending=False)
+
+        cnt_std = self.contact_stdevs[cnt_indices]
+        dis_std = self.distance_stdevs[cnt_indices]
+
+        cnt_cmp = D.Normal( torch.relu(cnt_ms), torch.relu(cnt_std)+1e-5 )
+        dis_cmp = D.Normal( torch.relu(dis_ms), torch.relu(dis_std)+1e-5 )
+
+        cnt_gmm = D.MixtureSameFamily(mix, cnt_cmp)
+        dis_gmm = D.MixtureSameFamily(mix, dis_cmp)
+
+        cnt_cdf = cnt_gmm.cdf(contact)
+        dis_cdf = dis_gmm.cdf(distance)
+
+        cnt_cmpt_cdf = cnt_gmm.component_distribution.cdf(contact.view(-1,1))
+        dis_cmpt_cdf = dis_gmm.component_distribution.cdf(distance.view(-1,1))
+
+        # cnt_lp = cnt_gmm.log_prob(contact)
+        # dis_lp = dis_gmm.log_prob(distance)
+        unsafe_cnt_cmpt_lp = cnt_gmm.component_distribution.log_prob(contact.view(-1,1))
+        cnt_cmpt_lp = torch.nan_to_num(unsafe_cnt_cmpt_lp, nan=-float('inf'))
+        unsage_dis_cmpt_lp = dis_gmm.component_distribution.log_prob(distance.view(-1,1))
+        dis_cmpt_lp = torch.nan_to_num(unsage_dis_cmpt_lp, nan=-float('inf'))
+
+        return [dis_cdf, cnt_cdf], [dis_cmpt_cdf, cnt_cmpt_cdf], [dis_cmpt_lp, cnt_cmpt_lp], [cnt_gmm, dis_gmm]
 
 
 def save_model_state_dict(models, optimizer, path, epoch=None, loss=None):
     state_dict = {
         'embedding_model_state_dict': models['embedding_model'].state_dict(),
         'encoder_model_state_dict': models['encoder_model'].state_dict(),
-        'decoder_model_state_dict': models['decoder_model'].state_dict(),
+        'decoder_distance_model_state_dict': models['decoder_distance_model'].state_dict(),
+        'decoder_gmm_model_state_dict': models['decoder_gmm_model'].state_dict(),
         'optimizer_state_dict': optimizer.state_dict()
     }
 
