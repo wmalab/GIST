@@ -93,7 +93,7 @@ def fit_one_step(require_grad, graphs, features, cluster_weights, em_networks, a
     lt = top_graph.edges['interacts'].data['label']
     if xp.shape[0]==0 or xp.shape[0]!= lt.shape[0]:
         return [None]
-    idx =  xp.flatten().multinomial(num_samples=200, replacement=False)
+    idx =  (xp.flatten()).multinomial(num_samples=200, replacement=False)
     # xt = xt[idx]
     lt = lt[idx]
     xp = xp[idx]
@@ -119,7 +119,6 @@ def fit_one_step(require_grad, graphs, features, cluster_weights, em_networks, a
         optimizer[0].zero_grad()
         loss.backward()  # retain_graph=False,
         optimizer[0].step()
-
     # return [l_nll.item(), l_wnl.item(), l_stdl.item(), l_nll_noweight.item()]
     return [l_nll.item()]
 
