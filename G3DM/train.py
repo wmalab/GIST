@@ -90,20 +90,14 @@ def fit_one_step(require_grad, graphs, features, cluster_weights, em_networks, a
 
     for k in torch.arange(4):
         xp, std = de_net(top_graph, h_center)
-
         if xp.shape[0]==0 or xp.shape[0]!= xt.shape[0]:
             break
-
         l_nll = loss_fc[0](xp, xt, cw) 
-        l_nll_noweight = loss_fc[0](xp, xt, None)
         l_wnl = loss_fc[1](xp, xt, ncluster)
-        l_stdl = loss_fc[2](std, xt, ncluster)
-
-        if l_nll > 1e4 or l_wnl > 1e4 or l_stdl > 1e4:
+        if l_nll > 1e4 or l_wnl > 1e4:
             continue
-
         if require_grad:
-            loss = l_nll + l_nll_noweight + 10*l_stdl + 10*l_wnl # + 100*l_wnl + l_stdl 
+            loss = l_nll + 10*l_wnl # + 100*l_wnl + l_stdl 
             optimizer[1].zero_grad()
             loss.backward(retain_graph=True)  # retain_graph=False,
             optimizer[1].step()
