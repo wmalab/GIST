@@ -50,9 +50,7 @@ def create_network(configuration, device):
     opt0 = optim.AdaBound(list(em_bead.parameters()) + list(en_net.parameters()) + list(de_net.parameters()),
                         lr=1e-3, betas=(0.9, 0.999), final_lr=0.1, gamma=1e-3, eps=1e-8, weight_decay=0,
                         amsbound=False)
-    opt1 = optim.AdaBound(list(de_net.parameters()),
-                    lr=1e-3, betas=(0.9, 0.999), final_lr=0.1, gamma=1e-3, eps=1e-8, weight_decay=0,
-                    amsbound=False)
+
     # opt = torch.optim.AdamW(list(em_bead.parameters()) + list(en_net.parameters()) + list(de_net.parameters()), 
     #                         lr=0.001, betas=(0.9, 0.999), eps=1e-08, 
     #                         weight_decay=0.01, amsgrad=False)
@@ -60,7 +58,7 @@ def create_network(configuration, device):
 
     em_networks = [em_bead]
     ae_networks = [en_net, de_net]
-    return em_networks, ae_networks, [nll, cwnl, stdl], [opt0, opt1], scheduler
+    return em_networks, ae_networks, [nll, cwnl, stdl], [opt0], scheduler
 
 
 def setup_train(configuration):
@@ -87,20 +85,6 @@ def fit_one_step(require_grad, graphs, features, cluster_weights, em_networks, a
     X1 = em_bead(h_feat)
     h_center = en_net(top_subgraphs, X1, top_list, ['w'], ['bead'])
     xt = top_graph.edges['interacts'].data['label']
-
-    # for k in torch.arange(4):
-    #     xp, std = de_net(top_graph, h_center)
-    #     if xp.shape[0]==0 or xp.shape[0]!= xt.shape[0]:
-    #         break
-    #     l_nll = loss_fc[0](xp, xt, cw) 
-    #     l_wnl = loss_fc[1](xp, xt, ncluster)
-    #     if l_nll > 1e4 or l_wnl > 1e4:
-    #         continue
-    #     if require_grad:
-    #         loss = l_nll + 10*l_wnl # + 100*l_wnl + l_stdl 
-    #         optimizer[1].zero_grad()
-    #         loss.backward(retain_graph=True)  # retain_graph=False,
-    #         optimizer[1].step()
 
     xp, std = de_net(top_graph, h_center)
     if xp.shape[0]==0 or xp.shape[0]!= xt.shape[0]:

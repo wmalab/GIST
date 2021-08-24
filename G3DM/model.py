@@ -421,7 +421,7 @@ class decoder(torch.nn.Module):
         self.bottom = torch.tensor(0.0, dtype=torch.float32)
         self.register_buffer('bottom_const', self.bottom)
 
-        self.top = torch.tensor(10000.0, dtype=torch.float32)
+        self.top = torch.tensor(10.0, dtype=torch.float32)
         self.register_buffer('top_const', self.top)
 
         self.drange = torch.linspace(self.bottom_const, 0.1, steps=num_seq-1, dtype=torch.float, requires_grad=True)
@@ -484,7 +484,10 @@ class decoder(torch.nn.Module):
                                     sorted_in_d, 
                                     self.top_const.view(1,-1)), 
                                     dim=1)
-            self.r_dist = torch.relu(torch.matmul(self.bound, self.subtract_mat))
+            self.r_dist = torch.cat( (self.bottom_const.view(1,-1), 
+                                    dist, 
+                                    self.top_const.view(1,-1)), 
+                                    dim=1)# torch.relu(torch.matmul(self.bound, self.subtract_mat))
             g.apply_edges(self.edge_distance, etype=self.etype)
             return g.edata.pop('dist_pred'), g.edata.pop('std')
 
