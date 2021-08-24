@@ -272,9 +272,8 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                 for name, param in ae_networks[1].named_parameters():
                     if name == 'in_dist':
                         x1 = param.to('cpu').detach().numpy()
-                    if name == 'r':
-                        r = param.to('cpu').detach().numpy()
-                x = np.clip( np.cumsum(np.abs(x1)*r), a_min=1.0, a_max=None)
+                x = np.cumsum(x1)
+                x = np.clip( x, a_min=1.0, a_max=None)
                 x = np.concatenate([[0], x])
                 plot_lines(x, writer, '2,3 hop_dist/center', step=epoch) 
 

@@ -436,8 +436,6 @@ class decoder(torch.nn.Module):
         mat = torch.diag( -1*torch.ones((num_seq+1)), diagonal=0) + torch.diag( torch.ones((num_seq)), diagonal=-1)
         self.subtract_mat = torch.nn.Parameter(mat[:,:-1], requires_grad=False)
 
-        self.r = torch.nn.Parameter( torch.ones(1), requires_grad=True)
-
 
 
     def dim2_score(self, x):
@@ -472,7 +470,8 @@ class decoder(torch.nn.Module):
             # sorted_in_d = self.in_dist.view(1,-1)
             # dist_mat = torch.softmax(self.in_dist, dim=0)
 
-            in_d = (torch.cumsum(self.in_dist*torch.relu(self.r), dim=0).clamp(min=0.1, max=20.0)).view(1,-1)
+            in_d = torch.cumsum(self.in_dist, dim=0)
+            in_d = in_d.clamp(min=0.1, max=20.0).view(1,-1)
             sorted_in_d, _ = torch.sort( in_d, dim=-1)
 
             self.lower_bound = torch.cat( (self.bottom_const.view(1,-1), 
