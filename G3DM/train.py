@@ -91,8 +91,8 @@ def fit_one_step(require_grad, graphs, features, cluster_weights, em_networks, a
     xp, std = de_dis_net(top_graph, h_center)
     # xt = top_graph.edges['interacts'].data['value']
     lt = top_graph.edges['interacts'].data['label']
-    if xp.shape[0]==0 or xp.shape[0]!= xt.shape[0]:
-        return [None, None, None]
+    if xp.shape[0]==0 or xp.shape[0]!= lt.shape[0]:
+        return [None]
     idx =  xp.flatten().multinomial(num_samples=200, replacement=False)
     # xt = xt[idx]
     lt = lt[idx]
