@@ -101,7 +101,7 @@ def fit_one_step(require_grad, graphs, features, cluster_weights, em_networks, a
         return [None, None, None, None]
 
     if require_grad:
-        loss = l_nll # + l_stdl # + 100*l_wnl + l_stdl + l_nll_noweight 
+        loss = l_nll + l_wnl*10 # + l_stdl # + 100*l_wnl + l_stdl + l_nll_noweight 
         optimizer[0].zero_grad()
         loss.backward()  # retain_graph=False,
         optimizer[0].step()
@@ -255,7 +255,7 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                 # x = np.sort(x)
                 for name, param in ae_networks[1].named_parameters():
                     if name == 'in_dist':
-                        x1 = torch.relu(param.to('cpu')).detach().numpy()
+                        x1 = torch.abs(param.to('cpu')).detach().numpy()
                 x1 = x1 + np.ones_like(x1)*0.05
                 x = np.cumsum(x1)
                 x = np.clip( x, a_min=0.1, a_max=None)
