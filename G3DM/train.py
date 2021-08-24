@@ -88,25 +88,26 @@ def fit_one_step(require_grad, graphs, features, cluster_weights, em_networks, a
     xt = top_graph.edges['interacts'].data['label']
 
     if xp.shape[0]==0 or xp.shape[0]!= xt.shape[0]:
-        return [None, None, None]
+        return [None, None, None, None]
 
 
-    l_nll = loss_fc[0](xp, xt, cw)
+    l_nll = loss_fc[0](xp, xt, cw) 
+    l_nll_noweight = loss_fc[0](xp, xt, None)
     l_wnl = loss_fc[1](xp, xt, ncluster)
     l_stdl = loss_fc[2](std, xt, ncluster)
 
     if l_nll > 1e4 or l_wnl > 1e4 or l_stdl > 1e4:
         print(xp.min(), xp.max(), xp.mean())
         print(X1.mean(dim=0))
-        return [None, None, None]
+        return [None, None, None, None]
 
     if require_grad:
-        loss = l_nll # + 100*l_wnl + l_stdl 
+        loss = l_nll + l_nll_noweight # + 100*l_wnl + l_stdl 
         optimizer[0].zero_grad()
         loss.backward()  # retain_graph=False,
         optimizer[0].step()
 
-    return [l_nll.item(), l_wnl.item(), l_stdl.item()]
+    return [l_nll.item(), l_wnl.item(), l_stdl.item(), l_nll_noweight.item()]
 
 
 def inference(graphs, features, num_heads, num_clusters, em_networks, ae_networks, device):
@@ -270,6 +271,7 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
         plot_scaler({'test':np.nanmean(test_ll[:,0]), 'validation': np.nanmean(valid_ll[:,0])}, writer, 'NL Loss' ,step = epoch)
         plot_scaler({'test':np.nanmean(test_ll[:,1]), 'validation': np.nanmean(valid_ll[:,1])}, writer, 'Wasserstein Loss' ,step = epoch)
         plot_scaler({'test':np.nanmean(test_ll[:,2]), 'validation': np.nanmean(valid_ll[:,2])}, writer, 'STD Loss' ,step = epoch)
+        plot_scaler({'test':np.nanmean(test_ll[:,3]), 'validation': np.nanmean(valid_ll[:,3])}, writer, 'NL Loss no weight' ,step = epoch)
 
         dur.append(time.time() - t0)
         print("Loss:", np.nanmean(test_ll, axis=0), "| Time(s) {:.4f} ".format( np.mean(dur)), sep =" " )
