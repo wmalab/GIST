@@ -275,8 +275,8 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
 
         dur.append(time.time() - t0)
         print("Loss:", np.nanmean(test_ll, axis=0), "| Time(s) {:.4f} ".format( np.mean(dur)), sep =" " )
-        if epoch%10==0:
-            GPUtil.showUtilization()
+        # if epoch%10==0:
+        #     GPUtil.showUtilization()
 
     os.makedirs(model_saved_path, exist_ok=True)
     path = os.path.join(model_saved_path, 'finial_' + model_saved_name)
