@@ -161,7 +161,7 @@ class encoder_chain(torch.nn.Module):
             x = x - vmean
             xp = torch.cat([x[0:1,:],x[0:-1, :]], dim=0)
             dx = x - xp
-            dmean = torch.mean( torch.norm(dx, dim=1))+1e-4
+            dmean = torch.median( torch.norm(dx, dim=1))+1e-4
             x = torch.cumsum(torch.div(dx, dmean)*0.1, dim=0)
             # dmean = torch.mean( torch.norm(x, dim=-1))
             # x = torch.div(x, dmean)
@@ -424,7 +424,7 @@ class decoder(torch.nn.Module):
         self.top = torch.tensor(10.0, dtype=torch.float32)
         self.register_buffer('top_const', self.top)
 
-        self.drange = torch.linspace(self.bottom_const, 0.1, steps=num_seq-1, dtype=torch.float, requires_grad=True)
+        self.drange = torch.linspace(self.bottom_const, 1.0, steps=num_seq-1, dtype=torch.float, requires_grad=True)
         self.in_dist = torch.nn.Parameter(self.drange+0.1, requires_grad=True)
         self.register_parameter('in_dist', self.in_dist)
 
@@ -441,7 +441,7 @@ class decoder(torch.nn.Module):
     def dim2_score(self, x):
         upper = self.upper_bound - x
         lower = x - self.lower_bound
-        score = torch.clamp( (4.0*upper*lower)/(self.r_dist**2 + 1), min=-4.0, max=4.0)
+        score = torch.clamp( (4.0*upper*lower)/(self.r_dist**2 + 1), min=-6.0, max=6.0)
         score = (torch.nn.functional.sigmoid(score)*2.0-1)*10.0
         return score
 
@@ -469,7 +469,7 @@ class decoder(torch.nn.Module):
             g.nodes[self.ntype].data['z'] = h
             # sorted_in_d = self.in_dist.view(1,-1)
             # dist_mat = torch.softmax(self.in_dist, dim=0)
-            dist = torch.abs(self.in_dist) + torch.ones_like(self.in_dist)*0.05
+            dist = torch.square(self.in_dist) + torch.ones_like(self.in_dist)*0.01
             d = torch.cumsum( dist, dim=0)
             sorted_in_d = d.clamp(min=0.1, max=20.0).view(1,-1)
             # sorted_in_d, _ = torch.sort( in_d, dim=-1)

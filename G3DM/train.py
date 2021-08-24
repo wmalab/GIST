@@ -258,7 +258,7 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                         x1 = torch.abs(param.to('cpu')).detach().numpy()
                 x1 = x1 + np.ones_like(x1)*0.05
                 x = np.cumsum(x1)
-                x = np.clip( x, a_min=0.1, a_max=None)
+                x = np.clip( x, a_min=0.1, a_max=20.0)
                 x = np.concatenate([[0], x])
                 x = np.sort(x)
                 plot_lines(x, writer, '2,3 hop_dist/center', step=epoch) 
