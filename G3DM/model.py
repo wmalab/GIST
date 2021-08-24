@@ -484,10 +484,7 @@ class decoder(torch.nn.Module):
                                     sorted_in_d, 
                                     self.top_const.view(1,-1)), 
                                     dim=1)
-            self.r_dist = torch.cat( (self.bottom_const.view(1,-1), 
-                                    dist.view(1,-1), 
-                                    self.top_const.view(1,-1)), 
-                                    dim=1)# torch.relu(torch.matmul(self.bound, self.subtract_mat))
+            self.r_dist = torch.relu( torch.matmul(self.bound, self.subtract_mat) )
             g.apply_edges(self.edge_distance, etype=self.etype)
             return g.edata.pop('dist_pred'), g.edata.pop('std')
 
