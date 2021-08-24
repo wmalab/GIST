@@ -111,7 +111,7 @@ def fit_one_step(require_grad, graphs, features, cluster_weights, em_networks, a
     # rmseloss_all = loss_fc[0](dis_cdf, cnt_cdf)
     # rmseloss_cmpt = loss_fc[0](dis_cmpt_cdf, cnt_cmpt_cdf)
 
-    l_nll = loss_fc[1](cnt_cmpt_lp, lt)
+    l_nll = loss_fc[1](dis_cmpt_lp, lt)
 
     if require_grad:
         # loss = l_nll + l_wnl*10 # + l_stdl # + 100*l_wnl + l_stdl + l_nll_noweight 
