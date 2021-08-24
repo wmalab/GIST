@@ -89,14 +89,11 @@ def fit_one_step(require_grad, graphs, features, cluster_weights, em_networks, a
     X1 = em_bead(h_feat)
     h_center = en_net(top_subgraphs, X1, top_list, ['w'], ['bead'])
     xp, std = de_dis_net(top_graph, h_center)
-    if xp.shape[0]==0 or xp.shape[0]!= xt.shape[0]:
-        return [None, None, None, None]
-
-
     xt = top_graph.edges['interacts'].data['value']
     lt = top_graph.edges['interacts'].data['label']
-    
-    idx =  xp.multinomial(num_samples=200, replacement=False)
+    if xp.shape[0]==0 or xp.shape[0]!= xt.shape[0]:
+        return [None, None, None]
+    idx =  xp.view(1,-1).multinomial(num_samples=200, replacement=False)
     xt = xt[idx]
     lt = lt[idx]
     xp = xp[idx]
