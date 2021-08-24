@@ -280,7 +280,7 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                 plot_lines(x, writer, '2,3 hop_dist/center', step=epoch) 
 
             torch.cuda.empty_cache()
-        scheduler.step()
+        # scheduler.step()
         test_ll = np.array(test_loss_list)
         valid_ll = np.array(valid_loss_list)
 
