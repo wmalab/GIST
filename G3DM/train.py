@@ -89,15 +89,16 @@ def fit_one_step(require_grad, graphs, features, cluster_weights, em_networks, a
     X1 = em_bead(h_feat)
     h_center = en_net(top_subgraphs, X1, top_list, ['w'], ['bead'])
     xp, std = de_dis_net(top_graph, h_center)
-    xt = top_graph.edges['interacts'].data['value']
+    # xt = top_graph.edges['interacts'].data['value']
     lt = top_graph.edges['interacts'].data['label']
     if xp.shape[0]==0 or xp.shape[0]!= xt.shape[0]:
         return [None, None, None]
     idx =  xp.flatten().multinomial(num_samples=200, replacement=False)
-    xt = xt[idx]
+    # xt = xt[idx]
     lt = lt[idx]
     xp = xp[idx]
-    [dis_cdf, cnt_cdf], [dis_cmpt_cdf, cnt_cmpt_cdf], [dis_cmpt_lp, cnt_cmpt_lp], [cnt_gmm, dis_gmm] = de_gmm_net(xp, xt)
+    # [dis_cdf, cnt_cdf], [dis_cmpt_cdf, cnt_cmpt_cdf], [dis_cmpt_lp, cnt_cmpt_lp], [cnt_gmm, dis_gmm] = de_gmm_net(xp, xt)
+    [dis_cdf], [dis_cmpt_cdf], [dis_cmpt_lp], [dis_gmm] = de_gmm_net(xp)
     # l_nll = loss_fc[0](xp, xt, cw) 
     # l_nll_noweight = loss_fc[0](xp, xt, None)
     # l_wnl = loss_fc[1](xp, xt, ncluster)
@@ -107,8 +108,9 @@ def fit_one_step(require_grad, graphs, features, cluster_weights, em_networks, a
     #     print(X1.mean(dim=0))
     #     return [None, None, None, None]
 
-    rmseloss_all = loss_fc[0](dis_cdf, cnt_cdf)
-    rmseloss_cmpt = loss_fc[0](dis_cmpt_cdf, cnt_cmpt_cdf)
+    # rmseloss_all = loss_fc[0](dis_cdf, cnt_cdf)
+    # rmseloss_cmpt = loss_fc[0](dis_cmpt_cdf, cnt_cmpt_cdf)
+
     l_nll = loss_fc[1](cnt_cmpt_lp, lt)
 
     if require_grad:
@@ -119,7 +121,7 @@ def fit_one_step(require_grad, graphs, features, cluster_weights, em_networks, a
         optimizer[0].step()
 
     # return [l_nll.item(), l_wnl.item(), l_stdl.item(), l_nll_noweight.item()]
-    return [rmseloss_all.item(), rmseloss_cmpt.item(), l_nll.item()]
+    return [l_nll.item()]
 
 
 def inference(graphs, features, num_heads, num_clusters, em_networks, ae_networks, device):
@@ -144,13 +146,13 @@ def inference(graphs, features, num_heads, num_clusters, em_networks, ae_network
 
         xp1, _ = de_dis_net(top_graph, h_center)
 
-        xt1 = top_graph.edges['interacts'].data['value']
-        [dis_cdf, cnt_cdf], [dis_cmpt_cdf, cnt_cmpt_cdf], [dis_cmpt_lp, cnt_cmpt_lp], [cnt_gmm, dis_gmm] = de_gmm_net(xp1, xt1)
+        # xt1 = top_graph.edges['interacts'].data['value']
+        # [dis_cdf, cnt_cdf], [dis_cmpt_cdf, cnt_cmpt_cdf], [dis_cmpt_lp, cnt_cmpt_lp], [cnt_gmm, dis_gmm] = de_gmm_net(xp1)
+        [dis_cdf], [dis_cmpt_cdf], [dis_cmpt_lp], [dis_gmm] = de_gmm_net(xp1)
 
         dp1 = torch.exp(dis_cmpt_lp).cpu().detach().numpy()
-        cp1 = torch.exp(cnt_cmpt_lp).cpu().detach().numpy() # 
+        # cp1 = torch.exp(cnt_cmpt_lp).cpu().detach().numpy() # 
         tp1 = top_graph.edges['interacts'].data['label'].cpu().detach().numpy()
-
 
         pred_X = h_center.cpu().detach().numpy()
         xs,ys = graphs['top_graph'].edges(etype='interacts', form='uv')[0], graphs['top_graph'].edges(etype='interacts', form='uv')[1]
@@ -158,12 +160,13 @@ def inference(graphs, features, num_heads, num_clusters, em_networks, ae_network
         pred_distance_cluster_mat = np.ones((pred_X.shape[0], pred_X.shape[0]))*(num_clusters-1)
         pred_distance_cluster_mat[xs, ys] = np.argmax(dp1, axis=1)
 
-        pred_contact_cluster_mat = np.ones((pred_X.shape[0], pred_X.shape[0]))*(num_clusters-1)
-        pred_contact_cluster_mat[xs, ys] = np.argmax(cp1, axis=1)
+        # pred_contact_cluster_mat = np.ones((pred_X.shape[0], pred_X.shape[0]))*(num_clusters-1)
+        # pred_contact_cluster_mat[xs, ys] = np.argmax(cp1, axis=1)
 
         true_cluster_mat = np.ones((pred_X.shape[0], pred_X.shape[0]))*(num_clusters-1)
         true_cluster_mat[xs, ys] = tp1
-        return pred_X, pred_distance_cluster_mat, pred_contact_cluster_mat, true_cluster_mat, [cnt_gmm, dis_gmm]
+        # return pred_X, pred_distance_cluster_mat, pred_contact_cluster_mat, true_cluster_mat, [cnt_gmm, dis_gmm]
+        return pred_X, pred_distance_cluster_mat, true_cluster_mat, [dis_gmm]
 
 
 def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device, writer=None, config=None, saved_model=None):
@@ -250,9 +253,14 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
 
             if epoch%3==0 and j == 0 and writer is not None and config is not None:
                 num_heads = int(config['parameter']['G3DM']['num_heads'])
+                # [center_X, 
+                # pred_distance_mat, pred_contact_mat, 
+                # center_true_mat, [cnt_gmm, dis_gmm] ] = inference(graphs, h_feat, num_heads, 
+                #                             int(config['parameter']['graph']['num_clusters']), 
+                #                             em_networks, ae_networks, device)
                 [center_X, 
-                pred_distance_mat, pred_contact_mat, 
-                center_true_mat, [cnt_gmm, dis_gmm] ] = inference(graphs, h_feat, num_heads, 
+                pred_distance_mat, 
+                center_true_mat, [dis_gmm] ] = inference(graphs, h_feat, num_heads, 
                                             int(config['parameter']['graph']['num_clusters']), 
                                             em_networks, ae_networks, device)
 
@@ -260,16 +268,16 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                 plot_cluster(pred_distance_mat, writer, 
                             int(config['parameter']['graph']['num_clusters']),
                             '2,1 cluster/prediction distance', step=epoch)
-                plot_cluster(pred_contact_mat, writer, 
-                            int(config['parameter']['graph']['num_clusters']),
-                            '2,1 cluster/prediction contact', step=epoch)
+                # plot_cluster(pred_contact_mat, writer, 
+                #             int(config['parameter']['graph']['num_clusters']),
+                #             '2,1 cluster/prediction contact', step=epoch)
                 plot_cluster(center_true_mat, writer, 
                             int(config['parameter']['graph']['num_clusters']),
                             '2,1 cluster/true', step=epoch)
 
-                plot_confusion_mat(pred_distance_mat, pred_contact_mat,  writer, '2,2 confusion matrix/predicted distance - predicted contact', step=epoch)
-                plot_confusion_mat(pred_contact_mat, center_true_mat,  writer, '2,2 confusion matrix/predicted distance - true contact', step=epoch)
-                plot_confusion_mat(pred_contact_mat, center_true_mat,  writer, '2,2 confusion matrix/predicted contact - true contact', step=epoch)
+                # plot_confusion_mat(pred_distance_mat, pred_contact_mat,  writer, '2,2 confusion matrix/predicted distance - predicted contact', step=epoch)
+                plot_confusion_mat(pred_distance_mat, center_true_mat,  writer, '2,2 confusion matrix/predicted distance - true contact', step=epoch)
+                # plot_confusion_mat(pred_contact_mat, center_true_mat,  writer, '2,3 confusion matrix/predicted contact - true contact', step=epoch)
 
                 # x1 = np.linspace(0.0, 0.01, num=50)
                 # for name, param in ae_networks[1].named_parameters():
@@ -299,9 +307,9 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
         test_ll = np.array(test_loss_list)
         valid_ll = np.array(valid_loss_list)
 
-        plot_scaler({'test':np.nanmean(test_ll[:,0]), 'validation': np.nanmean(valid_ll[:,0])}, writer, 'All cdf Loss' ,step = epoch)
-        plot_scaler({'test':np.nanmean(test_ll[:,1]), 'validation': np.nanmean(valid_ll[:,1])}, writer, 'Components cdf Loss' ,step = epoch)
-        plot_scaler({'test':np.nanmean(test_ll[:,2]), 'validation': np.nanmean(valid_ll[:,2])}, writer, 'NL Loss' ,step = epoch)
+        plot_scaler({'test':np.nanmean(test_ll[:,0]), 'validation': np.nanmean(valid_ll[:,0])}, writer, 'NL Loss' ,step = epoch)
+        # plot_scaler({'test':np.nanmean(test_ll[:,1]), 'validation': np.nanmean(valid_ll[:,1])}, writer, 'Components cdf Loss' ,step = epoch)
+        # plot_scaler({'test':np.nanmean(test_ll[:,2]), 'validation': np.nanmean(valid_ll[:,2])}, writer, 'NL Loss' ,step = epoch)
 
         dur.append(time.time() - t0)
         print("Loss:", np.nanmean(test_ll, axis=0), "| Time(s) {:.4f} ".format( np.mean(dur)), sep =" " )

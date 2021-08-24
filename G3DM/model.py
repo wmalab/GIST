@@ -539,34 +539,35 @@ class decoder_gmm(torch.nn.Module):
         torch.nn.init.xavier_normal_(self.contact_means.view(-1,1), gain=gain)
         torch.nn.init.xavier_normal_(self.contact_stdevs.view(-1,1), gain=gain)
 
-    def forward(self, distance, contact):
+    def forward(self, distance, contact=None):
         mix = D.Categorical(self.probs)
-        cnt_ms, cnt_indices = torch.sort(self.contact_means, descending=True)
+        # cnt_ms, cnt_indices = torch.sort(self.contact_means, descending=True)
         dis_ms, dis_indices = torch.sort(self.distance_means, descending=False)
 
-        cnt_std = self.contact_stdevs[cnt_indices]
+        # cnt_std = self.contact_stdevs[cnt_indices]
         dis_std = self.distance_stdevs[cnt_indices]
 
-        cnt_cmp = D.Normal( torch.relu(cnt_ms), torch.relu(cnt_std)+1e-5 )
+        # cnt_cmp = D.Normal( torch.relu(cnt_ms), torch.relu(cnt_std)+1e-5 )
         dis_cmp = D.Normal( torch.relu(dis_ms), torch.relu(dis_std)+1e-5 )
 
-        cnt_gmm = D.MixtureSameFamily(mix, cnt_cmp)
+        # cnt_gmm = D.MixtureSameFamily(mix, cnt_cmp)
         dis_gmm = D.MixtureSameFamily(mix, dis_cmp)
 
-        cnt_cdf = cnt_gmm.cdf(contact)
+        # cnt_cdf = cnt_gmm.cdf(contact)
         dis_cdf = dis_gmm.cdf(distance)
 
-        cnt_cmpt_cdf = cnt_gmm.component_distribution.cdf(contact.view(-1,1))
+        # cnt_cmpt_cdf = cnt_gmm.component_distribution.cdf(contact.view(-1,1))
         dis_cmpt_cdf = dis_gmm.component_distribution.cdf(distance.view(-1,1))
 
         # cnt_lp = cnt_gmm.log_prob(contact)
         # dis_lp = dis_gmm.log_prob(distance)
-        unsafe_cnt_cmpt_lp = cnt_gmm.component_distribution.log_prob(contact.view(-1,1))
-        cnt_cmpt_lp = torch.nan_to_num(unsafe_cnt_cmpt_lp, nan=-float('inf'))
+        # unsafe_cnt_cmpt_lp = cnt_gmm.component_distribution.log_prob(contact.view(-1,1))
+        # cnt_cmpt_lp = torch.nan_to_num(unsafe_cnt_cmpt_lp, nan=-float('inf'))
         unsage_dis_cmpt_lp = dis_gmm.component_distribution.log_prob(distance.view(-1,1))
         dis_cmpt_lp = torch.nan_to_num(unsage_dis_cmpt_lp, nan=-float('inf'))
 
-        return [dis_cdf, cnt_cdf], [dis_cmpt_cdf, cnt_cmpt_cdf], [dis_cmpt_lp, cnt_cmpt_lp], [cnt_gmm, dis_gmm]
+        # return [dis_cdf, cnt_cdf], [dis_cmpt_cdf, cnt_cmpt_cdf], [dis_cmpt_lp, cnt_cmpt_lp], [cnt_gmm, dis_gmm]
+        return [dis_cdf], [dis_cmpt_cdf], [dis_cmpt_lp], [dis_gmm]
 
 
 def save_model_state_dict(models, optimizer, path, epoch=None, loss=None):
