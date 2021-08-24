@@ -88,19 +88,19 @@ def fit_one_step(require_grad, graphs, features, cluster_weights, em_networks, a
     h_center = en_net(top_subgraphs, X1, top_list, ['w'], ['bead'])
     xt = top_graph.edges['interacts'].data['label']
 
-    for k in torch.arange(4):
-        xp, std = de_net(top_graph, h_center)
-        if xp.shape[0]==0 or xp.shape[0]!= xt.shape[0]:
-            break
-        l_nll = loss_fc[0](xp, xt, cw) 
-        l_wnl = loss_fc[1](xp, xt, ncluster)
-        if l_nll > 1e4 or l_wnl > 1e4:
-            continue
-        if require_grad:
-            loss = l_nll + 10*l_wnl # + 100*l_wnl + l_stdl 
-            optimizer[1].zero_grad()
-            loss.backward(retain_graph=True)  # retain_graph=False,
-            optimizer[1].step()
+    # for k in torch.arange(4):
+    #     xp, std = de_net(top_graph, h_center)
+    #     if xp.shape[0]==0 or xp.shape[0]!= xt.shape[0]:
+    #         break
+    #     l_nll = loss_fc[0](xp, xt, cw) 
+    #     l_wnl = loss_fc[1](xp, xt, ncluster)
+    #     if l_nll > 1e4 or l_wnl > 1e4:
+    #         continue
+    #     if require_grad:
+    #         loss = l_nll + 10*l_wnl # + 100*l_wnl + l_stdl 
+    #         optimizer[1].zero_grad()
+    #         loss.backward(retain_graph=True)  # retain_graph=False,
+    #         optimizer[1].step()
 
     xp, std = de_net(top_graph, h_center)
     if xp.shape[0]==0 or xp.shape[0]!= xt.shape[0]:
