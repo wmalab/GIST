@@ -162,7 +162,7 @@ class encoder_chain(torch.nn.Module):
             xp = torch.cat([x[0:1,:],x[0:-1, :]], dim=0)
             dx = x - xp
             dmean = torch.mean( torch.norm(dx, dim=1))+1e-4
-            x = torch.cumsum(torch.div(dx, dmean)*0.1)
+            x = torch.cumsum(torch.div(dx, dmean)*0.1, dim=0)
             # dmean = torch.mean( torch.norm(x, dim=-1))
             # x = torch.div(x, dmean)
 
