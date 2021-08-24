@@ -159,9 +159,10 @@ class encoder_chain(torch.nn.Module):
             x = h[ntype[0]][:,i,:]
             vmean = torch.mean(x, dim=0, keepdim=True)
             x = x - vmean
-            xp = torch.cat([x[1:, :], x[0:1,:]], dim=0)
-            dmean = torch.mean( torch.norm(x-xp, dim=1))+1e-4
-            x = torch.div(x, dmean)
+            xp = torch.cat([x[0:1,:],x[0:-1, :]], dim=0)
+            dx = x - xp
+            dmean = torch.mean( torch.norm(dx, dim=1))+1e-4
+            x = torch.cumsum(torch.div(dx, dmean)*0.1)
             # dmean = torch.mean( torch.norm(x, dim=-1))
             # x = torch.div(x, dmean)
 
@@ -424,7 +425,7 @@ class decoder(torch.nn.Module):
         self.register_buffer('top_const', self.top)
 
         self.drange = torch.linspace(self.bottom_const, 2.0, steps=num_seq, dtype=torch.float, requires_grad=True)
-        self.in_dist = torch.nn.Parameter(self.drange[1:]+1.0, requires_grad=True)
+        self.in_dist = torch.nn.Parameter(self.drange[1:]+0.1, requires_grad=True)
         self.register_parameter('in_dist', self.in_dist)
 
         # self.in_dist = torch.nn.Parameter( torch.eye(num_step, num_seq-1), requires_grad=True)
@@ -471,7 +472,7 @@ class decoder(torch.nn.Module):
             # sorted_in_d = self.in_dist.view(1,-1)
             # dist_mat = torch.softmax(self.in_dist, dim=0)
 
-            in_d = (self.in_dist*torch.relu(self.r)).clamp(min=1.0, max=20.0).view(1,-1)
+            in_d = (self.in_dist*torch.relu(self.r)).clamp(min=0.1, max=20.0).view(1,-1)
             sorted_in_d, _ = torch.sort( in_d, dim=-1)
 
             self.lower_bound = torch.cat( (self.bottom_const.view(1,-1), 
