@@ -72,7 +72,8 @@ if __name__ == '__main__':
     models_dict = {
         'embedding_model': em_networks[0],
         'encoder_model': ae_networks[0],
-        'decoder_model': ae_networks[1]
+        'decoder_distance_model': ae_networks[1],
+        'decoder_gmm_model': ae_networks[2],
     }
     os.makedirs(saved_model_path, exist_ok=True)
     path = os.path.join(saved_model_path, 'ckpt_state_dict_' + saved_model_name)
