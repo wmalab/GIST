@@ -7,9 +7,15 @@ class ClusterWassersteinLoss(nn.Module):
     def __init__(self, device):
         super(ClusterWassersteinLoss, self).__init__()
         self.device = device
+        self.action = torch.nn.LeakyReLU(0.3)
 
-    def forward(self, pred_cdf, target, num_cluster):
-        res = torch.square(num_cluster - target - pred_cdf) * (num_cluster - target)
+    def forward(self, pred, target, num_cluster):
+        np = torch.nn.functional.normalize(torch.exp(pred), p=1, dim=-1)
+        pred_cdf = torch.cumsum(np, dim=-1)
+        target_cdf = torch.cumsum(target, dim=-1)
+        res = pred_cdf - target_cdf
+        res = self.action(res)
+        res = torch.abs(res).sum(dim=-1) * (num_cluster - target.sum(dim=-1))
         res = torch.mean(res)/(num_cluster-1)
         return res
 
