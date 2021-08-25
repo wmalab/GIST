@@ -215,7 +215,7 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                         em_networks[0].load_state_dict(checkpoint['embedding_model_state_dict'])
                         ae_networks[0].load_state_dict(checkpoint['encoder_model_state_dict'])
                         ae_networks[1].load_state_dict(checkpoint['decoder_distance_model_state_dict'])
-                        ae_networks[2].load_state_dict(checkpoint['decoder_gmm_state_dict'])
+                        ae_networks[2].load_state_dict(checkpoint['decoder_gmm_model_state_dict'])
                         optimizer[0].load_state_dict(checkpoint['optimizer_state_dict'])
                         rollback_epoch = checkpoint['epoch']
                         rollback_nll = checkpoint['nll_loss']
