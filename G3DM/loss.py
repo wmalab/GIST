@@ -15,7 +15,7 @@ class ClusterWassersteinLoss(nn.Module):
         target_cdf = torch.cumsum(target, dim=-1)
         res = pred_cdf - target_cdf
         res = self.action(res)
-        res = torch.abs(res).sum(dim=-1) * (num_cluster - target.sum(dim=-1))
+        res = torch.abs(res).sum(dim=-1) * target_cdf.sum(dim=-1)
         res = torch.mean(res)/(num_cluster-1)
         return res
 

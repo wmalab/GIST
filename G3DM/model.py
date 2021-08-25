@@ -527,21 +527,22 @@ class decoder_gmm(torch.nn.Module):
 
         self.weights = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
 
-        drange = torch.range(start=1, end=self.num_clusters)*0.5
+        drange = torch.range(start=1, end=self.num_clusters)*0.5 + 0.5
         self.distance_means = torch.nn.Parameter( drange, requires_grad=True)
-        self.distance_stdevs = torch.nn.Parameter( torch.empty( (self.num_clusters)), requires_grad=True)
-        self.reset()
+        # self.distance_stdevs = torch.nn.Parameter( torch.empty( (self.num_clusters)), requires_grad=True)
+        # self.reset()
 
     def reset(self):
         gain = torch.nn.init.calculate_gain('relu')
-        torch.nn.init.xavier_normal_(self.distance_stdevs.view(-1,1), gain=gain)
+        # torch.nn.init.xavier_normal_(self.distance_stdevs.view(-1,1), gain=gain)
 
 
     def forward(self, distance):
         mix = D.Categorical(self.weights)
-        dis_ms = torch.cumsum(self.distance_means.clamp(min=0.1), dim=0).clamp(min=0.8, max=20.0)
+        r_dist = self.distance_means.clamp(min=0.1)
+        dis_ms = torch.cumsum(r_dist, dim=0).clamp(min=0.8, max=20.0) - (r_dist/2.0)
 
-        dis_cmp = D.Normal( torch.relu(dis_ms), torch.abs(self.distance_stdevs)+1e-5 )
+        dis_cmp = D.Normal( torch.relu(dis_ms), r_dist+1e-5 )
         dis_gmm = D.MixtureSameFamily(mix, dis_cmp)
 
         # dis_cdf = dis_gmm.cdf(distance)
