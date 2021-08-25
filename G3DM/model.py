@@ -526,7 +526,7 @@ class decoder_gmm(torch.nn.Module):
 
         self.weights = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
         # drange = torch.linspace(0.4, 3.0, steps=self.num_clusters, dtype=torch.float)
-        drange = torch.sqrt((torch.range(start=1, end=self.num_clusters)*0.4)**3)
+        drange = torch.sqrt(torch.range(start=1, end=self.num_clusters)**3)
         self.distance_means = torch.nn.Parameter( drange, requires_grad=True)
         self.distance_stdevs = torch.nn.Parameter( torch.empty( (self.num_clusters)), requires_grad=True)
         self.reset()
@@ -539,7 +539,7 @@ class decoder_gmm(torch.nn.Module):
     def forward(self, distance, contact=None):
         mix = D.Categorical(self.weights)
         # cnt_ms, cnt_indices = torch.sort(self.contact_means, descending=True)
-        dis_ms = torch.cumsum(self.distance_means.clamp(min=0.01), dim=0).clamp(min=0.3, max=50.0)
+        dis_ms = torch.cumsum(self.distance_means.clamp(min=0.1), dim=0).clamp(min=1, max=1000.0)
 
         # cnt_std = self.contact_stdevs[cnt_indices]
         # cnt_cmp = D.Normal( torch.relu(cnt_ms), torch.relu(cnt_std)+1e-5 )
