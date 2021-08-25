@@ -524,26 +524,22 @@ class decoder_gmm(torch.nn.Module):
         super(decoder_gmm, self).__init__()
         self.num_clusters = num_clusters
 
-        self.probs = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
-        drange = torch.linspace(0.1, 2.0, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
+        self.weights = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
+        drange = torch.linspace(0.1, 1.0, steps=self.num_clusters, dtype=torch.float)
         self.distance_means = torch.nn.Parameter( drange, requires_grad=True)
-        # self.contact_means = torch.nn.Parameter( torch.empty( (self.num_clusters)), requires_grad=True)
         self.distance_stdevs = torch.nn.Parameter( torch.empty( (self.num_clusters)), requires_grad=True)
-        # self.contact_stdevs = torch.nn.Parameter( torch.empty( (self.num_clusters)), requires_grad=True)
         self.reset()
 
     def reset(self):
         gain = torch.nn.init.calculate_gain('relu')
-        # torch.nn.init.xavier_normal_(self.probs.view(-1,1), gain=gain)
-        # torch.nn.init.xavier_normal_(self.distance_means.view(-1,1), gain=gain)
         torch.nn.init.xavier_normal_(self.distance_stdevs.view(-1,1), gain=gain)
-        # torch.nn.init.xavier_normal_(self.contact_means.view(-1,1), gain=gain)
-        # torch.nn.init.xavier_normal_(self.contact_stdevs.view(-1,1), gain=gain)
+
 
     def forward(self, distance, contact=None):
-        mix = D.Categorical(self.probs)
+        mix = D.Categorical(self.weights)
         # cnt_ms, cnt_indices = torch.sort(self.contact_means, descending=True)
-        dis_ms, dis_indices = torch.sort(self.distance_means, descending=False)
+        means = torch.cumsum(self.distance_means, dim=0).clamp(min=0.1, max=50.0)
+        dis_ms, dis_indices = torch.sort(means, descending=False)
 
         # cnt_std = self.contact_stdevs[cnt_indices]
         dis_std = self.distance_stdevs[dis_indices]
