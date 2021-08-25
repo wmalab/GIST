@@ -158,12 +158,12 @@ class encoder_chain(torch.nn.Module):
         res = list()
         for i in torch.arange(self.num_heads):
             x = h[ntype[0]][:,i,:]
-            vmean = torch.mean(x, dim=0, keepdim=True)
-            x = x - vmean
+            # vmean = torch.mean(x, dim=0, keepdim=True)
+            # x = x - vmean
             xp = torch.cat([x[0:1,:],x[0:-1, :]], dim=0)
             dx = x - xp
             dmean = torch.median( torch.norm(dx, dim=1))+1e-4
-            x = torch.cumsum(torch.div(dx, dmean)*0.1, dim=0)
+            x = torch.cumsum(torch.div(dx, dmean)*0.2, dim=0)
             # dmean = torch.mean( torch.norm(x, dim=-1))
             # x = torch.div(x, dmean)
 
@@ -525,7 +525,7 @@ class decoder_gmm(torch.nn.Module):
         self.num_clusters = num_clusters
 
         self.weights = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
-        drange = torch.linspace(0.1, 1.0, steps=self.num_clusters, dtype=torch.float)
+        drange = torch.linspace(0.2, 1.0, steps=self.num_clusters, dtype=torch.float)
         self.distance_means = torch.nn.Parameter( drange, requires_grad=True)
         self.distance_stdevs = torch.nn.Parameter( torch.empty( (self.num_clusters)), requires_grad=True)
         self.reset()
