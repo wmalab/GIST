@@ -538,7 +538,7 @@ class decoder_gmm(torch.nn.Module):
     def forward(self, distance, contact=None):
         mix = D.Categorical(self.weights)
         # cnt_ms, cnt_indices = torch.sort(self.contact_means, descending=True)
-        means = torch.cumsum(self.distance_means.clamp(min=0.05), dim=0).clamp(min=0.1, max=50.0)
+        means = torch.cumsum(self.distance_means.clamp(min=0.01), dim=0).clamp(min=0.09, max=50.0)
         dis_ms, dis_indices = torch.sort(means, descending=False)
 
         # cnt_std = self.contact_stdevs[cnt_indices]

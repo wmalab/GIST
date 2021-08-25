@@ -74,8 +74,8 @@ def fit_one_step(require_grad, graphs, features, cluster_weights, em_networks, a
     top_graph = graphs['top_graph'].to(device)
     top_subgraphs = graphs['top_subgraphs'].to(device)
 
-    # cw = cluster_weights
-    # ncluster = len(cluster_weights)
+    cw = cluster_weights
+    ncluster = len(cluster_weights)
 
     h_feat = features
 
@@ -112,7 +112,7 @@ def fit_one_step(require_grad, graphs, features, cluster_weights, em_networks, a
     # rmseloss_all = loss_fc[0](dis_cdf, cnt_cdf)
     # rmseloss_cmpt = loss_fc[0](dis_cmpt_cdf, cnt_cmpt_cdf)
 
-    l_nll = loss_fc[1](dis_cmpt_lp, lt)
+    l_nll = loss_fc[1](dis_cmpt_lp, lt, cw)
 
     if require_grad:
         # loss = l_nll + l_wnl*10 # + l_stdl # + 100*l_wnl + l_stdl + l_nll_noweight 
@@ -305,7 +305,7 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                 plot_lines(x, writer, '2,3 hop_dist/center', step=epoch) 
 
             torch.cuda.empty_cache()
-        # scheduler.step()
+        scheduler.step()
         test_ll = np.array(test_loss_list)
         valid_ll = np.array(valid_loss_list)
 
