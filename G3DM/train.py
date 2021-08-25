@@ -93,11 +93,11 @@ def fit_one_step(require_grad, graphs, features, cluster_weights, em_networks, a
     lt = top_graph.edges['interacts'].data['label']
     if xp.shape[0]==0 or xp.shape[0]!= lt.shape[0]:
         return [None]
-    print('nan values:', torch.sum(torch.isnan(xp)).item())
-    idx =  (xp.flatten()).multinomial(num_samples=200, replacement=False)
-    # xt = xt[idx]
-    lt = lt[idx]
-    xp = xp[idx]
+
+    # idx =  (xp.flatten()).multinomial(num_samples=len(xp), replacement=False)
+    # # xt = xt[idx]
+    # lt = lt[idx]
+    # xp = xp[idx]
     # [dis_cdf, cnt_cdf], [dis_cmpt_cdf, cnt_cmpt_cdf], [dis_cmpt_lp, cnt_cmpt_lp], [cnt_gmm, dis_gmm] = de_gmm_net(xp, xt)
     [dis_cdf], [dis_cmpt_cdf], [dis_cmpt_lp], [dis_gmm] = de_gmm_net(xp)
     # l_nll = loss_fc[0](xp, xt, cw) 
