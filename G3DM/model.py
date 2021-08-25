@@ -542,7 +542,7 @@ class decoder_gmm(torch.nn.Module):
         r_dist = self.distance_means.clamp(min=0.1)
         dis_ms = torch.cumsum(r_dist, dim=0).clamp(min=0.8, max=20.0) - (r_dist/2.0)
 
-        dis_cmp = D.Normal( torch.relu(dis_ms), r_dist+1e-5 )
+        dis_cmp = D.Normal( torch.relu(dis_ms), r_dist/2.0+1e-5 )
         dis_gmm = D.MixtureSameFamily(mix, dis_cmp)
 
         # dis_cdf = dis_gmm.cdf(distance)
