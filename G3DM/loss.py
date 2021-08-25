@@ -6,7 +6,6 @@ import torch.nn as nn
 class ClusterWassersteinLoss(nn.Module):
     def __init__(self, num_cluster):
         super(ClusterWassersteinLoss, self).__init__()
-        self.device = device
         self.action = torch.nn.LeakyReLU(0.3)
         self.num_cluster = num_cluster
         self.weight = torch.range(start=num_cluster, end=1, step=-1)
