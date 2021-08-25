@@ -99,7 +99,7 @@ def fit_one_step(require_grad, graphs, features, cluster_weights, em_networks, a
     # lt = lt[idx]
     # xp = xp[idx]
     # [dis_cdf, cnt_cdf], [dis_cmpt_cdf, cnt_cmpt_cdf], [dis_cmpt_lp, cnt_cmpt_lp], [cnt_gmm, dis_gmm] = de_gmm_net(xp, xt)
-    [dis_cdf], [dis_cmpt_cdf], [dis_cmpt_lp], [dis_gmm] = de_gmm_net(xp)
+    [dis_cmpt_lp], [dis_gmm] = de_gmm_net(xp)
     # l_nll = loss_fc[0](xp, xt, cw) 
     # l_nll_noweight = loss_fc[0](xp, xt, None)
     # l_wnl = loss_fc[1](xp, xt, ncluster)
@@ -118,11 +118,11 @@ def fit_one_step(require_grad, graphs, features, cluster_weights, em_networks, a
 
     if require_grad:
         # loss = l_nll + l_wnl*10 # + l_stdl # + 100*l_wnl + l_stdl + l_nll_noweight 
-        loss = l_nll # + l_stdl
+        loss = l_nll + l_stdl
         optimizer[0].zero_grad()
         loss.backward()  # retain_graph=False,
         optimizer[0].step()
-    # return [l_nll.item(), l_wnl.item(), l_stdl.item(), l_nll_noweight.item()]
+
     return [l_nll.item(), l_stdl.item()]
 
 
@@ -150,7 +150,7 @@ def inference(graphs, features, num_heads, num_clusters, em_networks, ae_network
 
         # xt1 = top_graph.edges['interacts'].data['value']
         # [dis_cdf, cnt_cdf], [dis_cmpt_cdf, cnt_cmpt_cdf], [dis_cmpt_lp, cnt_cmpt_lp], [cnt_gmm, dis_gmm] = de_gmm_net(xp1)
-        [dis_cdf], [dis_cmpt_cdf], [dis_cmpt_lp], [dis_gmm] = de_gmm_net(xp1)
+        [dis_cmpt_lp], [dis_gmm] = de_gmm_net(xp1)
 
         dp1 = torch.exp(dis_cmpt_lp).cpu().detach().numpy()
         # cp1 = torch.exp(cnt_cmpt_lp).cpu().detach().numpy() # 
