@@ -525,7 +525,8 @@ class decoder_gmm(torch.nn.Module):
         self.num_clusters = num_clusters
 
         self.weights = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
-        drange = torch.linspace(0.4, 3.0, steps=self.num_clusters, dtype=torch.float)
+        # drange = torch.linspace(0.4, 3.0, steps=self.num_clusters, dtype=torch.float)
+        drange = troch.sqrt((torch.range(start=1, end=self.num_clusters+1)*0.4)**3)
         self.distance_means = torch.nn.Parameter( drange, requires_grad=True)
         self.distance_stdevs = torch.nn.Parameter( torch.empty( (self.num_clusters)), requires_grad=True)
         self.reset()
@@ -538,14 +539,11 @@ class decoder_gmm(torch.nn.Module):
     def forward(self, distance, contact=None):
         mix = D.Categorical(self.weights)
         # cnt_ms, cnt_indices = torch.sort(self.contact_means, descending=True)
-        means = torch.cumsum(self.distance_means.clamp(min=0.01), dim=0).clamp(min=0.3, max=50.0)
-        dis_ms, dis_indices = torch.sort(means, descending=False)
+        dis_ms = torch.cumsum(self.distance_means.clamp(min=0.01), dim=0).clamp(min=0.3, max=50.0)
 
         # cnt_std = self.contact_stdevs[cnt_indices]
-        dis_std = self.distance_stdevs[dis_indices]
-
         # cnt_cmp = D.Normal( torch.relu(cnt_ms), torch.relu(cnt_std)+1e-5 )
-        dis_cmp = D.Normal( torch.relu(dis_ms), torch.abs(dis_std)+1e-5 )
+        dis_cmp = D.Normal( torch.relu(dis_ms), torch.abs(self.distance_stdevs)+1e-5 )
 
         # cnt_gmm = D.MixtureSameFamily(mix, cnt_cmp)
         dis_gmm = D.MixtureSameFamily(mix, dis_cmp)
