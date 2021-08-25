@@ -8,10 +8,8 @@ class ClusterWassersteinLoss(nn.Module):
         super(ClusterWassersteinLoss, self).__init__()
         self.device = device
 
-    def forward(self, pred, target, num_cluster):
-        p = torch.softmax(pred, dim=-1)
-        cp = torch.cumsum(p, dim=-1)
-        res = torch.square(num_cluster - target - torch.sum(cp, dim=-1)) * (num_cluster - target)
+    def forward(self, pred_cdf, target, num_cluster):
+        res = torch.square(num_cluster - target - pred_cdf) * (num_cluster - target)
         res = torch.mean(res)/(num_cluster-1)
         return res
 
@@ -60,7 +58,7 @@ class nllLoss(torch.nn.Module):
     def forward(self, pred, target, weights=None):
         logp = pred # torch.nn.functional.log_softmax(pred, 1)
         if weights is not None:
-            w = (weights/weights.mean() + 1.0)**2 # torch.sqrt(weights/weights.mean() + 1.0)
+            w = weights/weights.mean() + 1.0 # torch.sqrt(weights/weights.mean() + 1.0)
             loss = torch.nn.functional.nll_loss(logp, target.long(), weight=w.float(), reduce=True, reduction='mean')
         else:
             loss = torch.nn.functional.nll_loss(logp, target.long(), reduce=True, reduction='mean')
