@@ -525,19 +525,20 @@ class decoder_gmm(torch.nn.Module):
         self.num_clusters = num_clusters
 
         self.probs = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
-        self.distance_means = torch.nn.Parameter( torch.empty( (self.num_clusters)), requires_grad=True)
-        self.contact_means = torch.nn.Parameter( torch.empty( (self.num_clusters)), requires_grad=True)
+        drange = torch.linspace(0.1, 2.0, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
+        self.distance_means = torch.nn.Parameter( drange, requires_grad=True)
+        # self.contact_means = torch.nn.Parameter( torch.empty( (self.num_clusters)), requires_grad=True)
         self.distance_stdevs = torch.nn.Parameter( torch.empty( (self.num_clusters)), requires_grad=True)
-        self.contact_stdevs = torch.nn.Parameter( torch.empty( (self.num_clusters)), requires_grad=True)
+        # self.contact_stdevs = torch.nn.Parameter( torch.empty( (self.num_clusters)), requires_grad=True)
         self.reset()
 
     def reset(self):
         gain = torch.nn.init.calculate_gain('relu')
         # torch.nn.init.xavier_normal_(self.probs.view(-1,1), gain=gain)
-        torch.nn.init.xavier_normal_(self.distance_means.view(-1,1), gain=gain)
+        # torch.nn.init.xavier_normal_(self.distance_means.view(-1,1), gain=gain)
         torch.nn.init.xavier_normal_(self.distance_stdevs.view(-1,1), gain=gain)
-        torch.nn.init.xavier_normal_(self.contact_means.view(-1,1), gain=gain)
-        torch.nn.init.xavier_normal_(self.contact_stdevs.view(-1,1), gain=gain)
+        # torch.nn.init.xavier_normal_(self.contact_means.view(-1,1), gain=gain)
+        # torch.nn.init.xavier_normal_(self.contact_stdevs.view(-1,1), gain=gain)
 
     def forward(self, distance, contact=None):
         mix = D.Categorical(self.probs)
@@ -548,7 +549,7 @@ class decoder_gmm(torch.nn.Module):
         dis_std = self.distance_stdevs[dis_indices]
 
         # cnt_cmp = D.Normal( torch.relu(cnt_ms), torch.relu(cnt_std)+1e-5 )
-        dis_cmp = D.Normal( torch.relu(dis_ms), torch.relu(dis_std)+1e-5 )
+        dis_cmp = D.Normal( torch.relu(dis_ms), torch.abs(dis_std)+1e-5 )
 
         # cnt_gmm = D.MixtureSameFamily(mix, cnt_cmp)
         dis_gmm = D.MixtureSameFamily(mix, dis_cmp)
