@@ -6,7 +6,7 @@ import torch_optimizer as optim
 import numpy as np
 
 from .model import embedding, encoder_chain, decoder_distance, decoder_gmm, save_model_state_dict
-from .loss import RMSLELoss, nllLoss # nllLoss, stdLoss, ClusterWassersteinLoss
+from .loss import nllLoss, stdLoss # , ClusterWassersteinLoss
 from .visualize import plot_feature, plot_X, plot_cluster, plot_confusion_mat, plot_lines
 from .visualize import plot_scaler
 
@@ -45,11 +45,11 @@ def create_network(configuration, device):
     de_gmm_net = decoder_gmm(nc).to(device)
 
     nll = nllLoss().to(device)
-    # stdl = stdLoss().to(device)
+    stdl = stdLoss().to(device)
     # cwnl = ClusterWassersteinLoss(device).to(device)
     rmslel = RMSLELoss().to(device)
 
-    opt0 = optim.AdaBound( list(em_bead.parameters()) + list(en_net.parameters()) 
+    opt = optim.AdaBound( list(em_bead.parameters()) + list(en_net.parameters()) 
                         + list(de_distance_net.parameters()) + list(de_gmm_net.parameters()),
                         lr=1e-3, betas=(0.9, 0.999), final_lr=0.1, gamma=1e-3, eps=1e-8, weight_decay=0,
                         amsbound=False)
@@ -57,11 +57,11 @@ def create_network(configuration, device):
     # opt = torch.optim.AdamW(list(em_bead.parameters()) + list(en_net.parameters()) + list(de_net.parameters()), 
     #                         lr=0.001, betas=(0.9, 0.999), eps=1e-08, 
     #                         weight_decay=0.01, amsgrad=False)
-    scheduler = torch.optim.lr_scheduler.ExponentialLR(opt0, gamma=0.9)
+    scheduler = torch.optim.lr_scheduler.ExponentialLR(opt, gamma=0.9)
 
     em_networks = [em_bead]
     ae_networks = [en_net, de_distance_net, de_gmm_net]
-    return em_networks, ae_networks, [rmslel, nll], [opt0], scheduler
+    return em_networks, ae_networks, [nll, stdl], [opt], scheduler
 
 
 def setup_train(configuration):
@@ -112,16 +112,17 @@ def fit_one_step(require_grad, graphs, features, cluster_weights, em_networks, a
     # rmseloss_all = loss_fc[0](dis_cdf, cnt_cdf)
     # rmseloss_cmpt = loss_fc[0](dis_cmpt_cdf, cnt_cmpt_cdf)
 
-    l_nll = loss_fc[1](dis_cmpt_lp, lt, cw)
+    l_nll = loss_fc[0](dis_cmpt_lp, lt, cw)
+    l_stdl = loss_fc[1](std, lt, ncluster)
 
     if require_grad:
         # loss = l_nll + l_wnl*10 # + l_stdl # + 100*l_wnl + l_stdl + l_nll_noweight 
-        loss = l_nll # rmseloss_all + rmseloss_cmpt + 
+        loss = l_nll + l_stdl
         optimizer[0].zero_grad()
         loss.backward()  # retain_graph=False,
         optimizer[0].step()
     # return [l_nll.item(), l_wnl.item(), l_stdl.item(), l_nll_noweight.item()]
-    return [l_nll.item()]
+    return [l_nll.item(), l_stdl.item()]
 
 
 def inference(graphs, features, num_heads, num_clusters, em_networks, ae_networks, device):
@@ -221,10 +222,10 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                         rollback_nll = checkpoint['nll_loss']
                         print('Detected NaN in the parameters, rollback to epoch #{}, nll loss: {}'.format(rollback_epoch, rollback_nll))
 
-            if ll[-1] < best_nll_loss:
+            if ll[0] < best_nll_loss:
                 os.makedirs(model_saved_path, exist_ok=True)
                 path = os.path.join(model_saved_path, 'ckpt_state_dict_' + model_saved_name)
-                best_nll_loss = ll[-1]
+                best_nll_loss = ll[0]
                 save_model_state_dict(models_dict, optimizer[0], path, epoch, best_nll_loss)
 
             torch.cuda.empty_cache()
@@ -310,7 +311,7 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
         valid_ll = np.array(valid_loss_list)
 
         plot_scaler({'test':np.nanmean(test_ll[:,0]), 'validation': np.nanmean(valid_ll[:,0])}, writer, 'NL Loss' ,step = epoch)
-        # plot_scaler({'test':np.nanmean(test_ll[:,1]), 'validation': np.nanmean(valid_ll[:,1])}, writer, 'Components cdf Loss' ,step = epoch)
+        plot_scaler({'test':np.nanmean(test_ll[:,1]), 'validation': np.nanmean(valid_ll[:,1])}, writer, 'STD Loss' ,step = epoch)
         # plot_scaler({'test':np.nanmean(test_ll[:,2]), 'validation': np.nanmean(valid_ll[:,2])}, writer, 'NL Loss' ,step = epoch)
 
         dur.append(time.time() - t0)
