@@ -563,8 +563,8 @@ class decoder_gmm(torch.nn.Module):
         # dis_lp = dis_gmm.log_prob(distance)
         # unsafe_cnt_cmpt_lp = cnt_gmm.component_distribution.log_prob(contact.view(-1,1))
         # cnt_cmpt_lp = torch.nan_to_num(unsafe_cnt_cmpt_lp, nan=-float('inf'))
-        unsage_dis_cmpt_lp = dis_gmm.component_distribution.log_prob(distance.view(-1,1))
-        dis_cmpt_lp = torch.nan_to_num(unsage_dis_cmpt_lp, nan=-float('inf'))
+        unsafe_dis_cmpt_lp = dis_gmm.component_distribution.log_prob(distance.view(-1,1))
+        dis_cmpt_lp = torch.nan_to_num(unsafe_dis_cmpt_lp, nan=-1e12)
 
         # return [dis_cdf, cnt_cdf], [dis_cmpt_cdf, cnt_cmpt_cdf], [dis_cmpt_lp, cnt_cmpt_lp], [cnt_gmm, dis_gmm]
         return [dis_cdf], [dis_cmpt_cdf], [dis_cmpt_lp], [dis_gmm]
