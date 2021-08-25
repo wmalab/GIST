@@ -126,7 +126,7 @@ def permutation_list(idx, max_len, iteration=10):
     idx_list = []
 
     # 1 continous idx
-    step = np.ceil(max_len/10).astype(int)
+    step = np.ceil(max_len/15).astype(int)
     for i in np.arange(0, len(idx), step=step):
         l,r = i, min(i+max_len, len(idx))
         sub = idx[l:r]

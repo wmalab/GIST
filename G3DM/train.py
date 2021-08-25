@@ -47,7 +47,7 @@ def create_network(configuration, device):
     nll = nllLoss().to(device)
     stdl = stdLoss().to(device)
     # cwnl = ClusterWassersteinLoss(device).to(device)
-    rmslel = RMSLELoss().to(device)
+    # rmslel = RMSLELoss().to(device)
 
     opt = optim.AdaBound( list(em_bead.parameters()) + list(en_net.parameters()) 
                         + list(de_distance_net.parameters()) + list(de_gmm_net.parameters()),
