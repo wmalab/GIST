@@ -163,7 +163,7 @@ class encoder_chain(torch.nn.Module):
             xp = torch.cat([x[0:1,:],x[0:-1, :]], dim=0)
             dx = x - xp
             dmean = torch.median( torch.norm(dx, dim=1))+1e-4
-            x = torch.cumsum(torch.div(dx, dmean)*0.2, dim=0)
+            x = torch.cumsum(torch.div(dx, dmean)*0.9, dim=0)
             # dmean = torch.mean( torch.norm(x, dim=-1))
             # x = torch.div(x, dmean)
 
@@ -526,7 +526,7 @@ class decoder_gmm(torch.nn.Module):
 
         self.weights = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
         # drange = torch.linspace(0.4, 3.0, steps=self.num_clusters, dtype=torch.float)
-        drange = torch.sqrt(torch.range(start=1, end=self.num_clusters)**3)
+        drange = torch.sqrt((torch.range(start=2, end=1+self.num_clusters)*0.5)**3)
         self.distance_means = torch.nn.Parameter( drange, requires_grad=True)
         self.distance_stdevs = torch.nn.Parameter( torch.empty( (self.num_clusters)), requires_grad=True)
         self.reset()
@@ -539,7 +539,7 @@ class decoder_gmm(torch.nn.Module):
     def forward(self, distance, contact=None):
         mix = D.Categorical(self.weights)
         # cnt_ms, cnt_indices = torch.sort(self.contact_means, descending=True)
-        dis_ms = torch.cumsum(self.distance_means.clamp(min=0.1), dim=0).clamp(min=1, max=1000.0)
+        dis_ms = torch.cumsum(self.distance_means.clamp(min=0.1), dim=0).clamp(min=1, max=100.0)
 
         # cnt_std = self.contact_stdevs[cnt_indices]
         # cnt_cmp = D.Normal( torch.relu(cnt_ms), torch.relu(cnt_std)+1e-5 )
