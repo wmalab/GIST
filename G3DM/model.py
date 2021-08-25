@@ -525,7 +525,7 @@ class decoder_gmm(torch.nn.Module):
         self.num_clusters = num_clusters
 
         self.weights = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
-        drange = torch.linspace(0.4, 1.0, steps=self.num_clusters, dtype=torch.float)
+        drange = torch.linspace(0.4, 3.0, steps=self.num_clusters, dtype=torch.float)
         self.distance_means = torch.nn.Parameter( drange, requires_grad=True)
         self.distance_stdevs = torch.nn.Parameter( torch.empty( (self.num_clusters)), requires_grad=True)
         self.reset()
