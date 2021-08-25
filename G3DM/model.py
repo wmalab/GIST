@@ -128,11 +128,10 @@ class encoder_chain(torch.nn.Module):
         gain = torch.nn.init.calculate_gain('relu')
         torch.nn.init.xavier_normal_(self.fc3.weight, gain=gain)
 
-        # self.r = torch.nn.Parameter(torch.empty((1)), requires_grad=True)
-        # self.register_parameter('r', self.r)
-        # torch.nn.init.uniform_(self.r, a=0.1, b=0.2)
+        self.std = torch.nn.Parameter(torch.empty((1)), requires_grad=True)
+        gain = torch.nn.init.calculate_gain('relu')
+        torch.nn.init.normal_(self.std)
 
-        # self.scale = torch.nn.Parameter(torch.ones((1)), requires_grad=True)
 
     def agg_func2(self, tensors, dsttype):
         stacked = torch.stack(tensors, dim=-1)
@@ -145,6 +144,13 @@ class encoder_chain(torch.nn.Module):
         res = self.fc3(stacked)
         return torch.mean(res, dim=-1)
 
+    def norm_(self, x):
+        xp = torch.cat([torch.zeros((1,3)), x[0:-1, :]], dim=0)
+        dx = x - xp
+        dmean = torch.median( torch.norm(dx, dim=-1))+1e-4
+        x = torch.cumsum(torch.div(dx, dmean)*0.5, dim=0)
+        return x
+
     def forward(self, g, x, etypes, efeat, ntype):
 
         subg_interacts = g.edge_type_subgraph(etypes)
@@ -152,22 +158,16 @@ class encoder_chain(torch.nn.Module):
 
         h = self.layer1(subg_interacts, {ntype[0]: x })
         h = self.layer2(subg_interacts, h)
-        h = self.layer3(subg_interacts, h)
-        h = self.layerMHs(subg_interacts, h)
+        x = self.norm_(h[ntype[0]][:,0,:]).view(-1,1,3)
+        h = self.layer3(subg_interacts, {ntype[0]: x })
+        dist = torch.distributions.Normal(h[ntype[0]], 1e-4+torch.abs(self.std*torch.ones_like(h[ntype[0]])))
+        x = dist.rsample()
+        h = self.layerMHs(subg_interacts, {ntype[0]: x })
 
         res = list()
         for i in torch.arange(self.num_heads):
             x = h[ntype[0]][:,i,:]
-            # vmean = torch.mean(x, dim=0, keepdim=True)
-            # x = x - vmean
-            xp = torch.cat([x[0:1,:],x[0:-1, :]], dim=0)
-            dx = x - xp
-            dmean = torch.median( torch.norm(dx, dim=1))+1e-4
-            x = torch.cumsum(torch.div(dx, dmean)*0.5, dim=0)
-            # dmean = torch.mean( torch.norm(x, dim=-1))
-            # x = torch.div(x, dmean)
-
-            # x = x.clamp(min=-20.0, max=20.0)
+            x = self.norm_(x)
             res.append(x)
         res = torch.stack(res, dim=1)
         return res
