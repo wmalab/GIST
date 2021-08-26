@@ -147,8 +147,8 @@ class encoder_chain(torch.nn.Module):
     def norm_(self, x):
         xp = torch.cat([torch.zeros((1,3), device=x.device), x[0:-1, :]], dim=0)
         dx = x - xp
-        dmean = torch.median( torch.norm(dx, dim=-1)*0.2)+1e-4
-        x = torch.cumsum(torch.div(dx, dmean), dim=0)
+        dmean = torch.median( torch.norm(dx, dim=-1))+1e-4
+        x = torch.cumsum(torch.div(dx, dmean)*0.2, dim=0)
         return x
 
     def forward(self, g, x, etypes, efeat, ntype):
