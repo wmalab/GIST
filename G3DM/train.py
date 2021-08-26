@@ -303,8 +303,8 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                 # x = np.clip( x, a_min=0.1, a_max=20.0)
 
                 x = (dis_gmm.component_distribution.mean).to('cpu').detach().numpy()
-                x = np.clip(x, a_min=0.1, a_max=None)
-                x = np.cumsum(x)
+                # x = np.clip(x, a_min=0.1, a_max=None)
+                # x = np.cumsum(x)
                 x = np.concatenate([[0], x])
                 x = np.sort(x)
                 plot_lines(x, writer, '2,3 hop_dist/center', step=epoch) 
