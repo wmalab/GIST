@@ -148,7 +148,7 @@ class encoder_chain(torch.nn.Module):
         xp = torch.cat([torch.zeros((1,3), device=x.device), x[0:-1, :]], dim=0)
         dx = x - xp
         dmean = torch.median( torch.norm(dx, dim=-1))+1e-4
-        x = torch.cumsum(torch.div(dx, dmean)*0.5, dim=0)
+        x = torch.cumsum(torch.div(dx, dmean), dim=0)
         return x
 
     def forward(self, g, x, etypes, efeat, ntype):
@@ -527,7 +527,7 @@ class decoder_gmm(torch.nn.Module):
 
         self.weights = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
 
-        drange = torch.range(start=1, end=self.num_clusters)*0.1 + 0.5
+        drange = torch.range(start=1, end=self.num_clusters)*0.2 + 1
         self.distance_means = torch.nn.Parameter( drange, requires_grad=True)
 
         self.r = torch.nn.Parameter( torch.ones(1), requires_grad=True)
@@ -544,7 +544,7 @@ class decoder_gmm(torch.nn.Module):
     def forward(self, distance):
         mix = D.Categorical(self.weights)
         r_dist = self.distance_means.clamp(min=0.1)
-        dis_ms = torch.cumsum(r_dist, dim=0).clamp(min=0.8, max=20.0) - (r_dist/2.0)
+        dis_ms = torch.cumsum(r_dist, dim=0).clamp(min=2.0) - (r_dist/2.0)
 
         # k = torch.sigmoid(self.k.clamp(min=-6.0, max=6.0))*2.0+1.0
         k = torch.div( (2.0*self.r*r_dist), torch.sqrt(2.0*self.PI))
