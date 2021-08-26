@@ -547,7 +547,7 @@ class decoder_gmm(torch.nn.Module):
         dis_ms = torch.cumsum(r_dist, dim=0).clamp(min=0.5) - (r_dist/2.0)
 
         k = torch.sigmoid(self.k.clamp(min=-6.0, max=6.0))*2.0+0.1
-        std = torch.relu(torch.div(r_dist, 2.0*torch.sqrt(2.0)*torch.log1p(k) )) + 1e-3
+        std = torch.relu(torch.div(r_dist, 2.0*torch.sqrt(torch.tensor(2.0))*torch.log1p(k) )) + 1e-3
         dis_cmp = D.Normal( torch.relu(dis_ms), std)
         dis_gmm = D.MixtureSameFamily(mix, dis_cmp)
 
