@@ -223,7 +223,7 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                         optimizer[0].load_state_dict(checkpoint['optimizer_state_dict'])
                         rollback_epoch = checkpoint['epoch']
                         rollback_nll = checkpoint['nll_loss']
-                        print('Detected NaN in the parameters, rollback to epoch #{}, nll loss: {}'.format(rollback_epoch, rollback_nll))
+                        print('Detected NaN in the parameters of {}, rollback to epoch #{}, nll loss: {}'.format(key, rollback_epoch, rollback_nll))
 
             if ll[0] < best_nll_loss:
                 os.makedirs(model_saved_path, exist_ok=True)
