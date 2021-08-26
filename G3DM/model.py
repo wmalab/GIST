@@ -530,9 +530,9 @@ class decoder_gmm(torch.nn.Module):
         drange = torch.range(start=1, end=self.num_clusters)*0.2 + 1
         self.distance_means = torch.nn.Parameter( drange, requires_grad=True)
 
-        self.r = torch.nn.Parameter( torch.ones(1), requires_grad=True)
-        self.pi = torch.acos(torch.zeros(1)) * 2
-        self.register_buffer('PI', self.pi)
+        self.k = torch.nn.Parameter( torch.ones(1), requires_grad=True)
+        # self.pi = torch.acos(torch.zeros(1)) * 2
+        # self.register_buffer('PI', self.pi)
         # self.distance_stdevs = torch.nn.Parameter( torch.empty( (self.num_clusters)), requires_grad=True)
         # self.reset()
 
@@ -546,10 +546,8 @@ class decoder_gmm(torch.nn.Module):
         r_dist = self.distance_means.clamp(min=0.1)
         dis_ms = torch.cumsum(r_dist, dim=0).clamp(min=0.5) - (r_dist/2.0)
 
-        # k = torch.sigmoid(self.k.clamp(min=-6.0, max=6.0))*2.0+1.0
-        k = torch.div( (2.0*torch.abs(self.r)*r_dist), torch.sqrt(2.0*self.PI))
-        k = k**(2.0/3.0)
-        std = torch.relu(torch.div(r_dist, 2.0*torch.sqrt(2.0*torch.log1p(k)) )) + 1e-3
+        k = torch.sigmoid(self.k.clamp(min=-6.0, max=6.0))*2.0+0.1
+        std = torch.relu(torch.div(r_dist, 2.0*torch.sqrt(2.0)*torch.log1p(k) )) + 1e-3
         dis_cmp = D.Normal( torch.relu(dis_ms), std)
         dis_gmm = D.MixtureSameFamily(mix, dis_cmp)
 
