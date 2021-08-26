@@ -528,8 +528,8 @@ class decoder_gmm(torch.nn.Module):
 
         self.k = torch.nn.Parameter( torch.zeros(self.num_clusters), requires_grad=True)
 
-        self.pi = torch.acos(torch.zeros(1)) * 2
-        self.register_buffer('PI', self.pi)
+        # self.pi = torch.acos(torch.zeros(1)) * 2
+        # self.register_buffer('PI', self.pi)
 
         self.distance_stdevs = torch.nn.Parameter( torch.empty( (self.num_clusters)), requires_grad=True)
         self.reset()
@@ -542,7 +542,7 @@ class decoder_gmm(torch.nn.Module):
         k = torch.sigmoid(k.clamp(min=-8.0, max=8.0))
         r = torch.div(stds_r, stds_l)
         clip_kr = (k*r).clamp(min=1e-4, max=0.9)
-        return stds_l * torch.sqrt( -2.0 * torch.log(clip_kr) )
+        return stds_r * torch.sqrt( -2.0 * torch.log(clip_kr) )
 
     def forward(self, distance):
         mix = D.Categorical(self.weights)
