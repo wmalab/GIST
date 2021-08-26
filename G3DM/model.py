@@ -531,8 +531,8 @@ class decoder_gmm(torch.nn.Module):
         # self.pi = torch.acos(torch.zeros(1)) * 2
         # self.register_buffer('PI', self.pi)
 
-        self.distance_stdevs = torch.nn.Parameter( torch.empty( (self.num_clusters)), requires_grad=True)
-        self.reset()
+        self.distance_stdevs = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
+        # self.reset()
 
     def reset(self):
         gain = torch.nn.init.calculate_gain('relu')
