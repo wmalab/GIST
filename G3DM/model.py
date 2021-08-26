@@ -147,7 +147,7 @@ class encoder_chain(torch.nn.Module):
     def norm_(self, x):
         xp = torch.cat([torch.zeros((1,3), device=x.device), x[0:-1, :]], dim=0)
         dx = x - xp
-        dmean = torch.median( torch.norm(dx, dim=-1)*0.6)+1e-4
+        dmean = torch.median( torch.norm(dx, dim=-1)*0.5)+1e-4
         x = torch.cumsum(torch.div(dx, dmean), dim=0)
         return x
 
@@ -527,7 +527,7 @@ class decoder_gmm(torch.nn.Module):
 
         self.weights = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
 
-        drange = torch.range(start=1, end=self.num_clusters)*0.2 + 1
+        drange = torch.range(start=1, end=self.num_clusters)*0.5 + 1
         self.distance_means = torch.nn.Parameter( drange, requires_grad=True)
 
         self.k = torch.nn.Parameter( torch.ones(1), requires_grad=True)
@@ -546,8 +546,8 @@ class decoder_gmm(torch.nn.Module):
         r_dist = self.distance_means.clamp(min=0.1)
         dis_ms = torch.cumsum(r_dist, dim=0).clamp(min=0.5) - (r_dist/2.0)
 
-        k = torch.abs(self.k)
-        std = torch.relu(torch.div(r_dist, 2.0*torch.sqrt(torch.tensor(2.0))*k )) + 1e-3
+        k = torch.sigmoid(self.k.clamp(min=-4.0, max=4.0))
+        std = torch.relu(torch.div(r_dist, 2.0*torch.sqrt(torch.tensor(2.0))*k )) + 1e-5
         dis_cmp = D.Normal( torch.relu(dis_ms), std)
         dis_gmm = D.MixtureSameFamily(mix, dis_cmp)
 
