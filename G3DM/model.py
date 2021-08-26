@@ -147,7 +147,7 @@ class encoder_chain(torch.nn.Module):
     def norm_(self, x):
         xp = torch.cat([torch.zeros((1,3), device=x.device), x[0:-1, :]], dim=0)
         dx = x - xp
-        dmean = torch.median( torch.norm(dx, dim=-1)*0.5)+1e-4
+        dmean = torch.median( torch.norm(dx, dim=-1)*0.2)+1e-4
         x = torch.cumsum(torch.div(dx, dmean), dim=0)
         return x
 
@@ -403,7 +403,6 @@ class encoder_chain(torch.nn.Module):
             g.apply_edges(self.edge_distance, etype=self.etype)
             return g.edata.pop('dist_pred'), g.edata.pop('std')"""
 
-
 """class decoder(torch.nn.Module):
     ''' num_heads, num_clusters, ntype, etype '''
     def __init__(self, num_heads, num_clusters, ntype, etype):
@@ -488,8 +487,7 @@ class encoder_chain(torch.nn.Module):
                                     dim=1)
             self.r_dist = torch.relu( torch.matmul(self.bound, self.subtract_mat) )
             g.apply_edges(self.edge_distance, etype=self.etype)
-            return g.edata.pop('dist_pred'), g.edata.pop('std')
-"""
+            return g.edata.pop('dist_pred'), g.edata.pop('std')"""
 
 class decoder_distance(torch.nn.Module):
     ''' num_heads, num_clusters, ntype, etype '''
@@ -500,8 +498,6 @@ class decoder_distance(torch.nn.Module):
         self.num_clusters = num_clusters
         self.ntype = ntype
         self.etype = etype
-
-        num_seq = num_clusters
 
         self.w = torch.nn.Parameter(torch.empty( (self.num_heads)), requires_grad=True)
         self.register_parameter('w', self.w)
@@ -561,7 +557,7 @@ class decoder_gmm(torch.nn.Module):
         stds_l = torch.cat( (stds[0:1], stds[0:-1]), dim=0)
         d_left = self.fc(stds_l, stds, self.k)
         d_left = torch.cumsum(d_left, dim=0)
-        d_right = self.fc(stds[1:], stds[1:], self.k[1:])
+        d_right = self.fc(stds[0:-1], stds[0:-1], self.k[1:])
         d_right = torch.cat( (torch.zeros(1), d_right), dim=0)
         means = (d_left + d_right).clamp(min=0.1, max=50.0)
         dis_cmp = D.Normal( means, stds)
