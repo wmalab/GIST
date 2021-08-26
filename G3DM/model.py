@@ -525,30 +525,45 @@ class decoder_gmm(torch.nn.Module):
         super(decoder_gmm, self).__init__()
         self.num_clusters = num_clusters
 
-        self.weights = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
+        self.weights = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=False)
 
-        drange = torch.range(start=1, end=self.num_clusters)*0.5 + 1
-        self.distance_means = torch.nn.Parameter( drange, requires_grad=True)
+        # drange = torch.range(start=1, end=self.num_clusters)*0.5 + 1
+        # self.distance_means = torch.nn.Parameter( drange, requires_grad=True)
 
-        self.k = torch.nn.Parameter( torch.ones(1), requires_grad=True)
-        # self.pi = torch.acos(torch.zeros(1)) * 2
-        # self.register_buffer('PI', self.pi)
-        # self.distance_stdevs = torch.nn.Parameter( torch.empty( (self.num_clusters)), requires_grad=True)
-        # self.reset()
+        self.k = torch.nn.Parameter( torch.zeros(self.num_clusters), requires_grad=True)
+
+        self.pi = torch.acos(torch.zeros(1)) * 2
+        self.register_buffer('PI', self.pi)
+
+        self.distance_stdevs = torch.nn.Parameter( torch.empty( (self.num_clusters)), requires_grad=True)
+        self.reset()
 
     def reset(self):
         gain = torch.nn.init.calculate_gain('relu')
-        # torch.nn.init.xavier_normal_(self.distance_stdevs.view(-1,1), gain=gain)
+        torch.nn.init.xavier_normal_(self.distance_stdevs.view(-1,1), gain=gain)
 
+    def fc(self, stds_l, stds_r, k):
+        k = torch.sigmoid(k.clamp(min=-8.0, max=8.0))
+        r = torch.div(stds_l, stds_r)
+        clip_kr = (k*r).clamp(min=1e-4, max=0.9)
+        return stds_l * torch.sqrt( -2.0 * torch.log(clip_kr) )
 
     def forward(self, distance):
         mix = D.Categorical(self.weights)
-        r_dist = self.distance_means.clamp(min=0.1)
-        dis_ms = torch.cumsum(r_dist, dim=0).clamp(min=0.5) - (r_dist/2.0)
+        # r_dist = self.distance_means.clamp(min=0.1)
+        # dis_ms = torch.cumsum(r_dist, dim=0).clamp(min=0.5) - (r_dist/2.0)
 
-        k = torch.sigmoid(self.k.clamp(min=-4.0, max=4.0))+0.5
-        std = torch.relu(torch.div(r_dist, torch.sqrt(torch.tensor(2.0))*k )) + 1e-5
-        dis_cmp = D.Normal( torch.relu(dis_ms), std)
+        # k = torch.sigmoid(self.k.clamp(min=-4.0, max=4.0))+0.5
+        # std = torch.relu(torch.div(r_dist, torch.sqrt(torch.tensor(2.0))*k )) + 1e-5
+        # dis_cmp = D.Normal( torch.relu(dis_ms), std)
+
+        stds = torch.relu(self.distance_stdevs) + 1e-2
+        d_left = self.fc(stds, stds, self.k)
+        d_left = torch.cumsum(d_left, dim=0)
+        d_right = self.fc(stds[0:-1], stds[1:], self.k[1:])
+        d_right = torch.cat( (torch.zeros(1), d_right), dim=0)
+        means = d_left + d_right
+        dis_cmp = D.Normal( means, stds)
         dis_gmm = D.MixtureSameFamily(mix, dis_cmp)
 
         # dis_cdf = dis_gmm.cdf(distance)
