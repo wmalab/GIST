@@ -532,6 +532,7 @@ class decoder_gmm(torch.nn.Module):
 
         self.r = torch.nn.Parameter( torch.ones(1), requires_grad=True)
         self.pi = torch.acos(torch.zeros(1)) * 2
+        self.register_buffer('PI', self.pi)
         # self.distance_stdevs = torch.nn.Parameter( torch.empty( (self.num_clusters)), requires_grad=True)
         # self.reset()
 
@@ -546,7 +547,7 @@ class decoder_gmm(torch.nn.Module):
         dis_ms = torch.cumsum(r_dist, dim=0).clamp(min=0.8, max=20.0) - (r_dist/2.0)
 
         # k = torch.sigmoid(self.k.clamp(min=-6.0, max=6.0))*2.0+1.0
-        k = torch.div( (2.0*self.r*r_dist), torch.sqrt(2.0*self.pi))
+        k = torch.div( (2.0*self.r*r_dist), torch.sqrt(2.0*self.PI))
         k = k**(2.0/3.0)
         std = torch.div(r_dist, 2.0*torch.sqrt(2.0*torch.log1p(k)) )
         dis_cmp = D.Normal( torch.relu(dis_ms), std)
