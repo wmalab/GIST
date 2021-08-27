@@ -148,7 +148,7 @@ class encoder_chain(torch.nn.Module):
         xp = torch.cat([torch.zeros((1,3), device=x.device), x[0:-1, :]], dim=0)
         dx = x - xp
         dmean = torch.median( torch.norm(dx, dim=-1))+1e-4
-        x = torch.cumsum(torch.div(dx, dmean)*0.2, dim=0)
+        x = torch.cumsum(torch.div(dx, dmean)*0.5, dim=0)
         return x
 
     def forward(self, g, x, etypes, efeat, ntype):
@@ -559,7 +559,7 @@ class decoder_gmm(torch.nn.Module):
         d_left = torch.cumsum(d_left, dim=0)
         d_right = self.fc(stds[0:-1], stds[0:-1], self.k[1:])
         d_right = torch.cat( (torch.zeros(1, device=d_right.device), d_right), dim=0)
-        means = (d_left + d_right).clamp(min=0.1, max=50.0)
+        means = (d_left + d_right).clamp(min=0.1)
         dis_cmp = D.Normal( means, stds)
         dis_gmm = D.MixtureSameFamily(mix, dis_cmp)
 
