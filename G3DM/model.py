@@ -507,33 +507,50 @@ class decoder_gmm(torch.nn.Module):
         self.num_clusters = num_clusters
         self.weights = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
         self.k = torch.nn.Parameter( torch.zeros(self.num_clusters), requires_grad=True)
-        self.distance_stdevs = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
+        # self.distance_stdevs = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
+        self.gamma = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
         # self.reset()
 
-    def reset(self):
-        gain = torch.nn.init.calculate_gain('relu')
-        torch.nn.init.xavier_normal_(self.distance_stdevs.view(-1,1), gain=gain)
+    # def reset(self):
+    #     gain = torch.nn.init.calculate_gain('relu')
+    #     torch.nn.init.xavier_normal_(self.distance_stdevs.view(-1,1), gain=gain)
 
-    def fc(self, stds_l, stds_r, k):
+    # def fc(self, stds_l, stds_r, k):
+    #     k = torch.sigmoid(k.clamp(min=-8.0, max=8.0))
+    #     r = torch.div(stds_r, stds_l)
+    #     clip_kr = (k*r).clamp(min=0.01, max=0.5)
+    #     return stds_r * torch.sqrt( -2.0 * torch.log(clip_kr) )
+
+    def fc(self, left, right, k):
         k = torch.sigmoid(k.clamp(min=-8.0, max=8.0))
-        r = torch.div(stds_r, stds_l)
+        r = torch.div(right, left)
         clip_kr = (k*r).clamp(min=0.01, max=0.5)
-        return stds_r * torch.sqrt( -2.0 * torch.log(clip_kr) )
+        u = torch.div( torch.ones(1, device=k.device), clip_kr)
+        value = right* torch.sqrt( u - 1 )
+        return value
 
     def forward(self, distance):
         mix = D.Categorical(self.weights)
 
-        stds = torch.relu(self.distance_stdevs) + 1e-2
-
-        stds_l = torch.cat( (stds[0:1], stds[0:-1]), dim=0)
-        d_left = self.fc(stds_l, stds, self.k)
-        d_left = torch.cumsum(d_left, dim=0)
-        d_right = self.fc(stds[0:-1], stds[0:-1], self.k[1:])
-        d_right = torch.cat( (torch.zeros(1, device=d_right.device), d_right), dim=0)
-        means = (d_left + d_right).clamp(min=1.0)
-
+        # stds = torch.relu(self.distance_stdevs) + 1e-2
+        # stds_l = torch.cat( (stds[0:1], stds[0:-1]), dim=0)
+        # d_left = self.fc(stds_l, stds, self.k)
+        # d_left = torch.cumsum(d_left, dim=0)
+        # d_right = self.fc(stds[0:-1], stds[0:-1], self.k[1:])
+        # d_right = torch.cat( (torch.zeros(1, device=d_right.device), d_right), dim=0)
+        # means = (d_left + d_right).clamp(min=1.0)
         # dis_cmp = D.Normal( means, stds)
-        dis_cmp = D.LogNormal(means, stds)
+
+        gamma = torch.relu(self.gamma) + 1e-2
+        gamma_l = torch.cat( (gamma[0:1], gamma[0:-1]), dim=0)
+        g_left = self.fc(gamma_l, gamma, self.k)
+        g_left = torch.cumsum(g_left, dim=0)
+        g_right = self.fc(gamma[0:-1], gamma[0:-1], self.k[1:])
+        g_right = torch.cat( (torch.zeros(1, device=g_right.device), g_right), dim=0)
+        centers = (g_left + g_right).clamp(min=1.0)
+        dis_cmp = D.Cauchy( centers, gamma)
+
+
         dis_gmm = D.MixtureSameFamily(mix, dis_cmp)
 
         # dis_cdf = dis_gmm.cdf(distance)
