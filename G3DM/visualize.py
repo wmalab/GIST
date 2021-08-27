@@ -1,4 +1,6 @@
 import matplotlib.pyplot as plt
+import matplotlib.pylab as pl
+
 from matplotlib import cm
 import numpy as np
 
@@ -95,8 +97,10 @@ def plot_distributions(inputs, writer, item_dir, step=None):
                     loc="lower right", title="Classes")
     axs.add_artist(legend)
 
+    n = pdfs.shape[1]
+    colors = pl.cm.get_cmap['tab20'](np.linspace(0,1,n))
     for i in np.arange(pdfs.shape[1]):
-        axs.plot(x.flatten(), pdfs[:,i])
+        axs.plot(x.flatten(), pdfs[:,i], cmp=cmaps[i])
         plt.xlim(left=-0.01)
 
     step = 0 if step is None else step
