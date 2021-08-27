@@ -77,12 +77,12 @@ if __name__ == '__main__':
     norm_hic = normalization.ICE_normalization(raw_hic) 
     norm_hic = np.array(norm_hic)
 
-    # log1p_rhic = np.log1p(raw_hic)
-    # log1p_nhic = np.log1p(norm_hic)
+    log1p_rhic = np.log1p(raw_hic)
+    log1p_nhic = np.log1p(np.log1p(norm_hic))
 
     low = float(sys.argv[2]) # 0 5, 10, 15, 20, 25, 30, 35, 40
     high = float(99.9)
     num_cluster = int(sys.argv[3]) # 3 - 20
     save_path = os.path.join('/rhome/yhu', 'bigdata', 'proj', 'experiment_G3DM', 'gmm_parameter', 'chr{}'.format(chromosome))
 
-    run(norm_hic, low, high, num_cluster, save_path)
+    run(log1p_nhic, low, high, num_cluster, save_path)
