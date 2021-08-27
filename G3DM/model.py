@@ -14,7 +14,6 @@ class embedding(torch.nn.Module):
         self.hidden_dim = np.floor((in_dim+2)/3).astype(float)
         self.hidden_dim = np.floor((self.hidden_dim+2)/3).astype(int)
         self.fc1 = torch.nn.Linear(self.hidden_dim, out_dim, bias=True)
-        # self.fc2 = torch.nn.Linear(out_dim, out_dim, bias=True)
         self.pool = torch.nn.MaxPool1d(3, stride=1, padding=1)
         self.bn = torch.nn.BatchNorm1d(num_features=out_dim)
         self.reset()
@@ -22,14 +21,12 @@ class embedding(torch.nn.Module):
     def reset(self):
         gain = torch.nn.init.calculate_gain('leaky_relu', 0.2)
         torch.nn.init.xavier_normal_(self.fc1.weight, gain=gain)
-        # torch.nn.init.xavier_normal_(self.fc2.weight, gain=gain)
         torch.nn.init.xavier_normal_(self.conv1d_1.weight, gain=gain)
         torch.nn.init.xavier_normal_(self.conv1d_2.weight, gain=gain)
         torch.nn.init.xavier_normal_(self.conv1d_3.weight, gain=gain)
         torch.nn.init.xavier_normal_(self.conv1d_4.weight, gain=gain)
 
     def forward(self, h):
-        # X = torch.nn.functional.normalize(h, p=2.0, dim=-1)
         X = self.conv1d_1(h)
         X = torch.nn.functional.leaky_relu(X)
         X = self.conv1d_2(X)
@@ -41,10 +38,6 @@ class embedding(torch.nn.Module):
         X = torch.nn.functional.leaky_relu(X)
         X = self.pool(X)
         X = self.fc1(X)
-        # X = torch.nn.functional.leaky_relu(X)
-        # X = self.fc2(X)
-        # X = torch.nn.functional.normalize(X, p=2.0, dim=-1)
-        # X = torch.nn.functional.leaky_relu(X)
         X = torch.squeeze(X, dim=1)
         X = self.bn(X)
         return X
@@ -85,8 +78,6 @@ class encoder_chain(torch.nn.Module):
                                     num_heads=1, residual=False, 
                                     allow_zero_in_degree=True)
         self.layer1 = dgl.nn.HeteroGraphConv( l1, aggregate = 'mean')
-        # gain = torch.nn.init.calculate_gain('relu')
-        # torch.nn.init.xavier_normal_(self.layer1.weight, gain=gain)
 
         l2 = dict()
         for et in etypes:
@@ -94,8 +85,6 @@ class encoder_chain(torch.nn.Module):
                                     num_heads=1, residual=False, 
                                     allow_zero_in_degree=True)
         self.layer2 = dgl.nn.HeteroGraphConv( l2, aggregate = self.agg_func2)
-        # gain = torch.nn.init.calculate_gain('relu')
-        # torch.nn.init.xavier_normal_(self.layer2.weight, gain=gain)
 
         l3 = dict()
         for et in etypes:
@@ -103,8 +92,6 @@ class encoder_chain(torch.nn.Module):
                                     num_heads=1, residual=False, 
                                     allow_zero_in_degree=True)
         self.layer3 = dgl.nn.HeteroGraphConv( l3, aggregate = self.agg_func3)
-        # gain = torch.nn.init.calculate_gain('relu')
-        # torch.nn.init.xavier_normal_(self.layer3.weight, gain=gain)
 
 
         lMH = dict()
@@ -113,8 +100,6 @@ class encoder_chain(torch.nn.Module):
                                     num_heads=num_heads, residual=False, 
                                     allow_zero_in_degree=True)
         self.layerMHs = dgl.nn.HeteroGraphConv( lMH, aggregate='mean')
-        # gain = torch.nn.init.calculate_gain('relu')
-        # torch.nn.init.xavier_normal_(self.layerMHs.weight, gain=gain)
 
 
         '''self.chain = constrainLayer(out_dim)'''
@@ -148,7 +133,7 @@ class encoder_chain(torch.nn.Module):
         xp = torch.cat([torch.zeros((1,3), device=x.device), x[0:-1, :]], dim=0)
         dx = x - xp
         dmean = torch.median( torch.norm(dx, dim=-1))+1e-4
-        x = torch.cumsum(torch.div(dx, dmean)*0.9, dim=0)
+        x = torch.cumsum(torch.div(dx, dmean)*1.0, dim=0)
         return x
 
     def forward(self, g, x, etypes, efeat, ntype):
@@ -532,7 +517,7 @@ class decoder_gmm(torch.nn.Module):
     def fc(self, stds_l, stds_r, k):
         k = torch.sigmoid(k.clamp(min=-8.0, max=8.0))
         r = torch.div(stds_r, stds_l)
-        clip_kr = (k*r).clamp(min=1e-4, max=0.8)
+        clip_kr = (k*r.clamp(min=0.1, max=0.9) )
         return stds_r * torch.sqrt( -2.0 * torch.log(clip_kr) )
 
     def forward(self, distance):
