@@ -120,7 +120,7 @@ def fit_one_step(require_grad, graphs, features, cluster_weights, em_networks, a
 
     if require_grad:
         # loss = l_nll + l_wnl*10 # + l_stdl # + 100*l_wnl + l_stdl + l_nll_noweight 
-        loss = l_nll + l_stdl + l_wnl*20
+        loss = l_nll + l_stdl + l_wnl*10
         optimizer[0].zero_grad()
         loss.backward()  # retain_graph=False,
         optimizer[0].step()
@@ -285,15 +285,20 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                 log_pdfs = dis_gmm.component_distribution.log_prob(x.view(-1,1))
                 normal_pdfs = torch.exp(log_pdfs).to('cpu').detach().numpy()
                 plot_distributions([mu.to('cpu').detach().numpy(), x.to('cpu').detach().numpy(), normal_pdfs], writer, '2,3 hop_dist/normal', step=epoch) 
-                
+
                 lognormal_pdfs = torch.empty(normal_pdfs.shape)
+                lognormal_mu = torch.empty(mu.shape)
                 x = torch.exp(torch.linspace(start=-1.0, end=mu.max()*1.05, steps=100, device=device))
                 for i in np.arange(len(mu)):
                     A = torch.div( torch.ones(1, device=device), x*std[i]*torch.sqrt(2.0*torch.tensor(np.pi, device=device)))
                     B = (torch.log(x)-mu[i])**2
                     C = 2*std[i]**2
                     lognormal_pdfs[:,i] = A * torch.exp(-1.0*torch.div(B, C))
-                plot_distributions([np.exp(mu.to('cpu').detach().numpy()), x.to('cpu').detach().numpy(), lognormal_pdfs.to('cpu').detach().numpy()], writer, '2,3 hop_dist/lognormal', step=epoch) 
+                    lognormal_mu[i] = torch.exp(mu[i])*torch.sqrt( torch.exp(std[i]**2.0))
+                plot_distributions( [mu.to('cpu').detach().numpy(), 
+                                    x.to('cpu').detach().numpy(), 
+                                    lognormal_pdfs.to('cpu').detach().numpy()], 
+                                    writer, '2,3 hop_dist/lognormal', step=epoch) 
 
             torch.cuda.empty_cache()
         scheduler.step()
