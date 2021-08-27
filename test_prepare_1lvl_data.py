@@ -4,7 +4,6 @@ import numpy as np
 import multiprocessing
 
 from prepare.utils import log1p_hic, save_graph, load_graph, hic_prepare
-from prepare.build_graph import create_hierarchical_graph_2lvl
 from prepare.build_data import create_data
 from prepare.build_feature import load_feature
 
