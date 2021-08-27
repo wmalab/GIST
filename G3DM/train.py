@@ -279,13 +279,21 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                 plot_confusion_mat(pred_distance_mat, center_true_mat,  writer, '2,2 confusion matrix/predicted distance - true contact', step=epoch)
                 # plot_confusion_mat(pred_contact_mat, center_true_mat,  writer, '2,3 confusion matrix/predicted contact - true contact', step=epoch)
 
-                mu = (dis_gmm.component_distribution.mean).to('cpu').detach().numpy()
+                mu = (dis_gmm.component_distribution.mean)
+                std = (dis_gmm.component_distribution.stddev)
                 x = torch.linspace(start=-1.0, end=mu.max()*1.05, steps=100, device=device)
                 log_pdfs = dis_gmm.component_distribution.log_prob(x.view(-1,1))
-                pdfs = torch.exp(log_pdfs).to('cpu').detach().numpy()
-                x = x.to('cpu').detach().numpy()
-                plot_distributions([mu, x, pdfs], writer, '2,3 hop_dist/normal', step=epoch) 
-                plot_distributions([np.exp(mu), np.exp(x), pdfs], writer, '2,3 hop_dist/lognormal', step=epoch) 
+                normal_pdfs = torch.exp(log_pdfs).to('cpu').detach().numpy()
+                plot_distributions([mu.to('cpu').detach().numpy(), x.to('cpu').detach().numpy(), normal_pdfs], writer, '2,3 hop_dist/normal', step=epoch) 
+                
+                lognormal_pdfs = torch.empty(normal_pdfs.shape)
+                x = torch.exp(torch.linspace(start=-1.0, end=mu.max()*1.05, steps=100, device=device))
+                for i in np.arange(len(mu)):
+                    A = torch.div( torch.ones(1), x*std[i]*torch.sqrt(2.0*torch.tensor(np.pi)))
+                    B = (torch.log(x)-mu[i])**2
+                    C = 2*std[i]**2
+                    lognormal_pdfs[:,i] = A * torch.exp(-1.0*torch.div(B, C))
+                plot_distributions([np.exp(mu), x, lognormal_pdfs], writer, '2,3 hop_dist/lognormal', step=epoch) 
 
             torch.cuda.empty_cache()
         scheduler.step()
