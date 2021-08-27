@@ -87,14 +87,14 @@ def plot_lines(x, writer, item_dir, step=None):
 def plot_distributions(inputs, writer, item_dir, step=None):
     [mu, x, pdfs] = inputs
 
-    y = np.zeros_like(mu.flatten())
+    y = np.ones_like(mu.flatten())*0.1
     z = np.arange(len(mu.flatten()))
 
     fig, axs = plt.subplots(1, 1)
     cmaps = ['tab20']
     scatter = axs.scatter(mu.flatten(), y, c=z, cmap=cmaps[0])
     legend = axs.legend(*scatter.legend_elements(),
-                    loc="lower right", title="Classes")
+                    loc="best", title="Classes")
     axs.add_artist(legend)
 
     n = pdfs.shape[1]
