@@ -280,11 +280,11 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                 # plot_confusion_mat(pred_contact_mat, center_true_mat,  writer, '2,3 confusion matrix/predicted contact - true contact', step=epoch)
 
                 mu = (dis_gmm.component_distribution.mean).to('cpu').detach().numpy()
-                x = torch.linspace(start=-1.0, end=mu.max()*1.05, steps=100, device=device)
+                x = torch.linspace(start=1.0, end=mu.max()*1.05, steps=100, device=device)
                 log_pdfs = dis_gmm.component_distribution.log_prob(x.view(-1,1))
                 pdfs = torch.exp(log_pdfs).to('cpu').detach().numpy()
                 x = x.to('cpu').detach().numpy()
-                plot_distributions([np.log1p(mu), np.log1p(x), pdfs], writer, '2,3 hop_dist/center', step=epoch) 
+                plot_distributions([np.log(mu), np.log1p(x), pdfs], writer, '2,3 hop_dist/center', step=epoch) 
 
             torch.cuda.empty_cache()
         scheduler.step()
