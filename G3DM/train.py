@@ -284,7 +284,7 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                 log_pdfs = dis_gmm.component_distribution.log_prob(x.view(-1,1))
                 pdfs = torch.exp(log_pdfs).to('cpu').detach().numpy()
                 x = x.to('cpu').detach().numpy()
-                plot_distributions([np.expm1(mu), np.expm1(x), pdfs], writer, '2,3 hop_dist/center', step=epoch) 
+                plot_distributions([np.log1p(mu), np.log1p(x), pdfs], writer, '2,3 hop_dist/center', step=epoch) 
 
             torch.cuda.empty_cache()
         scheduler.step()
