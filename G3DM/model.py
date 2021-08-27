@@ -146,14 +146,14 @@ class encoder_chain(torch.nn.Module):
 
         x = self.norm_(h[ntype[0]][:,0,:]).view(-1,1,3)
         h = self.layer3(subg_interacts, {ntype[0]: x })
-        dist = torch.distributions.Normal(h[ntype[0]], 1e-4+torch.abs(self.std*torch.ones_like(h[ntype[0]])))
-        x = dist.rsample()
-        h = self.layerMHs(subg_interacts, {ntype[0]: x })
+        h = self.layerMHs(subg_interacts, h)
 
         res = list()
         for i in torch.arange(self.num_heads):
             x = h[ntype[0]][:,i,:]
             x = self.norm_(x)
+            dist = torch.distributions.Normal(x, torch.ones_like(x))
+            x = dist.rsample()
             res.append(x)
         res = torch.stack(res, dim=1)
         return res
