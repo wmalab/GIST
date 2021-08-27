@@ -250,10 +250,10 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
             valid_loss_list.append(ll)
 
             if epoch == 0 and j == 0 and writer is not None:
-                # pass
-                m = cluster_weights['mat']
-                plot_feature([h_f_n, h_p_n], writer, '0, features/h')
-                plot_cluster(m, writer, int(config['parameter']['graph']['num_clusters']),'0, cluster/bead', step=None)
+                pass
+                # m = cluster_weights['mat']
+                # plot_feature([h_f_n, h_p_n], writer, '0, features/h')
+                # plot_cluster(m, writer, int(config['parameter']['graph']['num_clusters']),'0, cluster/bead', step=None)
 
             if epoch%3==0 and j == 0 and writer is not None and config is not None:
                 num_heads = int(config['parameter']['G3DM']['num_heads'])
@@ -263,21 +263,21 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                                             int(config['parameter']['graph']['num_clusters']), 
                                             em_networks, ae_networks, device)
 
-                plot_X(center_X, writer, '1, 3D/center', step=epoch)
-                plot_cluster(pred_distance_mat, writer, 
-                            int(config['parameter']['graph']['num_clusters']),
-                            '2,1 cluster/prediction distance', step=epoch)
-                # plot_cluster(pred_contact_mat, writer, 
+                # plot_X(center_X, writer, '1, 3D/center', step=epoch)
+                # plot_cluster(pred_distance_mat, writer, 
                 #             int(config['parameter']['graph']['num_clusters']),
-                #             '2,1 cluster/prediction contact', step=epoch)
+                #             '2,1 cluster/prediction distance', step=epoch)
+                # # plot_cluster(pred_contact_mat, writer, 
+                # #             int(config['parameter']['graph']['num_clusters']),
+                # #             '2,1 cluster/prediction contact', step=epoch)
 
-                plot_cluster(center_true_mat, writer, 
-                            int(config['parameter']['graph']['num_clusters']),
-                            '2,1 cluster/true', step=epoch) if epoch==0 else None
+                # plot_cluster(center_true_mat, writer, 
+                #             int(config['parameter']['graph']['num_clusters']),
+                #             '2,1 cluster/true', step=epoch) if epoch==0 else None
 
-                # plot_confusion_mat(pred_distance_mat, pred_contact_mat,  writer, '2,2 confusion matrix/predicted distance - predicted contact', step=epoch)
-                plot_confusion_mat(pred_distance_mat, center_true_mat,  writer, '2,2 confusion matrix/predicted distance - true contact', step=epoch)
-                # plot_confusion_mat(pred_contact_mat, center_true_mat,  writer, '2,3 confusion matrix/predicted contact - true contact', step=epoch)
+                # # plot_confusion_mat(pred_distance_mat, pred_contact_mat,  writer, '2,2 confusion matrix/predicted distance - predicted contact', step=epoch)
+                # plot_confusion_mat(pred_distance_mat, center_true_mat,  writer, '2,2 confusion matrix/predicted distance - true contact', step=epoch)
+                # # plot_confusion_mat(pred_contact_mat, center_true_mat,  writer, '2,3 confusion matrix/predicted contact - true contact', step=epoch)
 
                 mu = (dis_gmm.component_distribution.mean).to('cpu').detach().numpy()
                 x = torch.linspace(start=0, end=mu.max()*1.2, steps=100, device=device)
