@@ -113,9 +113,9 @@ class encoder_chain(torch.nn.Module):
         gain = torch.nn.init.calculate_gain('relu')
         torch.nn.init.xavier_normal_(self.fc3.weight, gain=gain)
 
-        self.std = torch.nn.Parameter(torch.empty((1)), requires_grad=True)
-        gain = torch.nn.init.calculate_gain('relu')
-        torch.nn.init.normal_(self.std)
+        # self.std = torch.nn.Parameter(torch.empty((1)), requires_grad=True)
+        # gain = torch.nn.init.calculate_gain('relu')
+        # torch.nn.init.normal_(self.std)
 
 
     def agg_func2(self, tensors, dsttype):
@@ -152,7 +152,7 @@ class encoder_chain(torch.nn.Module):
         for i in torch.arange(self.num_heads):
             x = h[ntype[0]][:,i,:]
             x = self.norm_(x)
-            dist = torch.distributions.Normal(x, torch.ones_like(x))
+            dist = torch.distributions.Normal(x, 0.3*torch.ones_like(x))
             x = dist.rsample()
             res.append(x)
         res = torch.stack(res, dim=1)
