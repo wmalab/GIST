@@ -526,7 +526,7 @@ class decoder_gmm(torch.nn.Module):
         r = torch.div(right, left)
         clip_kr = (k*r).clamp(min=0.01, max=0.5)
         u = torch.div( torch.ones(1, device=k.device), clip_kr)
-        value = right* torch.sqrt( u - 1 )
+        value = right*torch.sqrt( u - 1 )
         return value
 
     def forward(self, distance):
@@ -543,11 +543,11 @@ class decoder_gmm(torch.nn.Module):
 
         gamma = torch.relu(self.gamma) + 1e-2
         gamma_l = torch.cat( (gamma[0:1], gamma[0:-1]), dim=0)
-        g_left = self.fc(gamma_l, gamma, self.k)
-        g_left = torch.cumsum(g_left, dim=0)
-        g_right = self.fc(gamma[0:-1], gamma[0:-1], self.k[1:])
-        g_right = torch.cat( (torch.zeros(1, device=g_right.device), g_right), dim=0)
-        centers = (g_left + g_right).clamp(min=1.0)
+        c_left = self.fc(gamma_l, gamma, self.k)
+        c_left = torch.cumsum(c_left, dim=0)
+        c_right = self.fc(gamma[0:-1], gamma[0:-1], self.k[1:])
+        c_right = torch.cat( (torch.zeros(1, device=c_right.device), c_right), dim=0)
+        centers = (c_left + c_right).clamp(min=1.0)
         dis_cmp = D.Cauchy( centers, gamma)
 
 
@@ -555,6 +555,7 @@ class decoder_gmm(torch.nn.Module):
 
         # dis_cdf = dis_gmm.cdf(distance)
         # dis_cmpt_cdf = dis_gmm.component_distribution.cdf(distance.view(-1,1))
+        print(dis_gmm)
         unsafe_dis_cmpt_lp = dis_gmm.component_distribution.log_prob(distance.view(-1,1))
         dis_cmpt_lp = torch.nan_to_num(unsafe_dis_cmpt_lp, nan=-float('inf'))
 
