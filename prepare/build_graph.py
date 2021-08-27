@@ -70,7 +70,7 @@ def create_graph_1lvl(norm_hic, for_test,
                       cutoff_cluster,
                       output_path, output_prefix_filename):
 
-    log_hic = norm_hic # log1p_hic(norm_hic)
+    log_hic = log1p_hic(norm_hic)
     n_idx = np.sort(np.argwhere(np.sum(log_hic, axis=0)!=0)).flatten()
     idxs = n_idx
     # only 1 log Hi-C
@@ -146,7 +146,7 @@ def permutation_list(idx, max_len, iteration=10):
             idx_list.append( np.sort(sub) )
     return idx_list
 
-def create_hierarchical_graph_2lvl(norm_hics, num_clusters, ratios, strides, cutoff_percent={0: 10, 1: 10}, cutoff_cluster={0: 4, 1: 6}):
+"""def create_hierarchical_graph_2lvl(norm_hics, num_clusters, ratios, strides, cutoff_percent={0: 10, 1: 10}, cutoff_cluster={0: 4, 1: 6}):
     log_hics = [log1p_hic(x) for x in norm_hics]
     idxs = [np.arange(len(hic)) for hic in norm_hics]
 
@@ -299,3 +299,4 @@ def create_hierarchical_graph_2lvl(norm_hics, num_clusters, ratios, strides, cut
               bottom_graph, bottom_subgraphs, inter_graph]
 
     return g, g_list, cweights_, mats_
+"""
