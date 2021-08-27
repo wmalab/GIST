@@ -281,7 +281,7 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
 
                 mu = (dis_gmm.component_distribution.mean).to('cpu').detach().numpy()
                 x = torch.linspace(start=-2.0, end=mu.max()*2, steps=100, device=device)
-                log_pdfs = dis_gmm.component_distribution.log_prob(x.view(-1,1))
+                log_pdfs = dis_gmm.component_distribution.log_prob(torch.log1p(x).view(-1,1))
                 pdfs = torch.exp(log_pdfs).to('cpu').detach().numpy()
                 x = x.to('cpu').detach().numpy()
                 plot_distributions([mu, x, pdfs], writer, '2,3 hop_dist/center', step=epoch) 
