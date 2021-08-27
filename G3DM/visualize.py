@@ -101,7 +101,8 @@ def plot_distributions(inputs, writer, item_dir, step=None):
     colors = plt.cm.tab20(np.linspace(0,1,n))
     for i in np.arange(pdfs.shape[1]):
         axs.plot(x.flatten(), pdfs[:,i], color=colors[i])
-        plt.xlim(left=-2.0)
+    plt.xlim(left=-2.0, right=mu.max()*1.5)
+
 
     step = 0 if step is None else step
     writer.add_figure(item_dir, fig, global_step=step)
