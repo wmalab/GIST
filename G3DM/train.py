@@ -7,7 +7,7 @@ import numpy as np
 
 from .model import embedding, encoder_chain, decoder_distance, decoder_gmm, save_model_state_dict
 from .loss import nllLoss, stdLoss, ClusterWassersteinLoss
-from .visualize import plot_feature, plot_X, plot_cluster, plot_confusion_mat, plot_lines
+from .visualize import plot_feature, plot_X, plot_cluster, plot_confusion_mat, plot_distributions
 from .visualize import plot_scaler
 
 # import GPUtil
@@ -257,11 +257,6 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
 
             if epoch%3==0 and j == 0 and writer is not None and config is not None:
                 num_heads = int(config['parameter']['G3DM']['num_heads'])
-                # [center_X, 
-                # pred_distance_mat, pred_contact_mat, 
-                # center_true_mat, [cnt_gmm, dis_gmm] ] = inference(graphs, h_feat, num_heads, 
-                #                             int(config['parameter']['graph']['num_clusters']), 
-                #                             em_networks, ae_networks, device)
                 [center_X, 
                 pred_distance_mat, 
                 center_true_mat, [dis_gmm] ] = inference(graphs, h_feat, num_heads, 
@@ -284,30 +279,11 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                 plot_confusion_mat(pred_distance_mat, center_true_mat,  writer, '2,2 confusion matrix/predicted distance - true contact', step=epoch)
                 # plot_confusion_mat(pred_contact_mat, center_true_mat,  writer, '2,3 confusion matrix/predicted contact - true contact', step=epoch)
 
-                # x1 = np.linspace(0.0, 0.01, num=50)
-                # for name, param in ae_networks[1].named_parameters():
-                #     if name == 'in_dist':
-                #         mat = param.to('cpu').detach()
-                #         mat = torch.softmax(mat, dim=0).numpy()
-                #     if name == 'r':
-                #         r = param.to('cpu').detach().numpy()
-                # x1 = np.matmul(x1*r, mat)
-                # x = np.concatenate([[0], x1, [2.0]])
-                # x = np.sort(x)
-
-                # for name, param in ae_networks[2].named_parameters():
-                #     if name == 'in_dist':
-                #         x1 = torch.abs(param.to('cpu')).detach().numpy()
-                # x1 = x1 + np.ones_like(x1)*0.05
-                # x = np.cumsum(x1)
-                # x = np.clip( x, a_min=0.1, a_max=20.0)
-
-                x = (dis_gmm.component_distribution.mean).to('cpu').detach().numpy()
-                # x = np.clip(x, a_min=0.1, a_max=None)
-                # x = np.cumsum(x)
-                x = np.concatenate([[0], x])
-                x = np.sort(x)
-                plot_lines(x, writer, '2,3 hop_dist/center', step=epoch) 
+                mu = (dis_gmm.component_distribution.mean).to('cpu').detach().numpy()
+                x = torch.linspace(start=0, end=mu.max()*1.2, steps=100, device=device)
+                log_pdfs = dis_gmm.component_distribution.log_prob(x.view(-1,1))
+                pdfs = torch.exp(log_pdfs).to('cpu').detach().numpy()
+                plot_distributions([mu, x, pdfs], writer, '2,3 hop_dist/center', step=epoch) 
 
             torch.cuda.empty_cache()
         scheduler.step()

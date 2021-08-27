@@ -82,5 +82,25 @@ def plot_lines(x, writer, item_dir, step=None):
     step = 0 if step is None else step
     writer.add_figure(item_dir, fig, global_step=step)
 
+def plot_distributions(inputs, writer, item_dir, step=None):
+    [mu, x, pdfs] = inputs
+
+    y = np.zeros_like(mu.flatten())
+    z = np.arange(len(mu.flatten()))
+
+    fig, axs = plt.subplots(1, 1)
+    cmaps = ['tab20']
+    scatter = axs.scatter(mu.flatten(), y, c=z, cmap=cmaps[0])
+    legend = axs.legend(*scatter.legend_elements(),
+                    loc="lower right", title="Classes")
+    axs.add_artist(legend)
+
+    for i in np.arange(pdfs.shape[1]):
+        axs.plot(x.flatten(), pdfs[:,i])
+        plt.xlim(left=-0.01)
+
+    step = 0 if step is None else step
+    writer.add_figure(item_dir, fig, global_step=step)
+
 def plot_scaler(value, writer, item_dir, step):
     writer.add_scalars(item_dir, value, step)
