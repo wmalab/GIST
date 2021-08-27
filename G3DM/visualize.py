@@ -98,7 +98,7 @@ def plot_distributions(inputs, writer, item_dir, step=None):
     axs.add_artist(legend)
 
     n = pdfs.shape[1]
-    colors = pl.cm.get_cmap['tab20'](np.linspace(0,1,n))
+    colors = pl.cm.jet(np.linspace(0,1,n))
     for i in np.arange(pdfs.shape[1]):
         axs.plot(x.flatten(), pdfs[:,i], cmp=cmaps[i])
         plt.xlim(left=-0.01)
