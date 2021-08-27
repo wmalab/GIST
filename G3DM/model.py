@@ -517,7 +517,7 @@ class decoder_gmm(torch.nn.Module):
     def fc(self, stds_l, stds_r, k):
         k = torch.sigmoid(k.clamp(min=-8.0, max=8.0))
         r = torch.div(stds_r, stds_l)
-        clip_kr = (k*r.clamp(min=0.1, max=0.9) )
+        clip_kr = (k*r).clamp(min=0.01, max=0.5)
         return stds_r * torch.sqrt( -2.0 * torch.log(clip_kr) )
 
     def forward(self, distance):
