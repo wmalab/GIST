@@ -524,7 +524,7 @@ class decoder_gmm(torch.nn.Module):
     def fc(self, left, right, k):
         k = torch.sigmoid(k.clamp(min=-8.0, max=8.0))
         r = torch.div(right, left)
-        clip_kr = (k*r).clamp(min=0.01, max=0.5)
+        clip_kr = (k*r).clamp(min=0.01, max=0.9)
         u = torch.div( torch.ones(1, device=k.device), clip_kr)
         value = right*torch.sqrt( u - 1 )
         return value
@@ -556,7 +556,7 @@ class decoder_gmm(torch.nn.Module):
         # dis_cdf = dis_gmm.cdf(distance)
         # dis_cmpt_cdf = dis_gmm.component_distribution.cdf(distance.view(-1,1))
         # print(dis_gmm)
-        unsafe_dis_cmpt_lp = dis_gmm.component_distribution.log_prob(distance.view(-1,1))
+        unsafe_dis_cmpt_lp = dis_gmm.component_distribution.log_prob(torch.log1p(distance).view(-1,1))
         dis_cmpt_lp = torch.nan_to_num(unsafe_dis_cmpt_lp, nan=-float('inf'))
 
         # return [dis_cdf], [dis_cmpt_cdf], [dis_cmpt_lp], [dis_gmm]
