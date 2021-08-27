@@ -284,7 +284,10 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                 x = torch.linspace(start=-1.0, end=mu.max()*1.05, steps=100, device=device)
                 log_pdfs = dis_gmm.component_distribution.log_prob(x.view(-1,1))
                 normal_pdfs = torch.exp(log_pdfs).to('cpu').detach().numpy()
-                plot_distributions([mu.to('cpu').detach().numpy(), x.to('cpu').detach().numpy(), normal_pdfs], writer, '2,3 hop_dist/normal', step=epoch) 
+                plot_distributions([mu.to('cpu').detach().numpy(), 
+                                    x.to('cpu').detach().numpy(), 
+                                    normal_pdfs], 
+                                    writer, '2,3 hop_dist/Normal ln(x)~N(,)', step=epoch) 
 
                 lognormal_pdfs = torch.empty(normal_pdfs.shape)
                 lognormal_mu = torch.empty(mu.shape)
@@ -298,7 +301,7 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                 plot_distributions( [mu.to('cpu').detach().numpy(), 
                                     x.to('cpu').detach().numpy(), 
                                     lognormal_pdfs.to('cpu').detach().numpy()], 
-                                    writer, '2,3 hop_dist/lognormal', step=epoch) 
+                                    writer, '2,3 hop_dist/LogNormal x~LogNormal(,)', step=epoch) 
 
             torch.cuda.empty_cache()
         scheduler.step()
