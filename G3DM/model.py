@@ -524,7 +524,7 @@ class decoder_gmm(torch.nn.Module):
     def fc(self, left, right, k):
         k = torch.sigmoid(k.clamp(min=-8.0, max=8.0))
         r = torch.div(right, left)
-        clip_kr = (k*r).clamp(min=0.01, max=0.85)
+        clip_kr = (k*r).clamp(min=0.01, max=0.95)
         u = torch.div( torch.ones(1, device=k.device), clip_kr)
         value = right*torch.sqrt( u - 1 )
         return value
