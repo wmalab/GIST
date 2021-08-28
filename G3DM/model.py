@@ -507,7 +507,10 @@ class decoder_gmm(torch.nn.Module):
         self.num_clusters = num_clusters
         self.weights = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
         self.k = torch.nn.Parameter( torch.zeros(self.num_clusters), requires_grad=True)
+        ms = torch.linspace(0.0, 5.0, steps=self.num_clusters, dtype=torch.float)
+        self.means = torch.nn.Parameter( ms, requires_grad=True)
         self.distance_stdevs = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
+
         # self.gamma = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
         # self.reset()
 
@@ -533,16 +536,16 @@ class decoder_gmm(torch.nn.Module):
         mix = D.Categorical(torch.relu(self.weights))
 
         stds = torch.relu(self.distance_stdevs) + 1e-1
-        stds_l = torch.cat( (stds[0:1], stds[0:-1]), dim=0)
+        # stds_l = torch.cat( (stds[0:1], stds[0:-1]), dim=0)
 
-        d_left = self.fc(stds_l, stds, self.k).clamp(min=0.0)
-        d_left = torch.cumsum(d_left, dim=0).clamp(min=0.0)
+        # d_left = self.fc(stds_l, stds, self.k).clamp(min=0.0)
+        # d_left = torch.cumsum(d_left, dim=0).clamp(min=0.0)
 
-        d_right = self.fc(stds[0:-1], stds[0:-1], self.k[1:]).clamp(min=0.0)
-        d_right = torch.cat( (torch.zeros(1, device=d_right.device), d_right), dim=0)
+        # d_right = self.fc(stds[0:-1], stds[0:-1], self.k[1:]).clamp(min=0.0)
+        # d_right = torch.cat( (torch.zeros(1, device=d_right.device), d_right), dim=0)
 
-        means = (d_left + d_right)
-        ms, ids = torch.sort(means)
+        # means = (d_left + d_right)
+        ms, ids = torch.sort(self.means)
         stddev = stds[ids]
         dis_cmp = D.Normal( ms, stddev)
 
