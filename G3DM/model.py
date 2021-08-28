@@ -515,19 +515,19 @@ class decoder_gmm(torch.nn.Module):
     #     gain = torch.nn.init.calculate_gain('relu')
     #     torch.nn.init.xavier_normal_(self.distance_stdevs.view(-1,1), gain=gain)
 
-    # def fc(self, stds_l, stds_r, k):
-    #     k = torch.sigmoid(k.clamp(min=-8.0, max=8.0))
-    #     r = torch.div(stds_r, stds_l)
-    #     clip_kr = (k*r).clamp(min=0.01, max=0.5)
-    #     return stds_r * torch.sqrt( -2.0 * torch.log(clip_kr) )
-
-    def fc(self, left, right, k):
+    def fc(self, stds_l, stds_r, k):
         k = torch.sigmoid(k.clamp(min=-8.0, max=8.0))
-        r = torch.div(right, left).clamp(min=0.1)
-        clip_kr = (k*r).clamp(max=0.9)
-        u = torch.div( torch.ones(1, device=k.device), clip_kr)
-        value = right*torch.sqrt( u - 1 )
-        return value
+        r = torch.div(stds_r, stds_l)
+        clip_kr = (k*r).clamp(min=0.01, max=0.9)
+        return stds_r * torch.sqrt( -2.0 * torch.log(clip_kr) )
+
+    # def fc(self, left, right, k):
+    #     k = torch.sigmoid(k.clamp(min=-8.0, max=8.0))
+    #     r = torch.div(right, left).clamp(min=0.1)
+    #     clip_kr = (k*r).clamp(max=0.9)
+    #     u = torch.div( torch.ones(1, device=k.device), clip_kr)
+    #     value = right*torch.sqrt( u - 1 )
+    #     return value
 
     def forward(self, distance):
         mix = D.Categorical(torch.relu(self.weights))
