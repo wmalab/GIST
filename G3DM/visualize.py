@@ -122,7 +122,7 @@ def plot_distributions(inputs, writer, item_dir, step=None):
         axs.plot(xdata, ydata, color=colors[i])
 
     right_lim = max(9.0, min(x.max(), 120))
-    plt.xlim(left=-0.5, right=right_lim)
+    plt.xlim(left=-3.0, right=right_lim)
     legend = axs.legend(*scatter.legend_elements(),
                 loc="best", title="Classes")
     axs.add_artist(legend)
