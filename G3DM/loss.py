@@ -15,9 +15,9 @@ class ClusterWassersteinLoss(nn.Module):
         pred_cdf = torch.cumsum(np, dim=-1)
         target_cdf = torch.cumsum(target, dim=-1)
 
-        weight = torch.range(start=self.num_cluster, end=1, step=-1, device=target.device)
-        diff = pred_cdf - target_cdf
 
+
+        diff = pred_cdf - target_cdf
         # up_res = torch.relu(diff).mean(dim=0)
         # down_res = torch.relu(-diff).mean(dim=0)
         # up_ratio = torch.div(up_res+0.1, down_res+0.1)
@@ -25,13 +25,15 @@ class ClusterWassersteinLoss(nn.Module):
         # res = up_res*up_ratio + down_res*down_ratio
         res = torch.abs(diff).mean(dim=0)
 
-        w = (cw/cw.mean() + 1)**2
-        w = torch.nn.functional.normalize(w.view(1,-1), p=2)
+        weight = torch.range(start=self.num_cluster, end=1, step=-1, device=target.device)
+        weight = torch.div(weight, (self.num_cluster-1))
+        w = (cw/cw.mean() + 1)**2 
+        w = w * weight.view(1,-1)
+        w = self.num_cluster*torch.nn.functional.normalize(w.view(1,-1), p=2)
         # w = (w/w.mean() + 1)**2
         # res = torch.abs(diff).mean(dim=0)*w.view(1,-1)
         res = res.view(1,-1)*w.view(1,-1)
-        res = (res * weight).sum(dim=-1)
-        res = torch.div(res, (self.num_cluster-1))
+        res = res.sum(dim=-1)
         return res
 
 
@@ -49,8 +51,8 @@ class stdLoss(nn.Module):
         super(stdLoss, self).__init__()
         
     def forward(self, std, cluster, num_cluster):
-        cutoff = torch.relu( 4*torch.ones_like(cluster)- cluster )
-        weight = torch.div(cutoff, 4.0)
+        cutoff = torch.relu( 3*torch.ones_like(cluster)- cluster )
+        weight = torch.div(cutoff, 3.0)
         mask = (cluster!=0)
         res = torch.sum(std*weight.view(-1,))/(1+mask.sum())
         return res
