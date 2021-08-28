@@ -89,12 +89,12 @@ def plot_distributions(inputs, writer, item_dir, step=None):
     [m, x, pdfs] = inputs
 
     z = np.ones_like(m.flatten())*0.1
-    y = np.arange(len(m.flatten()))
+    y = np.arange(len(m.flatten()))*0.5
     c = np.arange(len(m.flatten()))
 
     # fig, axs = plt.subplots(1, 1)
     fig = plt.figure()
-    axs = fig.add_subplot(1, 1, 1, projection='3d')
+    axs = fig.add_subplot(1, 2, 1, projection='3d')
     cmaps = ['tab20']
     scatter = axs.scatter3D(m.flatten(), y, z, c=c, cmap=cmaps[0])
     legend = axs.legend(*scatter.legend_elements(),
@@ -104,8 +104,22 @@ def plot_distributions(inputs, writer, item_dir, step=None):
     n = pdfs.shape[1]
     colors = plt.cm.tab20(np.linspace(0,1,n))
     for i in np.arange(pdfs.shape[1]):
-        ydata = i*np.ones_like(x.flatten())
+        ydata = i*np.ones_like(x.flatten())*0.5
         axs.plot3D(x.flatten(), ydata, pdfs[:,i], color=colors[i])
+    right_lim = max(9.0, min(x.max(), 120))
+    plt.xlim(left=-0.5, right=right_lim)
+
+    axs = fig.add_subplot(1, 2, 2)
+    cmaps = ['tab20']
+    scatter = axs.scatter(m.flatten(), z, c=c, cmap=cmaps[0])
+    legend = axs.legend(*scatter.legend_elements(),
+                    loc="best", title="Classes")
+    axs.add_artist(legend)
+
+    n = pdfs.shape[1]
+    colors = plt.cm.tab20(np.linspace(0,1,n))
+    for i in np.arange(pdfs.shape[1]):
+        axs.plot(x.flatten(), pdfs[:,i], color=colors[i])
     right_lim = max(9.0, min(x.max(), 120))
     plt.xlim(left=-0.5, right=right_lim)
 
