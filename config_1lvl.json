@@ -20,7 +20,7 @@
             "num_clusters": 13,
             "cutoff_clusters":{"low": 30.0, "high": 99.99},
             "cutoff_percent": 0,
-            "cutoff_cluster": 4
+            "cutoff_cluster": 7
         },
         "feature":{
             "in_dim": 80,
