@@ -60,7 +60,7 @@ def plot_confusion_mat(y_pred, y_true, writer, item_dir, step=None):
     cm = metrics.confusion_matrix(true, pred, normalize='true')
     fig = plt.figure()
     cmaps = ['RdBu_r']
-    plt.figure(figsize=(20,20))
+    plt.figure(figsize=(30,30))
     fig, axs = plt.subplots(1, 1)
     pcm = axs.pcolormesh(cm, cmap=cmaps[0])
     for (i, j), z in np.ndenumerate(cm):
