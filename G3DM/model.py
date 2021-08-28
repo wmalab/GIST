@@ -523,8 +523,8 @@ class decoder_gmm(torch.nn.Module):
 
     def fc(self, left, right, k):
         k = torch.sigmoid(k.clamp(min=-8.0, max=8.0))
-        r = torch.div(right, left)
-        clip_kr = (k*r).clamp(min=0.01, max=0.9)
+        r = torch.div(right, left).clamp(min=0.1)
+        clip_kr = (k*r).clamp(max=0.9)
         u = torch.div( torch.ones(1, device=k.device), clip_kr)
         value = right*torch.sqrt( u - 1 )
         return value
@@ -532,7 +532,7 @@ class decoder_gmm(torch.nn.Module):
     def forward(self, distance):
         mix = D.Categorical(torch.relu(self.weights))
 
-        stds = torch.relu(self.distance_stdevs) + 1e-2
+        stds = torch.relu(self.distance_stdevs) + 1e-1
         stds_l = torch.cat( (stds[0:1], stds[0:-1]), dim=0)
         d_left = self.fc(stds_l, stds, self.k)
         d_left = torch.cumsum(d_left, dim=0)
