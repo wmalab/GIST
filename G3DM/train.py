@@ -116,11 +116,11 @@ def fit_one_step(require_grad, graphs, features, cluster_weights, em_networks, a
     l_stdl = loss_fc[1](std, lt, ncluster)
 
     one_hot_lt = torch.nn.functional.one_hot(lt.long(), ncluster)
-    l_wnl = loss_fc[2](dis_cmpt_lp, one_hot_lt)
+    l_wnl = loss_fc[2](dis_cmpt_lp, one_hot_lt, cw)
 
     if require_grad:
         # loss = l_nll + l_wnl*10 # + l_stdl # + 100*l_wnl + l_stdl + l_nll_noweight 
-        loss = l_nll + l_stdl + l_wnl*30
+        loss = l_stdl + l_wnl
         optimizer[0].zero_grad()
         loss.backward()  # retain_graph=False,
         optimizer[0].step()
