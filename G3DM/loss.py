@@ -24,7 +24,8 @@ class ClusterWassersteinLoss(nn.Module):
         # down_ratio = torch.div(down_res+1, up_res+1)
 
         # res = up_res*up_ratio + down_res*down_ratio
-        res = torch.abs(diff).mean(dim=0)*cw.view(1,-1)
+        w = torch.nn.functional.normalize(cw.view(1,-1), p=2)
+        res = torch.abs(diff).mean(dim=0)*w.view(1,-1)
         res = (res * weight).sum(dim=-1)
         res = torch.div(res, (self.num_cluster-1))
         return res
