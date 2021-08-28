@@ -64,7 +64,7 @@ def plot_confusion_mat(y_pred, y_true, writer, item_dir, step=None):
     fig, axs = plt.subplots(1, 1)
     pcm = axs.pcolormesh(cm, cmap=cmaps[0])
     for (i, j), z in np.ndenumerate(cm):
-        axs.text(j+0.4, i+0.4, '{:.0%}'.format(z), ha='center', va='center')
+        axs.text(j+0.4, i+0.4, '{:2}'.format(int(100*z)), ha='center', va='center')
     fig.colorbar(pcm, ax=axs)
     axs.set_ylabel('True') # row of cm
     axs.set_xlabel('Prediction') # col of cm
@@ -102,7 +102,8 @@ def plot_distributions(inputs, writer, item_dir, step=None):
     colors = plt.cm.tab20(np.linspace(0,1,n))
     for i in np.arange(pdfs.shape[1]):
         axs.plot(x.flatten(), pdfs[:,i], color=colors[i])
-    plt.xlim(left=-0.5, right=min(x.max(), 120))
+    right_lim = max(12.0, min(x.max(), 120))
+    plt.xlim(left=-0.5, right=right_lim)
 
 
     step = 0 if step is None else step
