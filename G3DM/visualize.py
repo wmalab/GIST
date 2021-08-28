@@ -88,12 +88,15 @@ def plot_lines(x, writer, item_dir, step=None):
 def plot_distributions(inputs, writer, item_dir, step=None):
     [m, x, pdfs] = inputs
 
-    y = np.ones_like(m.flatten())*0.1
-    z = np.arange(len(m.flatten()))
+    z = np.ones_like(m.flatten())*0.1
+    y = np.arange(len(m.flatten()))
+    c = np.arange(len(m.flatten()))
 
-    fig, axs = plt.subplots(1, 1)
+    # fig, axs = plt.subplots(1, 1)
+    fig = plt.figure()
+    axs = fig.add_subplot(1, 1, 1, projection='3d')
     cmaps = ['tab20']
-    scatter = axs.scatter(m.flatten(), y, c=z, cmap=cmaps[0])
+    scatter = axs.scatter3D(m.flatten(), y, z, c=c, cmap=cmaps[0])
     legend = axs.legend(*scatter.legend_elements(),
                     loc="best", title="Classes")
     axs.add_artist(legend)
@@ -101,7 +104,8 @@ def plot_distributions(inputs, writer, item_dir, step=None):
     n = pdfs.shape[1]
     colors = plt.cm.tab20(np.linspace(0,1,n))
     for i in np.arange(pdfs.shape[1]):
-        axs.plot(x.flatten(), pdfs[:,i], color=colors[i])
+        ydata = i*np.ones_like(x.flatten())
+        axs.plot3D(x.flatten(), ydata, pdfs[:,i], color=colors[i])
     right_lim = max(9.0, min(x.max(), 120))
     plt.xlim(left=-0.5, right=right_lim)
 
