@@ -64,7 +64,7 @@ def plot_confusion_mat(y_pred, y_true, writer, item_dir, step=None):
     fig, axs = plt.subplots(1, 1)
     pcm = axs.pcolormesh(cm, cmap=cmaps[0])
     for (i, j), z in np.ndenumerate(cm):
-        axs.text(j+0.4, i+0.4, '{:0.2f}'.format(z), ha='center', va='center')
+        axs.text(j+0.4, i+0.4, '{:.0%}'.format(z), ha='center', va='center')
     fig.colorbar(pcm, ax=axs)
     axs.set_ylabel('True') # row of cm
     axs.set_xlabel('Prediction') # col of cm
