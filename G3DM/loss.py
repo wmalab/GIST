@@ -45,8 +45,10 @@ class stdLoss(nn.Module):
         super(stdLoss, self).__init__()
         
     def forward(self, std, cluster, num_cluster):
-        weight = torch.relu( torch.abs(cluster - num_cluster/2) - (num_cluster/4) )
-        res = torch.sum(std*weight.view(-1,))/std.shape[0]
+        cutoff = torch.relu( 4*torch.ones_like(cluster)- cluster )
+        weight = torch.div(cutoff, 4.0)
+        mask = (cluster!=0)
+        res = torch.sum(std*weight.view(-1,))/(1+mask.sum())
         return res
 
 class nllLoss(torch.nn.Module):
