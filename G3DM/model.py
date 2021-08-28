@@ -542,7 +542,9 @@ class decoder_gmm(torch.nn.Module):
         d_right = torch.cat( (torch.zeros(1, device=d_right.device), d_right), dim=0)
 
         means = (d_left + d_right)
-        dis_cmp = D.Normal( means, stds)
+        ms, ids = torch.sort(means)
+        stddev = stds[ids]
+        dis_cmp = D.Normal( ms, stddev)
 
         # gamma = torch.relu(self.gamma) + 1e-2
         # gamma_l = torch.cat( (gamma[0:1], gamma[0:-1]), dim=0)
