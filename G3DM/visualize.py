@@ -119,7 +119,7 @@ def plot_distributions(inputs, writer, item_dir, step=None):
     for i in np.arange(pdfs.shape[1]):
         xdata = x.flatten()
         ydata = pdfs[:,i] + np.ones_like(pdfs[:,i])*i*0.1
-        axs.plot(xdata, pdfs[:,i], color=colors[i])
+        axs.plot(xdata, ydata, color=colors[i])
 
     right_lim = max(9.0, min(x.max(), 120))
     plt.xlim(left=-0.5, right=right_lim)
