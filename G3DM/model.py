@@ -143,10 +143,9 @@ class encoder_chain(torch.nn.Module):
 
         h = self.layer1(subg_interacts, {ntype[0]: x })
         h = self.layer2(subg_interacts, h)
-
+        h = self.layer3(subg_interacts, h)
         x = self.norm_(h[ntype[0]][:,0,:]).view(-1,1,3)
-        h = self.layer3(subg_interacts, {ntype[0]: x })
-        h = self.layerMHs(subg_interacts, h)
+        h = self.layerMHs(subg_interacts, {ntype[0]: x })
 
         res = list()
         for i in torch.arange(self.num_heads):
@@ -547,8 +546,8 @@ class decoder_gmm(torch.nn.Module):
        
         means = torch.nn.LeakyReLU(negative_slope=0.05)(self.means)
         means, idx = torch.sort( self.means)
-        means = means.clamp(min=-0.5)
-        stds = (torch.relu(self.distance_stdevs) + 1e-1)[idx]
+        means = means.clamp(min=-0.5, max=5.0)
+        stds = (torch.relu(self.distance_stdevs) + 1e-3)[idx]
         dis_cmp = D.Normal( means, stds)
         dis_gmm = D.MixtureSameFamily(mix, dis_cmp)
 
