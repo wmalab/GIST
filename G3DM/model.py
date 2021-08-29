@@ -546,9 +546,10 @@ class decoder_gmm(torch.nn.Module):
        
         means = torch.nn.LeakyReLU(negative_slope=0.05)(self.means)
         means, idx = torch.sort( self.means)
-        means = means.clamp(min=-0.5, max=5.0)
+        means = means.clamp(min=-0.5, max=4.5)
         stds = (torch.relu(self.distance_stdevs) + 1e-3)[idx]
-        dis_cmp = D.Normal( means, stds)
+        # dis_cmp = D.Normal( means, stds)
+        dis_cmp = D.Gumbel( means, stds)
         dis_gmm = D.MixtureSameFamily(mix, dis_cmp)
 
         # dis_cdf = dis_gmm.cdf(distance)
