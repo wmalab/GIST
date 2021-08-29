@@ -547,13 +547,15 @@ class decoder_gmm(torch.nn.Module):
         means, idx = torch.sort( self.means)
         means = torch.relu(means)
         stds = (torch.relu(self.distance_stdevs) + 1e-1)[idx]
-        dis_cmp = D.Normal( means, stds)
+        # dis_cmp = D.Normal( means, stds)
+        dis_cmp = D.Gumbel( means, stds)
         dis_gmm = D.MixtureSameFamily(mix, dis_cmp)
 
         # dis_cdf = dis_gmm.cdf(distance)
         # dis_cmpt_cdf = dis_gmm.component_distribution.cdf(distance.view(-1,1))
         # print(dis_gmm)
-        unsafe_dis_cmpt_lp = dis_gmm.component_distribution.log_prob(torch.log(distance).view(-1,1))
+        # unsafe_dis_cmpt_lp = dis_gmm.component_distribution.log_prob(torch.log(distance).view(-1,1))
+        unsafe_dis_cmpt_lp = dis_gmm.component_distribution.log_prob(distance.view(-1,1))
         dis_cmpt_lp = torch.nan_to_num(unsafe_dis_cmpt_lp, nan=-float('inf'))
 
         # return [dis_cdf], [dis_cmpt_cdf], [dis_cmpt_lp], [dis_gmm]
