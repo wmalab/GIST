@@ -299,8 +299,8 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                     C = 2*std[i]**2
                     lognormal_pdfs[:,i] = A * torch.exp(-1.0*torch.div(B, C))
                     lognormal_mu[i] = torch.exp(mu[i])*torch.sqrt( torch.exp(std[i]**2.0))
-                    # lognormal_mode[i] = torch.exp(mu[i] - std[i]**2)
-                    lognormal_mode[i] = torch.exp(mu[i])
+                    lognormal_mode[i] = torch.exp(mu[i] - std[i]**2)
+                    # lognormal_mode[i] = torch.exp(mu[i])
                 plot_distributions( [lognormal_mode.to('cpu').detach().numpy(), 
                                     x.to('cpu').detach().numpy(), 
                                     lognormal_pdfs.to('cpu').detach().numpy()], 
