@@ -547,9 +547,9 @@ class decoder_gmm(torch.nn.Module):
 
 
         means = torch.nn.LeakyReLU(negative_slope=0.05)(self.means)
-        means, idx = torch.sort( self.means)
         interval = torch.cat( (torch.zeros((1), device=self.interval.device), self.interval.clamp(min=0.01, max=0.1)) )
         means = means.clamp(min=-0.5, max=4.0) + interval
+        means, idx = torch.sort( self.means)
         stds = (torch.relu(self.distance_stdevs) + 1e-3)[idx]
         stds = torch.div(stds, means.clamp(min=0.99) )
         dis_cmp = D.Normal( means, stds)
