@@ -86,7 +86,7 @@ def plot_lines(x, writer, item_dir, step=None):
     writer.add_figure(item_dir, fig, global_step=step)
 
 def plot_distributions(inputs, writer, item_dir, step=None):
-    [m, x, pdfs] = inputs
+    [m, x, pdfs, weights] = inputs
 
     z = np.ones_like(m.flatten())*0.1
     y = np.arange(len(m.flatten()))*0.5
@@ -120,6 +120,7 @@ def plot_distributions(inputs, writer, item_dir, step=None):
         xdata = x.flatten()
         ydata = pdfs[:,i] + i*0.1
         axs.plot(xdata, ydata, color=colors[i])
+        axs.text(m[i], i*0.1, '{}'.format(weights[i]) )
 
     right_lim = max(9.0, min(x.max(), 120))
     plt.xlim(left=-3.0, right=right_lim)

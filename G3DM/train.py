@@ -119,8 +119,7 @@ def fit_one_step(require_grad, graphs, features, cluster_weights, em_networks, a
     l_wnl = loss_fc[2](dis_cmpt_lp, one_hot_lt, cw)
 
     if require_grad:
-        # loss = l_nll + l_wnl*10 # + l_stdl # + 100*l_wnl + l_stdl + l_nll_noweight 
-        loss = l_stdl + (l_wnl*10+1)**2 + (l_nll+1)**2
+        loss = l_stdl*10 + l_wnl*10 + l_nll
         optimizer[0].zero_grad()
         loss.backward()  # retain_graph=False,
         optimizer[0].step()
@@ -284,9 +283,11 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                 x = torch.linspace(start=-1.0, end=mu.max()*1.5, steps=100, device=device)
                 log_pdfs = dis_gmm.component_distribution.log_prob(x.view(-1,1))
                 normal_pdfs = torch.exp(log_pdfs).to('cpu').detach().numpy()
+                weights = dis_gmm.mixture_distribution.to('cpu').detach().numpy()
                 plot_distributions([mu.to('cpu').detach().numpy(), 
                                     x.to('cpu').detach().numpy(), 
-                                    normal_pdfs], 
+                                    normal_pdfs,
+                                    weights], 
                                     writer, '2,3 hop_dist/Normal ln(x)~N(,)', step=epoch) 
 
                 lognormal_pdfs = torch.empty(normal_pdfs.shape)
@@ -303,7 +304,8 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                     # lognormal_mode[i] = torch.exp(mu[i])
                 plot_distributions( [lognormal_mode.to('cpu').detach().numpy(), 
                                     x.to('cpu').detach().numpy(), 
-                                    lognormal_pdfs.to('cpu').detach().numpy()], 
+                                    lognormal_pdfs.to('cpu').detach().numpy(),
+                                    weights], 
                                     writer, '2,3 hop_dist/LogNormal x~LogNormal(,)', step=epoch) 
 
             torch.cuda.empty_cache()
