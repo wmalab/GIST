@@ -548,12 +548,12 @@ class decoder_gmm(torch.nn.Module):
         # means = (d_left + d_right)
 
         means = torch.nn.LeakyReLU(negative_slope=0.05)(self.means)
-        interval = torch.cumsum(self.interval.clamp(min=0.01), dim=0).clamp(min=0.2)
+        interval = torch.cumsum(self.interval.clamp(min=0.02), dim=0).clamp(min=0.2)
         interval = torch.cat( (torch.zeros((1), device=self.interval.device), interval) )
         means = (means + interval).clamp(max=5.0)
 
         stds = (torch.relu(self.distance_stdevs) + 1e-3)
-        # stds = torch.div(stds, means.clamp(min=1.0) )
+        stds = torch.div(stds, means.clamp(min=1.0) )
         dis_cmp = D.Normal( means, stds)
         dis_gmm = D.MixtureSameFamily(mix, dis_cmp)
 
