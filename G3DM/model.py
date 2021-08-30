@@ -552,7 +552,7 @@ class decoder_gmm(torch.nn.Module):
         means = means + interval
         means = means.clamp(min=-0.5, max=4.5)
         stds = (torch.relu(self.distance_stdevs) + 1e-3)[idx]
-        stds = torch.div(stds, torch.sqrt(torch.exp(means)) )
+        stds = torch.div(stds, means.clamp(min=0.99) )
         dis_cmp = D.Normal( means, stds)
         dis_gmm = D.MixtureSameFamily(mix, dis_cmp)
 
