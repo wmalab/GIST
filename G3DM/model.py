@@ -511,7 +511,7 @@ class decoder_gmm(torch.nn.Module):
         self.distance_stdevs = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
 
         interval = torch.linspace(start=0.1, end=0.01, steps=self.num_clusters-1)
-        self.interval = torch.nn.Parameter( torch.cat( (torch.zeros((1)), interval) ), requires_grad=True)
+        self.interval = torch.nn.Parameter( interval, requires_grad=True)
         # self.gamma = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
         # self.reset()
 
@@ -548,7 +548,8 @@ class decoder_gmm(torch.nn.Module):
        
         means = torch.nn.LeakyReLU(negative_slope=0.05)(self.means)
         means, idx = torch.sort( self.means)
-        means = means + self.interval.clamp(min=0.0, max=0.1)
+        interval = torch.cat( (torch.zeros((1)), self.interval.clamp(min=0.01, max=0.1)) )
+        means = means + interval
         means = means.clamp(min=-0.5, max=4.5)
         stds = (torch.relu(self.distance_stdevs) + 1e-3)[idx]
         dis_cmp = D.Normal( means, stds)
