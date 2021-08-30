@@ -279,7 +279,7 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                 plot_confusion_mat(pred_distance_mat, center_true_mat,  writer, '2,2 confusion matrix/predicted distance - true contact', step=epoch)
                 # plot_confusion_mat(pred_contact_mat, center_true_mat,  writer, '2,3 confusion matrix/predicted contact - true contact', step=epoch)
 
-                mu = (dis_gmm.component_distribution.mean).clamp(max=4.1)
+                mu = (dis_gmm.component_distribution.mean)
                 std = (dis_gmm.component_distribution.stddev)
                 x = torch.linspace(start=-1.0, end=mu.max()*1.5, steps=100, device=device)
                 log_pdfs = dis_gmm.component_distribution.log_prob(x.view(-1,1))

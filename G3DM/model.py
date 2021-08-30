@@ -506,8 +506,9 @@ class decoder_gmm(torch.nn.Module):
         self.num_clusters = num_clusters
         self.weights = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
         self.k = torch.nn.Parameter( torch.zeros(self.num_clusters), requires_grad=True)
-        ms = torch.linspace(0.0, 5.0, steps=self.num_clusters, dtype=torch.float)
-        self.means = torch.nn.Parameter( ms, requires_grad=True)
+        # ms = torch.linspace(0.0, 5.0, steps=self.num_clusters, dtype=torch.float)
+
+        self.means = torch.nn.Parameter( torch.zeros(1), requires_grad=True)
         self.distance_stdevs = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
 
         inter = torch.linspace(start=0.1, end=0.01, steps=self.num_clusters-1, device=self.distance_stdevs.device)
@@ -546,11 +547,12 @@ class decoder_gmm(torch.nn.Module):
         # means = (d_left + d_right)
 
         means = torch.nn.LeakyReLU(negative_slope=0.05)(self.means)
-        interval = torch.cat( (torch.zeros((1), device=self.interval.device), self.interval) )
+        inter = torch.cumsum(self.interval.clamp(min=0.1) )
+        interval = torch.cat( (torch.zeros((1), device=self.interval.device), inter) )
         means = means.clamp(min=-0.5, max=4.0) + interval
-        means, idx = torch.sort( self.means)
-        stds = (torch.relu(self.distance_stdevs) + 1e-3)[idx]
-        # stds = torch.div(stds, means.clamp(min=1.0) )
+        # means, idx = torch.sort( self.means)
+        stds = (torch.relu(self.distance_stdevs) + 1e-3)
+        stds = torch.div(stds, means.clamp(min=1.0) )
         dis_cmp = D.Normal( means, stds)
         dis_gmm = D.MixtureSameFamily(mix, dis_cmp)
 
