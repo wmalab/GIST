@@ -507,13 +507,13 @@ class decoder_gmm(torch.nn.Module):
         self.num_clusters = num_clusters
         self.weights = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
         self.k = torch.nn.Parameter( torch.zeros(self.num_clusters), requires_grad=True)
-        # ms = torch.linspace(0.0, 5.0, steps=self.num_clusters, dtype=torch.float)
 
-        self.means = torch.nn.Parameter( -2.0*torch.ones(1), requires_grad=True)
+        ms = torch.linspace(-0.1, 5.0, steps=self.num_clusters, dtype=torch.float)
+        self.means = torch.nn.Parameter( ms, requires_grad=True)
         self.distance_stdevs = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
 
-        inter = torch.linspace(start=0, end=0.5, steps=self.num_clusters-1, device=self.distance_stdevs.device)
-        self.interval = torch.nn.Parameter( inter, requires_grad=True)
+        inter = torch.linspace(start=0.1, end=0.0, steps=self.num_clusters-1, device=self.distance_stdevs.device)
+        self.interval = torch.nn.Parameter( inter, requires_grad=False)
         # self.gamma = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
         # self.reset()
 
@@ -548,12 +548,12 @@ class decoder_gmm(torch.nn.Module):
         # means = (d_left + d_right)
 
         means = torch.nn.LeakyReLU(negative_slope=0.05)(self.means)
-        interval = torch.cumsum(self.interval.clamp(min=0.02), dim=0).clamp(min=0.2)
         interval = torch.cat( (torch.zeros((1), device=self.interval.device), interval) )
         means = (means + interval).clamp(max=5.0)
+        means, idx = torch.sort(means)
 
-        stds = (torch.relu(self.distance_stdevs) + 1e-3)
-        stds = torch.div(stds, means.clamp(min=1.0) )
+        stds = (torch.relu(self.distance_stdevs) + 1e-3)[idx]
+        # stds = torch.div(stds, means.clamp(min=1.0) )
         dis_cmp = D.Normal( means, stds)
         dis_gmm = D.MixtureSameFamily(mix, dis_cmp)
 
