@@ -249,10 +249,10 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
             valid_loss_list.append(ll)
 
             if epoch == 0 and j == 0 and writer is not None:
-                # pass
-                m = cluster_weights['mat']
-                plot_feature([h_f_n, h_p_n], writer, '0, features/h')
-                plot_cluster(m, writer, int(config['parameter']['graph']['num_clusters']),'0, cluster/bead', step=None)
+                pass
+                # m = cluster_weights['mat']
+                # plot_feature([h_f_n, h_p_n], writer, '0, features/h')
+                # plot_cluster(m, writer, int(config['parameter']['graph']['num_clusters']),'0, cluster/bead', step=None)
 
             if epoch%3==0 and j == 0 and writer is not None and config is not None:
                 num_heads = int(config['parameter']['G3DM']['num_heads'])
@@ -283,7 +283,7 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                 x = torch.linspace(start=-1.0, end=mu.max()*1.5, steps=100, device=device)
                 log_pdfs = dis_gmm.component_distribution.log_prob(x.view(-1,1))
                 normal_pdfs = torch.exp(log_pdfs).to('cpu').detach().numpy()
-                weights = (dis_gmm.mixture_distribution).to('cpu').detach().numpy()
+                weights = (dis_gmm.mixture_distribution.probs).to('cpu').detach().numpy()
                 plot_distributions([mu.to('cpu').detach().numpy(), 
                                     x.to('cpu').detach().numpy(), 
                                     normal_pdfs,
