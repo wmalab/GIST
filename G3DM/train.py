@@ -249,10 +249,10 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
             valid_loss_list.append(ll)
 
             if epoch == 0 and j == 0 and writer is not None:
-                pass
-                # m = cluster_weights['mat']
-                # plot_feature([h_f_n, h_p_n], writer, '0, features/h')
-                # plot_cluster(m, writer, int(config['parameter']['graph']['num_clusters']),'0, cluster/bead', step=None)
+                # pass
+                m = cluster_weights['mat']
+                plot_feature([h_f_n, h_p_n], writer, '0, features/h')
+                plot_cluster(m, writer, int(config['parameter']['graph']['num_clusters']),'0, cluster/bead', step=None)
 
             if epoch%3==0 and j == 0 and writer is not None and config is not None:
                 num_heads = int(config['parameter']['G3DM']['num_heads'])
