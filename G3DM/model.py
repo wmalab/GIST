@@ -535,7 +535,7 @@ class decoder_gmm(torch.nn.Module):
     #     return value
 
     def forward(self, distance):
-        mix = D.Categorical(torch.relu(self.weights))
+        mix = D.Categorical(torch.softmax(self.weights))
 
         # stds = torch.relu(self.distance_stdevs) + 1e-1
         # stds_l = torch.cat( (stds[0:1], stds[0:-1]), dim=0)
@@ -550,7 +550,7 @@ class decoder_gmm(torch.nn.Module):
         means = means.clamp(min=-0.5, max=4.0) + interval
         means, idx = torch.sort( self.means)
         stds = (torch.relu(self.distance_stdevs) + 1e-3)[idx]
-        stds = torch.div(stds, means.clamp(min=1.0)**2 )
+        # stds = torch.div(stds, means.clamp(min=1.0) )
         dis_cmp = D.Normal( means, stds)
         dis_gmm = D.MixtureSameFamily(mix, dis_cmp)
 
