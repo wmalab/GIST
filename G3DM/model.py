@@ -512,7 +512,7 @@ class decoder_gmm(torch.nn.Module):
         self.means = torch.nn.Parameter( ms, requires_grad=True)
         self.distance_stdevs = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
 
-        inter = torch.linspace(start=0.1, end=0.0, steps=self.num_clusters-1, device=self.distance_stdevs.device)
+        inter = torch.linspace(start=0, end=0.05, steps=self.num_clusters, device=self.distance_stdevs.device)
         self.interval = torch.nn.Parameter( inter, requires_grad=False)
         # self.gamma = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
         # self.reset()
@@ -539,31 +539,18 @@ class decoder_gmm(torch.nn.Module):
     def forward(self, distance):
         mix = D.Categorical( torch.softmax(self.weights, dim=0))
 
-        # stds = torch.relu(self.distance_stdevs) + 1e-1
-        # stds_l = torch.cat( (stds[0:1], stds[0:-1]), dim=0)
-        # d_left = self.fc(stds_l, stds, self.k).clamp(min=0.0)
-        # d_left = torch.cumsum(d_left, dim=0).clamp(min=0.0)
-        # d_right = self.fc(stds[0:-1], stds[0:-1], self.k[1:]).clamp(min=0.0)
-        # d_right = torch.cat( (torch.zeros(1, device=d_right.device), d_right), dim=0)
-        # means = (d_left + d_right)
-
         means = torch.nn.LeakyReLU(negative_slope=0.05)(self.means)
-        interval = torch.cat( (torch.zeros((1), device=self.interval.device), interval) )
-        means = (means + interval).clamp(max=5.0)
         means, idx = torch.sort(means)
+        means = (means + self.interval).clamp(max=4.5)
 
         stds = (torch.relu(self.distance_stdevs) + 1e-3)[idx]
         # stds = torch.div(stds, means.clamp(min=1.0) )
         dis_cmp = D.Normal( means, stds)
         dis_gmm = D.MixtureSameFamily(mix, dis_cmp)
 
-        # dis_cdf = dis_gmm.cdf(distance)
-        # dis_cmpt_cdf = dis_gmm.component_distribution.cdf(distance.view(-1,1))
-        # print(dis_gmm)
         unsafe_dis_cmpt_lp = dis_gmm.component_distribution.log_prob(torch.log(distance).view(-1,1))
         dis_cmpt_lp = torch.nan_to_num(unsafe_dis_cmpt_lp, nan=-float('inf'))
 
-        # return [dis_cdf], [dis_cmpt_cdf], [dis_cmpt_lp], [dis_gmm]
         return [dis_cmpt_lp], [dis_gmm]
 
 
