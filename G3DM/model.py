@@ -151,6 +151,7 @@ class encoder_chain(torch.nn.Module):
         for i in torch.arange(self.num_heads):
             x = h[ntype[0]][:,i,:]
             x = self.norm_(x)
+            x = torch.nan_to_num(x, nan=0.0, posinf=100.0, neginf=-100.0)
             dist = torch.distributions.Normal(x, 0.3*torch.ones_like(x))
             x = dist.rsample()
             res.append(x)
