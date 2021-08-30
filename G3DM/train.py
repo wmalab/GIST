@@ -119,7 +119,7 @@ def fit_one_step(require_grad, graphs, features, cluster_weights, em_networks, a
     l_wnl = loss_fc[2](dis_cmpt_lp, one_hot_lt, cw)
 
     if require_grad:
-        loss = l_stdl*10 + l_wnl*10 + (l_nll+1)**2
+        loss = l_stdl*10 + l_wnl*10 + l_nll
         optimizer[0].zero_grad()
         loss.backward()  # retain_graph=False,
         optimizer[0].step()

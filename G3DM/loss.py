@@ -25,7 +25,7 @@ class ClusterWassersteinLoss(nn.Module):
 
         # weight = torch.range(start=self.num_cluster, end=1, step=-1, device=target.device)
         # weight = torch.div(weight, (self.num_cluster-1))
-        w = (cw/cw.mean()+2.0)*torch.sqrt(cw/cw.mean()+1.0) 
+        w = (cw/cw.mean())*torch.sqrt(cw/cw.mean()+1.0) 
         # w = w * weight.view(1,-1)
         w = self.num_cluster*torch.nn.functional.normalize(w.view(1,-1), p=1)
         # w = (w/w.mean() + 1)**2
