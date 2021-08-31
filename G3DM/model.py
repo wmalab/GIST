@@ -544,7 +544,7 @@ class decoder_gmm(torch.nn.Module):
         means = (means + self.interval).clamp(max=4.5)
 
         stds = (torch.relu(self.distance_stdevs) + 1e-3)
-        stds, _ = torch.sort(stds, descending=False)
+        stds, _ = torch.sort(stds, descending=True)
         # stds = torch.div(stds, means.clamp(min=1.0) )
         dis_cmp = D.Normal( means, stds)
         dis_gmm = D.MixtureSameFamily(mix, dis_cmp)
