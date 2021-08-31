@@ -534,13 +534,15 @@ class decoder_gmm(torch.nn.Module):
         # d_right = torch.cat( (torch.zeros(1, device=d_right.device), d_right), dim=0)
         # means = (d_left + d_right)
 
-        means = torch.sqrt( torch.relu(self.means) )
-        means = means.clamp(max=10.0) + self.interval 
-        
-        stds = (torch.relu(self.distance_stdevs) + 1e-3)
-        mode = torch.exp(means - stds**2)
+        # means = torch.sqrt( torch.relu(self.means) )
+        means = torch.nn.functional.LeakyReLU(0.1)(means)
+        means = means.clamp(max=5.0) + self.interval 
 
+        stds = (torch.relu(self.distance_stdevs) + 1e-3)
+
+        mode = torch.exp(means - stds**2)
         _, idx = torch.sort(mode)
+        
         means = means[idx]
         stds = stds[idx]
         # stds = torch.div( stds, means.clamp(min=1.0) )
