@@ -508,7 +508,8 @@ class decoder_gmm(torch.nn.Module):
         self.weights = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
         self.k = torch.nn.Parameter( torch.zeros(self.num_clusters), requires_grad=True)
 
-        ms = torch.linspace(-0.1, 5.0, steps=self.num_clusters, dtype=torch.float)
+        # ms = torch.linspace(-0.1, 5.0, steps=self.num_clusters, dtype=torch.float)
+        ms = torch.linspace(1.0, 25.0, steps=self.num_clusters, dtype=torch.float)
         self.means = torch.nn.Parameter( ms, requires_grad=True)
         self.distance_stdevs = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
 
@@ -539,17 +540,20 @@ class decoder_gmm(torch.nn.Module):
     def forward(self, distance):
         mix = D.Categorical( torch.softmax(self.weights, dim=0))
 
-        means = torch.nn.LeakyReLU(negative_slope=0.05)(self.means)
+        # means = torch.nn.LeakyReLU(negative_slope=0.05)(self.means)
+        means = torch.relu(self.means)
         means, idx = torch.sort(means)
-        means = (means + self.interval).clamp(max=4.5)
+        # means = ( means + self.interval ).clamp(max=4.5)
+        means = ( means + self.interval ).clamp(max=60.0)
 
-        stds = (torch.relu(self.distance_stdevs) + 1e-3)
-        stds, _ = torch.sort(stds, descending=True)
-        # stds = torch.div(stds, means.clamp(min=1.0) )
-        dis_cmp = D.Normal( means, stds)
+        stds = (torch.relu(self.distance_stdevs) + 1e-3)[idx]
+        # stds, _ = torch.sort(stds, descending=True)
+
+        dis_cmp = D.Normal(means, stds)
         dis_gmm = D.MixtureSameFamily(mix, dis_cmp)
 
-        unsafe_dis_cmpt_lp = dis_gmm.component_distribution.log_prob(torch.log(distance).view(-1,1))
+        # unsafe_dis_cmpt_lp = dis_gmm.component_distribution.log_prob(torch.log(distance).view(-1,1))
+        unsafe_dis_cmpt_lp = dis_gmm.component_distribution.log_prob( distance.view(-1,1) )
         dis_cmpt_lp = torch.nan_to_num(unsafe_dis_cmpt_lp, nan=-float('inf'))
 
         return [dis_cmpt_lp], [dis_gmm]
