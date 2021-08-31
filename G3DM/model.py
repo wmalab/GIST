@@ -550,7 +550,7 @@ class decoder_gmm(torch.nn.Module):
         # means = means[idx]
         # stds = stds[idx]
 
-        cummode = torch.cumsum(self.mode).clamp(min=1.0)
+        cummode = torch.cumsum(self.mode, dim=0).clamp(min=1.0)
         stds = (torch.relu(self.distance_stdevs) + 1e-3)
         means = torch.log(cummode) + stds**2
 
