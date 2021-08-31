@@ -42,7 +42,7 @@ class stdLoss(nn.Module):
         # weight = torch.div(cutoff, num_cluster)
         # mask = (cluster!=0)
         # res = torch.sum(std*weight.view(-1,))/(1+mask.sum())
-        res = torch.mean(res)
+        res = torch.mean(std)
         return res
 
 class nllLoss(torch.nn.Module):
