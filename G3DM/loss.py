@@ -17,9 +17,9 @@ class ClusterWassersteinLoss(nn.Module):
 
         diff = pred_cdf - target_cdf
         res = (torch.abs(diff)).mean(dim=0)
-        res = torch.exp(res)
+        res = torch.exp(10*res)
 
-        w = (cw/cw.mean() +10.0) # *torch.sqrt(cw/cw.mean()+1.0) 
+        w = (cw/cw.mean() +1.0) # *torch.sqrt(cw/cw.mean()+1.0) 
         w = self.num_cluster*torch.nn.functional.normalize(w.view(1,-1), p=1)
         res = res.view(1,-1)*w.view(1,-1)
         res = res.sum(dim=-1)
