@@ -504,7 +504,7 @@ class decoder_distance(torch.nn.Module):
 class decoder_gmm(torch.nn.Module):
     def __init__(self, num_clusters):
         super(decoder_gmm, self).__init__()
-        self.num_clusters = num_clusters + 1
+        self.num_clusters = num_clusters
         self.weights = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
         # self.k = torch.nn.Parameter( torch.ones(self.num_clusters), requires_grad=True)
 
@@ -524,7 +524,7 @@ class decoder_gmm(torch.nn.Module):
 
 
     def forward(self, distance):
-        mix = D.Categorical( torch.softmax(self.weights[0:-1], dim=0))
+        mix = D.Categorical( torch.softmax(self.weights, dim=0))
 
         # stds = torch.relu(self.distance_stdevs) + 1e-3
         # stds_l = torch.cat( (stds[0:1], stds[0:-1]), dim=0)
@@ -536,13 +536,13 @@ class decoder_gmm(torch.nn.Module):
 
         means = torch.nn.LeakyReLU(negative_slope=0.05)(self.means)
         means, idx = torch.sort(means)
-        means = means.clamp(max=4.0) + self.interval 
+        means = means.clamp(max=5.0) + self.interval 
 
         stds = (torch.relu(self.distance_stdevs) + 1e-3)[idx]
         stds = torch.div( stds, means.clamp(min=1.0) )
         # stds, _ = torch.sort(stds, descending=True)
 
-        dis_cmp = D.Normal(means[0:-1], stds[0:-1])
+        dis_cmp = D.Normal(means, stds)
         dis_gmm = D.MixtureSameFamily(mix, dis_cmp)
 
         unsafe_dis_cmpt_lp = dis_gmm.component_distribution.log_prob(torch.log(distance).view(-1,1))
