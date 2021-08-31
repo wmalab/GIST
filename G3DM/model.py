@@ -508,52 +508,28 @@ class decoder_gmm(torch.nn.Module):
         self.weights = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
         self.k = torch.nn.Parameter( torch.zeros(self.num_clusters), requires_grad=True)
 
-        # ms = torch.linspace(-0.1, 5.0, steps=self.num_clusters, dtype=torch.float)
-        ms = torch.linspace(1.0, 25.0, steps=self.num_clusters, dtype=torch.float)
+        ms = torch.linspace(-0.1, 5.0, steps=self.num_clusters, dtype=torch.float)
         self.means = torch.nn.Parameter( ms, requires_grad=True)
         self.distance_stdevs = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
 
         inter = torch.linspace(start=0, end=0.05, steps=self.num_clusters, device=self.distance_stdevs.device)
         self.interval = torch.nn.Parameter( inter, requires_grad=False)
-        # self.gamma = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
-        # self.reset()
 
-    # def reset(self):
-    #     gain = torch.nn.init.calculate_gain('relu')
-    #     torch.nn.init.xavier_normal_(self.distance_stdevs.view(-1,1), gain=gain)
-
-    # # gmm
-    # def fc(self, stds_l, stds_r, k):
-    #     k = torch.sigmoid(k.clamp(min=-8.0, max=8.0))
-    #     r = torch.div(stds_r, stds_l)
-    #     clip_kr = (k*r).clamp(min=0.01, max=0.9)
-    #     return stds_r * torch.sqrt( -2.0 * torch.log(clip_kr) )
-
-    # def fc(self, left, right, k):
-    #     k = torch.sigmoid(k.clamp(min=-8.0, max=8.0))
-    #     r = torch.div(right, left).clamp(min=0.1)
-    #     clip_kr = (k*r).clamp(max=0.9)
-    #     u = torch.div( torch.ones(1, device=k.device), clip_kr)
-    #     value = right*torch.sqrt( u - 1 )
-    #     return value
 
     def forward(self, distance):
         mix = D.Categorical( torch.softmax(self.weights, dim=0))
 
-        # means = torch.nn.LeakyReLU(negative_slope=0.05)(self.means)
-        means = torch.relu(self.means)
+        means = torch.nn.LeakyReLU(negative_slope=0.05)(self.means)
         means, idx = torch.sort(means)
-        # means = ( means + self.interval ).clamp(max=4.5)
-        means = ( means + self.interval ).clamp(max=60.0)
+        means = ( means + self.interval ).clamp(max=4.5)
 
         stds = (torch.relu(self.distance_stdevs) + 1e-3)
-        # stds, _ = torch.sort(stds, descending=True)
+        stds, _ = torch.sort(stds, descending=True)
 
         dis_cmp = D.Normal(means, stds)
         dis_gmm = D.MixtureSameFamily(mix, dis_cmp)
 
-        # unsafe_dis_cmpt_lp = dis_gmm.component_distribution.log_prob(torch.log(distance).view(-1,1))
-        unsafe_dis_cmpt_lp = dis_gmm.component_distribution.log_prob( distance.view(-1,1) )
+        unsafe_dis_cmpt_lp = dis_gmm.component_distribution.log_prob(torch.log(distance).view(-1,1))
         dis_cmpt_lp = torch.nan_to_num(unsafe_dis_cmpt_lp, nan=-float('inf'))
 
         return [dis_cmpt_lp], [dis_gmm]
