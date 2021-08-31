@@ -536,11 +536,11 @@ class decoder_gmm(torch.nn.Module):
 
         # means = torch.sqrt( torch.relu(self.means) )
         means = torch.nn.LeakyReLU(0.1)(self.means)
-        means = means.clamp(max=5.0) + self.interval 
+        means = means.clamp(max=5.0)
 
         stds = (torch.relu(self.distance_stdevs) + 1e-3)
 
-        mode = torch.exp(means - stds**2)
+        mode = torch.exp(means - stds**2)+ self.interval 
         _, idx = torch.sort(mode)
 
         means = means[idx]
