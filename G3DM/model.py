@@ -504,9 +504,9 @@ class decoder_distance(torch.nn.Module):
 class decoder_gmm(torch.nn.Module):
     def __init__(self, num_clusters):
         super(decoder_gmm, self).__init__()
-        self.num_clusters = num_clusters
+        self.num_clusters = num_clusters + 1
         self.weights = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
-        self.k = torch.nn.Parameter( torch.ones(self.num_clusters), requires_grad=True)
+        # self.k = torch.nn.Parameter( torch.ones(self.num_clusters), requires_grad=True)
 
         ms = torch.linspace(-0.1, 5.0, steps=self.num_clusters, dtype=torch.float)
         self.means = torch.nn.Parameter( ms, requires_grad=True)
@@ -542,7 +542,7 @@ class decoder_gmm(torch.nn.Module):
         stds = torch.div( stds, means.clamp(min=1.0) )
         # stds, _ = torch.sort(stds, descending=True)
 
-        dis_cmp = D.Normal(means, stds)
+        dis_cmp = D.Normal(means[0:-1], stds[0:-1])
         dis_gmm = D.MixtureSameFamily(mix, dis_cmp)
 
         unsafe_dis_cmpt_lp = dis_gmm.component_distribution.log_prob(torch.log(distance).view(-1,1))
