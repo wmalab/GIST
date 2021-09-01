@@ -275,15 +275,16 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                             '2,1 cluster/true', step=epoch) if epoch==0 else None
 
                 # plot_confusion_mat(pred_distance_mat, pred_contact_mat,  writer, '2,2 confusion matrix/predicted distance - predicted contact', step=epoch)
-                plot_confusion_mat(pred_distance_mat, center_true_mat,  writer, '2,2 confusion matrix/predicted distance - true contact', step=epoch)
+                plot_confusion_mat(pred_distance_mat, center_true_mat,  writer, '2,2 confusion matrix/normalize: ture, predicted distance - true contact', step=epoch, normalize='true')
+                plot_confusion_mat(pred_distance_mat, center_true_mat,  writer, '2,2 confusion matrix/normalize: all, predicted distance - true contact', step=epoch, normalize='all')
                 # plot_confusion_mat(pred_contact_mat, center_true_mat,  writer, '2,3 confusion matrix/predicted contact - true contact', step=epoch)
 
-                mu = (dis_gmm.component_distribution.mean[0:-1])
-                std = (dis_gmm.component_distribution.stddev[0:-1])
+                mu = (dis_gmm.component_distribution.mean)
+                std = (dis_gmm.component_distribution.stddev)
                 x = torch.linspace(start=-3.0, end=mu.max()*1.5, steps=150, device=device)
-                log_pdfs = dis_gmm.component_distribution.log_prob(x.view(-1,1))[:, 0:-1]
+                log_pdfs = dis_gmm.component_distribution.log_prob(x.view(-1,1))
                 normal_pdfs = torch.exp(log_pdfs).to('cpu').detach().numpy()
-                weights = (dis_gmm.mixture_distribution.probs[0:-1]).to('cpu').detach().numpy()
+                weights = (dis_gmm.mixture_distribution.probs).to('cpu').detach().numpy()
                 plot_distributions([mu.to('cpu').detach().numpy(), 
                                     x.to('cpu').detach().numpy(), 
                                     normal_pdfs,

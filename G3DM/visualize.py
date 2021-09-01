@@ -54,10 +54,10 @@ def plot_cluster(mat, writer, ncluster, item_dir, step=None):
     step = 0 if step is None else step
     writer.add_figure(item_dir, fig, global_step=step)
 
-def plot_confusion_mat(y_pred, y_true, writer, item_dir, step=None):
+def plot_confusion_mat(y_pred, y_true, writer, item_dir, step=None, normalize='true'):
     pred = y_pred.flatten()
     true = y_true.flatten()
-    cm = metrics.confusion_matrix(true, pred, normalize='true')
+    cm = c(true, pred, normalize=normalize)
     fig = plt.figure()
     cmaps = ['RdBu_r']
     plt.figure(figsize=(30,30))
