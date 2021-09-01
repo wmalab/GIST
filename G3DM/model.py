@@ -504,7 +504,7 @@ class decoder_distance(torch.nn.Module):
 class decoder_gmm(torch.nn.Module):
     def __init__(self, num_clusters):
         super(decoder_gmm, self).__init__()
-        self.num_clusters = num_clusters
+        self.num_clusters = num_clusters + 1
         self.weights = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
         # self.k = torch.nn.Parameter( torch.ones(self.num_clusters), requires_grad=True)
 
@@ -560,7 +560,7 @@ class decoder_gmm(torch.nn.Module):
         unsafe_dis_cmpt_lp = dis_gmm.component_distribution.log_prob(torch.log(distance).view(-1,1))
         dis_cmpt_lp = torch.nan_to_num(unsafe_dis_cmpt_lp, nan=-float('inf'))
 
-        return [dis_cmpt_lp], [dis_gmm]
+        return [dis_cmpt_lp[:,0:-1]], [dis_gmm]
 
 
 def save_model_state_dict(models, optimizer, path, epoch=None, loss=None):
