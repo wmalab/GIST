@@ -509,15 +509,15 @@ class decoder_gmm(torch.nn.Module):
         self.weights = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
         # self.k = torch.nn.Parameter( torch.ones(self.num_clusters), requires_grad=True)
 
-        # ms = torch.sqrt(torch.linspace(0., 9.0, steps=self.num_clusters, dtype=torch.float))
-        # self.means = torch.nn.Parameter( ms, requires_grad=True)
+        ms = torch.sqrt(torch.linspace(-1.0, 4.0, steps=self.num_clusters, dtype=torch.float))
+        self.means = torch.nn.Parameter( ms, requires_grad=True)
 
-        ms = torch.linspace(1.0, 20.0, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
-        self.mode = torch.nn.Parameter( ms, requires_grad=True)
+        # ms = torch.linspace(1.0, 20.0, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
+        # self.mode = torch.nn.Parameter( ms, requires_grad=True)
         
         self.distance_stdevs = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
 
-        inter = torch.linspace(start=0, end=0.1, steps=self.num_clusters, device=self.distance_stdevs.device)
+        inter = torch.linspace(start=0, end=0.01, steps=self.num_clusters, device=self.distance_stdevs.device)
         self.interval = torch.nn.Parameter( inter, requires_grad=False)
 
 #    # gmm
@@ -539,21 +539,20 @@ class decoder_gmm(torch.nn.Module):
         # d_right = torch.cat( (torch.zeros(1, device=d_right.device), d_right), dim=0)
         # means = (d_left + d_right)
 
-        # means = torch.sqrt( torch.relu(self.means) )
-        # # means = torch.nn.LeakyReLU(0.1)(self.means)
-        # means = means.clamp(max=5.0) + self.interval 
+        means = torch.nn.LeakyReLU(0.1)(self.means)
+        means = means.clamp(max=5.0) + self.interval 
 
-        # stds = (torch.relu(self.distance_stdevs) + 1e-3)
+        stds = (torch.relu(self.distance_stdevs) + 1e-3)
 
-        # mode = torch.exp(means - stds**2)
-        # _, idx = torch.sort(mode)
+        mode = torch.exp(means - stds**2)
+        _, idx = torch.sort(mode)
 
-        # means = means[idx]
-        # stds = stds[idx]
+        means = means[idx]
+        stds = stds[idx]
 
-        mode, idx = torch.sort(self.mode)
-        stds = (torch.relu(self.distance_stdevs) + 1e-3)[idx]
-        means = torch.log(mode) + stds**2
+        # mode, idx = torch.sort(self.mode)
+        # stds = (torch.relu(self.distance_stdevs) + 1e-3)[idx]
+        # means = torch.log(mode) + stds**2
 
         dis_cmp = D.Normal(means, stds)
         dis_gmm = D.MixtureSameFamily(mix, dis_cmp)
