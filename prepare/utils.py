@@ -67,7 +67,7 @@ def cluster_hic(data, fitdata, n_cluster=30):
     mat_len = data.shape[0]
     H = torch.tensor(data).flatten()
     fitdata = torch.tensor(fitdata).flatten()
-    y_, ypb_, idx_nonzeros = _gmm(fitdata,X, n_cluster=n_cluster-1, order='D')
+    y_, ypb_, idx_nonzeros = _gmm(fitdata, H, n_cluster=n_cluster-1, order='D')
     np.set_printoptions(precision=2, suppress=True)
     mat_, matpb_ = _gmm_matrix(y_.int(), ypb_, idx_nonzeros, n_cluster, (mat_len, mat_len))
     return mat_, matpb_
