@@ -510,8 +510,7 @@ class decoder_gmm(torch.nn.Module):
         # self.k = torch.nn.Parameter( torch.ones(self.num_clusters), requires_grad=True)
 
         self.means = torch.nn.Parameter( torch.empty((self.num_clusters)), requires_grad=True)
-        gain = torch.nn.init.calculate_gain('leaky_relu', 0.2)
-        torch.nn.init.xavier_uniform_(self.means, gain=gain)
+        torch.nn.init.uniform_(self.means, a=-1.0, b=5.0)
 
         # ms = torch.linspace(1.0, 20.0, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
         # self.mode = torch.nn.Parameter( ms, requires_grad=True)
