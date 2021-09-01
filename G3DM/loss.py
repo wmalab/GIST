@@ -10,7 +10,7 @@ class ClusterWassersteinLoss(nn.Module):
         self.num_cluster = num_cluster
         
 
-    def forward(self, pred, target, cw, bias=0):
+    def forward(self, pred, target, cw=None, bias=0):
         np = torch.nn.functional.normalize(torch.exp(pred), p=1, dim=-1)
         pred_cdf = torch.cumsum(np, dim=-1)
         target_cdf = torch.cumsum(target, dim=-1)
