@@ -538,8 +538,8 @@ class decoder_gmm(torch.nn.Module):
         # d_right = self.fc(stds[0:-1], stds[0:-1], self.k[1:]).clamp(min=0.0)
         # d_right = torch.cat( (torch.zeros(1, device=d_right.device), d_right), dim=0)
         # means = (d_left + d_right)
-
-        means = torch.nn.LeakyReLU(0.01)(self.means)
+        activate = torch.nn.LeakyReLU(0.01)
+        means = activate(self.means)
         means = means.clamp(max=5.0) + self.interval 
         means = torch.nan_to_num(means, nan=5.0)
 
