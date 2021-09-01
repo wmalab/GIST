@@ -57,7 +57,7 @@ def plot_cluster(mat, writer, ncluster, item_dir, step=None):
 def plot_confusion_mat(y_pred, y_true, writer, item_dir, step=None, normalize='true'):
     pred = y_pred.flatten()
     true = y_true.flatten()
-    cm = c(true, pred, normalize=normalize)
+    cm = metrics.confusion_matrix(true, pred, normalize=normalize)
     fig = plt.figure()
     cmaps = ['RdBu_r']
     plt.figure(figsize=(30,30))
