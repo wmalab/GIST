@@ -20,11 +20,11 @@ class embedding(torch.nn.Module):
 
     def reset(self):
         gain = torch.nn.init.calculate_gain('leaky_relu', 0.2)
-        torch.nn.init.xavier_normal_(self.fc1.weight, gain=gain)
-        torch.nn.init.xavier_normal_(self.conv1d_1.weight, gain=gain)
-        torch.nn.init.xavier_normal_(self.conv1d_2.weight, gain=gain)
-        torch.nn.init.xavier_normal_(self.conv1d_3.weight, gain=gain)
-        torch.nn.init.xavier_normal_(self.conv1d_4.weight, gain=gain)
+        torch.nn.init.xavier_uniform_(self.fc1.weight, gain=gain)
+        torch.nn.init.xavier_uniform_(self.conv1d_1.weight, gain=gain)
+        torch.nn.init.xavier_uniform_(self.conv1d_2.weight, gain=gain)
+        torch.nn.init.xavier_uniform_(self.conv1d_3.weight, gain=gain)
+        torch.nn.init.xavier_uniform_(self.conv1d_4.weight, gain=gain)
 
     def forward(self, h):
         X = self.conv1d_1(h)
@@ -99,19 +99,20 @@ class encoder_chain(torch.nn.Module):
             lMH[et] = dgl.nn.GATConv( out_dim, out_dim, 
                                     num_heads=num_heads, residual=False, 
                                     allow_zero_in_degree=True)
-        self.layerMHs = dgl.nn.HeteroGraphConv( lMH, aggregate='mean')
+        self.layerMHs = dgl.nn.HeteroGraphConv( lMH, aggregate=self.agg_func3)
 
 
         '''self.chain = constrainLayer(out_dim)'''
         self.num_heads = num_heads
 
         self.fc2 = torch.nn.Linear(len(etypes), len(etypes), bias=False)
-        gain = torch.nn.init.calculate_gain('relu')
-        torch.nn.init.xavier_normal_(self.fc2.weight, gain=gain)
+        gain = torch.nn.init.calculate_gain('leaky_relu', 0.2)
+        torch.nn.init.xavier_uniform_(self.fc2.weight, gain=gain)
 
         self.fc3 = torch.nn.Linear(len(etypes), len(etypes), bias=False)
-        gain = torch.nn.init.calculate_gain('relu')
-        torch.nn.init.xavier_normal_(self.fc3.weight, gain=gain)
+        gain = torch.nn.init.calculate_gain('leaky_relu', 0.2)
+        torch.nn.init.xavier_uniform_(self.fc3.weight, gain=gain)
+
 
         # self.std = torch.nn.Parameter(torch.empty((1)), requires_grad=True)
         # gain = torch.nn.init.calculate_gain('relu')
@@ -550,8 +551,8 @@ class decoder_gmm(torch.nn.Module):
         # means = means[idx]
         # stds = stds[idx]
 
-        cummode = torch.cumsum(self.mode, dim=0).clamp(min=1.0, max=21.0)
-        stds = (torch.relu(self.distance_stdevs) + 1e-3).clamp(max=2.0)
+        cummode = torch.cumsum(self.mode, dim=0).clamp(min=1.0)
+        stds = (torch.relu(self.distance_stdevs) + 1e-3)
         means = torch.log(cummode) + stds**2
 
         dis_cmp = D.Normal(means, stds)
