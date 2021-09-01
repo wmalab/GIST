@@ -10,17 +10,19 @@ class ClusterWassersteinLoss(nn.Module):
         self.num_cluster = num_cluster
         
 
-    def forward(self, pred, target, cw=None, bias=0):
+    def forward(self, pred, target, balance_weight, weight=None):
         np = torch.nn.functional.normalize(torch.exp(pred), p=1, dim=-1)
         pred_cdf = torch.cumsum(np, dim=-1)
         target_cdf = torch.cumsum(target, dim=-1)
 
         diff = pred_cdf - target_cdf
         res = (torch.abs(diff)).mean(dim=0)
-        if cw is None:
+        bw = balance_weight/(1+balance_weight.mean()) + 1
+        if weight is None:
             w = torch.ones((np.shape[1]), device=np.device)
         else:
-            w = (cw/cw.mean() + bias) # *torch.sqrt(cw/cw.mean()+1.0) 
+            w = weight # *torch.sqrt(cw/cw.mean()+1.0) 
+        w = bw.view(1,-1)*w.view(1,-1)
         w = self.num_cluster*torch.nn.functional.normalize(w.view(1,-1), p=1)
         res = res.view(1,-1)*w.view(1,-1)
         res = res.sum(dim=-1)
@@ -51,13 +53,17 @@ class nllLoss(torch.nn.Module):
     def __init__(self):
         super(nllLoss, self).__init__()
     
-    def forward(self, pred, target, weights=None, bias=0.0):
+    def forward(self, pred, target, balance_weight, weight=None):
         logp = pred # torch.nn.functional.log_softmax(pred, 1)
-        if weights is not None:
-            w = ( weights/weights.mean() + bias ) # * (weights/weights.mean() + 10.0) # torch.sqrt(weights/weights.mean() + 1.0)
-            loss = torch.nn.functional.nll_loss(logp, target.long(), weight=w.float(), reduce=True, reduction='mean')
+        bw = balance_weight/(1+balance_weight.mean()) + 1
+        if weight is  None:
+            w = torch.ones_like(bw, device=bw.device) # * (weights/weights.mean() + 10.0) # torch.sqrt(weights/weights.mean() + 1.0)
         else:
-            loss = torch.nn.functional.nll_loss(logp, target.long(), reduce=True, reduction='mean')
+            w = weight 
+        w = bw.view(1,-1)*w.view(1,-1)
+        w = self.num_cluster*torch.nn.functional.normalize(w.view(1,-1), p=1)
+        loss = torch.nn.functional.nll_loss(logp, target.long(), weight=w.float(), reduce=True, reduction='mean')
+        
         return loss
 
 # class crossNllLoss(nn.Module):
