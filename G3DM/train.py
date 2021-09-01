@@ -113,11 +113,11 @@ def fit_one_step(epoch, require_grad, graphs, features, cluster_weights, em_netw
     # rmseloss_cmpt = loss_fc[0](dis_cmpt_cdf, cnt_cmpt_cdf)
     one_hot_lt = torch.nn.functional.one_hot(lt.long(), ncluster)
     if epoch > 20 and epoch%10 < 4:
-        l_nll = loss_fc[0](dis_cmpt_lp, lt, cw, 1+epoch%10)
-        l_wnl = loss_fc[2](dis_cmpt_lp, one_hot_lt, cw, 1+epoch%10)
+        l_nll = loss_fc[0](dis_cmpt_lp, lt, cw, epoch%10)
+        l_wnl = loss_fc[2](dis_cmpt_lp, one_hot_lt, cw, epoch%10)
     else:
-        l_nll = loss_fc[0](dis_cmpt_lp, lt, cw, 10)
-        l_wnl = loss_fc[2](dis_cmpt_lp, one_hot_lt, cw, 10)
+        l_nll = loss_fc[0](dis_cmpt_lp, lt, cw, 8.0)
+        l_wnl = loss_fc[2](dis_cmpt_lp, one_hot_lt, cw, 8.0)
 
     l_stdl = loss_fc[1](std, lt, ncluster)
 
