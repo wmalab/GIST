@@ -207,7 +207,7 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
             h_p_n =torch.nn.functional.normalize(torch.tensor(h_p, dtype=torch.float), p=1.0, dim=1)*h_p.shape[1]
             h_feat = torch.stack([h_f_n, h_p_n], dim=1).to(device)
 
-            ll = fit_one_step( True, graphs, h_feat, cw, em_networks, ae_networks, loss_fc, optimizer, device)
+            ll = fit_one_step(epoch, True, graphs, h_feat, cw, em_networks, ae_networks, loss_fc, optimizer, device)
             if None in ll:
                 continue
             
@@ -246,7 +246,7 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
             h_p_n =torch.nn.functional.normalize(torch.tensor(h_p, dtype=torch.float), p=1.0, dim=1)*h_p.shape[1]
             h_feat = torch.stack( [h_f_n, h_p_n], dim=1).to(device)
 
-            ll = fit_one_step(False, graphs, h_feat, cw, em_networks, ae_networks, loss_fc, optimizer, device)
+            ll = fit_one_step(epoch, False, graphs, h_feat, cw, em_networks, ae_networks, loss_fc, optimizer, device)
             if None in ll:
                 continue
             valid_loss_list.append(ll)
