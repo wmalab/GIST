@@ -509,8 +509,12 @@ class decoder_gmm(torch.nn.Module):
         self.weights = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
         # self.k = torch.nn.Parameter( torch.ones(self.num_clusters), requires_grad=True)
 
-        ms = torch.linspace(-.1, 4.3, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
-        self.means = torch.nn.Parameter( ms, requires_grad=True)
+        # ms = torch.linspace(-.1, 4.3, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
+        # self.means = torch.nn.Parameter( ms, requires_grad=True)
+
+        self.ms = torch.linspace(-.1, 4.5, steps=100, dtype=torch.float, requires_grad=False).view(1,-1)
+        self.ms_mat = torch.nn.Parameter( torch.empyt((100, self.num_clusters)), requires_grad=True)
+        torch.nn.init.uniform_(self.ms_mat, a=-10.0, b=10.0)
 
         # ms = torch.linspace(1.0, 20.0, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
         # self.mode = torch.nn.Parameter( ms, requires_grad=True)
@@ -538,8 +542,11 @@ class decoder_gmm(torch.nn.Module):
         # d_right = self.fc(stds[0:-1], stds[0:-1], self.k[1:]).clamp(min=0.0)
         # d_right = torch.cat( (torch.zeros(1, device=d_right.device), d_right), dim=0)
         # means = (d_left + d_right)
-        activate = torch.nn.LeakyReLU(0.01)
-        means = activate(self.means)
+
+        # activate = torch.nn.LeakyReLU(0.01)
+        # means = activate(self.means)
+        mat = torch.softmax(self.ms_mat, dim=1)
+        means = torch.matmul(self.ms, mat).view(-1,1)
         means = means.clamp(max=4.5) + self.interval
         means = torch.nan_to_num(means, nan=4.5)
 
