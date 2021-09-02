@@ -556,7 +556,7 @@ class decoder_gmm(torch.nn.Module):
         alpha = torch.abs(self.alpha) + 1
         beta = torch.abs(self.beta)
 
-        mode = torch.div( alpha-1, beta)
+        mode = torch.div( alpha-1, beta) + self.interval
         _, idx = torch.sort(mode)
 
         alpha = alpha[idx]
