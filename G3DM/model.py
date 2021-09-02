@@ -563,8 +563,8 @@ class decoder_gmm(torch.nn.Module):
         dis_cmp = D.Normal(means, stds)
         dis_gmm = D.MixtureSameFamily(mix, dis_cmp)
 
-        # unsafe_dis_cmpt_lp = dis_gmm.component_distribution.log_prob(torch.log(distance).view(-1,1))
-        unsafe_dis_cmpt_lp = dis_gmm.component_distribution.log_prob( distance.view(-1,1))
+        unsafe_dis_cmpt_lp = dis_gmm.component_distribution.log_prob(torch.log(distance).view(-1,1))
+        # unsafe_dis_cmpt_lp = dis_gmm.component_distribution.log_prob( distance.view(-1,1))
         dis_cmpt_lp = torch.nan_to_num(unsafe_dis_cmpt_lp, nan=-float('inf'))
 
         return [dis_cmpt_lp], [dis_gmm]
