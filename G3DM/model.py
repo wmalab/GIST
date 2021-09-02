@@ -145,8 +145,8 @@ class encoder_chain(torch.nn.Module):
         h = self.layer1(subg_interacts, {ntype[0]: x })
         h = self.layer2(subg_interacts, h)
         h = self.layer3(subg_interacts, h)
-        x = self.norm_(h[ntype[0]][:,0,:]).view(-1,1,3)
-        h = self.layerMHs(subg_interacts, {ntype[0]: x })
+        # x = self.norm_(h[ntype[0]][:,0,:]).view(-1,1,3)
+        h = self.layerMHs(subg_interacts, h)
 
         res = list()
         for i in torch.arange(self.num_heads):
