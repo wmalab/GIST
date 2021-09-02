@@ -509,12 +509,11 @@ class decoder_gmm(torch.nn.Module):
         self.weights = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
         # self.k = torch.nn.Parameter( torch.ones(self.num_clusters), requires_grad=True)
 
-        # ms = torch.linspace(-.1, 4.3, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
-        # self.means = torch.nn.Parameter( ms, requires_grad=True)
+        ms = torch.linspace(-.1, 4.3, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
+        self.means = torch.nn.Parameter( ms, requires_grad=True)
 
-
-        ms = torch.linspace(-0.1, 4.0, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
-        self.means = torch.nn.Parameter( torch.exp(ms), requires_grad=True)
+        # ms = torch.linspace(-0.1, 4.0, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
+        # self.means = torch.nn.Parameter( torch.exp(ms), requires_grad=True)
         
         self.distance_stdevs = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
 
@@ -532,27 +531,27 @@ class decoder_gmm(torch.nn.Module):
     def forward(self, distance):
         mix = D.Categorical( torch.softmax(self.weights, dim=0))
 
-        # activate = torch.nn.LeakyReLU(0.01)
-        # means = activate(self.means)
-        # means = means.clamp(max=4.5) + self.interval
-        # means = torch.nan_to_num(means, nan=4.5)
-
-        # stds = (torch.relu(self.distance_stdevs) + 1e-3)
-        # stds = torch.div(stds, (means.clamp(min=1.0))**(1.4))
-
-        # mode = torch.exp(means - stds**2)
-        # _, idx = torch.sort(mode)
-
-
-        means = torch.relu(self.means)
-        means = means.clamp(max=60.0) + self.interval
-        means = torch.nan_to_num(means, nan=60.0)
+        activate = torch.nn.LeakyReLU(0.01)
+        means = activate(self.means)
+        means = means.clamp(max=4.5) + self.interval
+        means = torch.nan_to_num(means, nan=4.5)
 
         stds = (torch.relu(self.distance_stdevs) + 1e-3)
-        stds = torch.div(stds, (means.clamp(min=1.0))**(0.5))
+        stds = torch.div(stds, (means.clamp(min=1.0))**(1.4))
 
-        mode = means # torch.exp(means - stds**2)
+        mode = torch.exp(means - stds**2)
         _, idx = torch.sort(mode)
+
+
+        # means = torch.relu(self.means)
+        # means = means.clamp(max=60.0) + self.interval
+        # means = torch.nan_to_num(means, nan=60.0)
+
+        # stds = (torch.relu(self.distance_stdevs) + 1e-3)
+        # stds = torch.div(stds, (means.clamp(min=1.0))**(0.5))
+
+        # mode = means # torch.exp(means - stds**2)
+        # _, idx = torch.sort(mode)
 
         means = means[idx]
         stds = stds[idx]
