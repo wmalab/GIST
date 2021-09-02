@@ -513,8 +513,8 @@ class decoder_gmm(torch.nn.Module):
         # self.means = torch.nn.Parameter( ms, requires_grad=True)
 
 
-        ms = torch.linspace(1.0, 20.0, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
-        self.means = torch.nn.Parameter( ms, requires_grad=True)
+        ms = torch.linspace(-0.1, 4.0, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
+        self.means = torch.nn.Parameter( torch.exp(ms), requires_grad=True)
         
         self.distance_stdevs = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
 
