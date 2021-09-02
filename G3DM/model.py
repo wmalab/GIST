@@ -509,16 +509,12 @@ class decoder_gmm(torch.nn.Module):
         self.weights = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
         # self.k = torch.nn.Parameter( torch.ones(self.num_clusters), requires_grad=True)
 
-        ms = torch.linspace(-.1, 4.3, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
+        # ms = torch.linspace(-.1, 4.3, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
+        # self.means = torch.nn.Parameter( ms, requires_grad=True)
+
+
+        ms = torch.linspace(1.0, 20.0, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
         self.means = torch.nn.Parameter( ms, requires_grad=True)
-
-        # self.ms = torch.nn.Parameter(
-        #     torch.linspace(-.1, 4.5, steps=100, dtype=torch.float).view(1,-1), requires_grad=False)
-        # self.ms_mat = torch.nn.Parameter( torch.empty((100, self.num_clusters)), requires_grad=True)
-        # torch.nn.init.uniform_(self.ms_mat, a=-10.0, b=10.0)
-
-        # ms = torch.linspace(1.0, 20.0, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
-        # self.mode = torch.nn.Parameter( ms, requires_grad=True)
         
         self.distance_stdevs = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
 
@@ -536,26 +532,26 @@ class decoder_gmm(torch.nn.Module):
     def forward(self, distance):
         mix = D.Categorical( torch.softmax(self.weights, dim=0))
 
-        # stds = torch.relu(self.distance_stdevs) + 1e-3
-        # stds_l = torch.cat( (stds[0:1], stds[0:-1]), dim=0)
-        # d_left = self.fc(stds_l, stds, self.k).clamp(min=0.0)
-        # d_left = torch.cumsum(d_left, dim=0).clamp(min=0.0)
-        # d_right = self.fc(stds[0:-1], stds[0:-1], self.k[1:]).clamp(min=0.0)
-        # d_right = torch.cat( (torch.zeros(1, device=d_right.device), d_right), dim=0)
-        # means = (d_left + d_right)
+        # activate = torch.nn.LeakyReLU(0.01)
+        # means = activate(self.means)
+        # means = means.clamp(max=4.5) + self.interval
+        # means = torch.nan_to_num(means, nan=4.5)
 
-        activate = torch.nn.LeakyReLU(0.01)
-        means = activate(self.means)
-        # mat = torch.softmax(self.ms_mat, dim=1)
-        # means = torch.matmul(self.ms, mat).view(-1,)
+        # stds = (torch.relu(self.distance_stdevs) + 1e-3)
+        # stds = torch.div(stds, (means.clamp(min=1.0))**(1.4))
 
-        means = means.clamp(max=4.5) + self.interval
-        means = torch.nan_to_num(means, nan=4.5)
+        # mode = torch.exp(means - stds**2)
+        # _, idx = torch.sort(mode)
+
+
+        means = torch.relu(self.means)
+        means = means.clamp(max=60.0) + self.interval
+        means = torch.nan_to_num(means, nan=60.0)
 
         stds = (torch.relu(self.distance_stdevs) + 1e-3)
         stds = torch.div(stds, (means.clamp(min=1.0))**(1.4))
 
-        mode = torch.exp(means - stds**2)
+        mode = means # torch.exp(means - stds**2)
         _, idx = torch.sort(mode)
 
         means = means[idx]
@@ -568,7 +564,8 @@ class decoder_gmm(torch.nn.Module):
         dis_cmp = D.Normal(means, stds)
         dis_gmm = D.MixtureSameFamily(mix, dis_cmp)
 
-        unsafe_dis_cmpt_lp = dis_gmm.component_distribution.log_prob(torch.log(distance).view(-1,1))
+        # unsafe_dis_cmpt_lp = dis_gmm.component_distribution.log_prob(torch.log(distance).view(-1,1))
+        unsafe_dis_cmpt_lp = dis_gmm.component_distribution.log_prob( distance.view(-1,1))
         dis_cmpt_lp = torch.nan_to_num(unsafe_dis_cmpt_lp, nan=-float('inf'))
 
         return [dis_cmpt_lp], [dis_gmm]

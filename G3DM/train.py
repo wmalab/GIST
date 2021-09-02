@@ -298,23 +298,23 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                                     weights], 
                                     writer, '2,3 hop_dist/Normal ln(x)~N(,)', step=epoch) 
 
-                lognormal_pdfs = torch.empty(normal_pdfs.shape)
-                lognormal_mu = torch.empty(mu.shape)
-                lognormal_mode = torch.empty(mu.shape)
-                x = torch.exp(torch.linspace(start=-2.0, end=mu.max()*(1+1e-4), steps=150, device=device))
-                for i in np.arange(len(mu)):
-                    A = torch.div( torch.ones(1, device=device), x*std[i]*torch.sqrt(2.0*torch.tensor(np.pi, device=device)))
-                    B = (torch.log(x)-mu[i])**2
-                    C = 2*std[i]**2
-                    lognormal_pdfs[:,i] = A * torch.exp(-1.0*torch.div(B, C))
-                    lognormal_mu[i] = torch.exp(mu[i])*torch.sqrt( torch.exp(std[i]**2.0))
-                    lognormal_mode[i] = torch.exp(mu[i] - std[i]**2)
-                    # lognormal_mode[i] = torch.exp(mu[i])
-                plot_distributions( [lognormal_mode.to('cpu').detach().numpy(), 
-                                    x.to('cpu').detach().numpy(), 
-                                    lognormal_pdfs.to('cpu').detach().numpy(),
-                                    weights], 
-                                    writer, '2,3 hop_dist/LogNormal x~LogNormal(,)', step=epoch) 
+                # lognormal_pdfs = torch.empty(normal_pdfs.shape)
+                # lognormal_mu = torch.empty(mu.shape)
+                # lognormal_mode = torch.empty(mu.shape)
+                # x = torch.exp(torch.linspace(start=-2.0, end=mu.max()*(1+1e-4), steps=150, device=device))
+                # for i in np.arange(len(mu)):
+                #     A = torch.div( torch.ones(1, device=device), x*std[i]*torch.sqrt(2.0*torch.tensor(np.pi, device=device)))
+                #     B = (torch.log(x)-mu[i])**2
+                #     C = 2*std[i]**2
+                #     lognormal_pdfs[:,i] = A * torch.exp(-1.0*torch.div(B, C))
+                #     lognormal_mu[i] = torch.exp(mu[i])*torch.sqrt( torch.exp(std[i]**2.0))
+                #     lognormal_mode[i] = torch.exp(mu[i] - std[i]**2)
+                #     # lognormal_mode[i] = torch.exp(mu[i])
+                # plot_distributions( [lognormal_mode.to('cpu').detach().numpy(), 
+                #                     x.to('cpu').detach().numpy(), 
+                #                     lognormal_pdfs.to('cpu').detach().numpy(),
+                #                     weights], 
+                #                     writer, '2,3 hop_dist/LogNormal x~LogNormal(,)', step=epoch) 
 
             torch.cuda.empty_cache()
         scheduler.step()
