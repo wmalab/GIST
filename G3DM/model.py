@@ -549,7 +549,7 @@ class decoder_gmm(torch.nn.Module):
         means = torch.nan_to_num(means, nan=60.0)
 
         stds = (torch.relu(self.distance_stdevs) + 1e-3)
-        stds = torch.div(stds, (means.clamp(min=1.0))**(1.4))
+        stds = torch.div(stds, (means.clamp(min=1.0))**(0.5))
 
         mode = means # torch.exp(means - stds**2)
         _, idx = torch.sort(mode)
