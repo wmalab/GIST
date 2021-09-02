@@ -54,7 +54,7 @@ def create_network(configuration, device):
     #                     lr=1e-3, betas=(0.9, 0.999), final_lr=0.1, gamma=1e-3, eps=1e-8, weight_decay=0,
     #                     amsbound=False)
 
-    opt = torch.optim.SparseAdam(list(em_bead.parameters()) + list(en_net.parameters()) 
+    opt = torch.optim.Adadelta(list(em_bead.parameters()) + list(en_net.parameters()) 
                             + list(de_distance_net.parameters()) + list(de_gmm_net.parameters()))
     scheduler = torch.optim.lr_scheduler.ExponentialLR(opt, gamma=0.9)
 
