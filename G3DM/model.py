@@ -540,7 +540,7 @@ class decoder_gmm(torch.nn.Module):
         # means = (d_left + d_right)
         activate = torch.nn.LeakyReLU(0.01)
         means = activate(self.means)
-        means = means.clamp(max=4.5) + self.interval 
+        means = means.clamp(max=4.5) + torch.cumsum(self.interval,dim=0) 
         means = torch.nan_to_num(means, nan=4.5)
 
         stds = (torch.relu(self.distance_stdevs) + 1e-3)
