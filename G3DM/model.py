@@ -547,7 +547,7 @@ class decoder_gmm(torch.nn.Module):
         # activate = torch.nn.LeakyReLU(0.01)
         # means = activate(self.means)
         mat = torch.softmax(self.ms_mat, dim=1)
-        means = torch.matmul(self.ms, mat).view(-1,1)
+        means = torch.matmul(self.ms, mat).view(-1,)
         means = means.clamp(max=4.5) + self.interval
         means = torch.nan_to_num(means, nan=4.5)
 
