@@ -513,7 +513,7 @@ class decoder_gmm(torch.nn.Module):
         # self.means = torch.nn.Parameter( ms, requires_grad=True)
 
         self.ms = torch.linspace(-.1, 4.5, steps=100, dtype=torch.float, requires_grad=False).view(1,-1)
-        self.ms_mat = torch.nn.Parameter( torch.empyt((100, self.num_clusters)), requires_grad=True)
+        self.ms_mat = torch.nn.Parameter( torch.empty((100, self.num_clusters)), requires_grad=True)
         torch.nn.init.uniform_(self.ms_mat, a=-10.0, b=10.0)
 
         # ms = torch.linspace(1.0, 20.0, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
