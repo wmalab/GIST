@@ -521,8 +521,8 @@ class decoder_gmm(torch.nn.Module):
 
         self.alpha = torch.nn.Parameter( torch.empty( (self.num_clusters)), requires_grad=True)
         self.beta = torch.nn.Parameter( torch.empty( (self.num_clusters)), requires_grad=True)
-        torch.nn.init.uniform_(self.alpha, a=1.0, b=3.0)
-        torch.nn.init.uniform_(self.beta, a=-0.0, b=3.0)
+        torch.nn.init.uniform_(self.alpha, a=1.0, b=50.0)
+        torch.nn.init.uniform_(self.beta, a=-1.0, b=3.0)
 
 #    # gmm
 #     def fc(self, stds_l, stds_r, k):
@@ -556,7 +556,7 @@ class decoder_gmm(torch.nn.Module):
         alpha = torch.abs(self.alpha) + 1
         beta = torch.abs(self.beta)
 
-        mode = torch.exp(torch.div( alpha-1, beta))
+        mode = torch.div( alpha-1, beta)
         _, idx = torch.sort(mode)
 
         alpha = alpha[idx]
@@ -566,8 +566,8 @@ class decoder_gmm(torch.nn.Module):
         dis_cmp = D.Gamma(alpha, beta)
         dis_gmm = D.MixtureSameFamily(mix, dis_cmp)
 
-        unsafe_dis_cmpt_lp = dis_gmm.component_distribution.log_prob(torch.log(distance).view(-1,1))
-        # unsafe_dis_cmpt_lp = dis_gmm.component_distribution.log_prob( distance.view(-1,1))
+        # unsafe_dis_cmpt_lp = dis_gmm.component_distribution.log_prob(torch.log(distance).view(-1,1))
+        unsafe_dis_cmpt_lp = dis_gmm.component_distribution.log_prob( distance.view(-1,1))
         dis_cmpt_lp = torch.nan_to_num(unsafe_dis_cmpt_lp, nan=-float('inf'))
 
         return [dis_cmpt_lp], [dis_gmm]
