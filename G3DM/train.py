@@ -98,7 +98,7 @@ def fit_one_step(epoch, require_grad, graphs, features, cluster_weights, em_netw
     # lt = lt[idx]
     # xp = xp[idx]
     # [dis_cdf, cnt_cdf], [dis_cmpt_cdf, cnt_cmpt_cdf], [dis_cmpt_lp, cnt_cmpt_lp], [cnt_gmm, dis_gmm] = de_gmm_net(xp, xt)
-    [dis_cmpt_lp], [dis_gmm] = de_gmm_net(xp)
+    [dis_cmpt_lp], [dis_gmm, cmpt_w] = de_gmm_net(xp)
     # l_nll = loss_fc[0](xp, xt, cw) 
     # l_nll_noweight = loss_fc[0](xp, xt, None)
     # l_wnl = loss_fc[1](xp, xt, ncluster)
@@ -159,7 +159,7 @@ def inference(graphs, features, num_heads, num_clusters, em_networks, ae_network
 
         # xt1 = top_graph.edges['interacts'].data['value']
         # [dis_cdf, cnt_cdf], [dis_cmpt_cdf, cnt_cmpt_cdf], [dis_cmpt_lp, cnt_cmpt_lp], [cnt_gmm, dis_gmm] = de_gmm_net(xp1)
-        [dis_cmpt_lp], [dis_gmm] = de_gmm_net(xp1)
+        [dis_cmpt_lp], [dis_gmm, cmpt_w] = de_gmm_net(xp1)
 
         dp1 = torch.exp(dis_cmpt_lp).cpu().detach().numpy()
         # cp1 = torch.exp(cnt_cmpt_lp).cpu().detach().numpy() # 
@@ -177,7 +177,7 @@ def inference(graphs, features, num_heads, num_clusters, em_networks, ae_network
         true_cluster_mat = np.ones((pred_X.shape[0], pred_X.shape[0]))*(num_clusters-1)
         true_cluster_mat[xs, ys] = tp1
         # return pred_X, pred_distance_cluster_mat, pred_contact_cluster_mat, true_cluster_mat, [cnt_gmm, dis_gmm]
-        return pred_X, pred_distance_cluster_mat, true_cluster_mat, [dis_gmm]
+        return pred_X, pred_distance_cluster_mat, true_cluster_mat, [dis_gmm, cmpt_w]
 
 
 def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device, writer=None, config=None, saved_model=None):
@@ -266,7 +266,7 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                 num_heads = int(config['parameter']['G3DM']['num_heads'])
                 [center_X, 
                 pred_distance_mat, 
-                center_true_mat, [dis_gmm] ] = inference(graphs, h_feat, num_heads, 
+                center_true_mat, [dis_gmm, cmpt_w] ] = inference(graphs, h_feat, num_heads, 
                                             int(config['parameter']['graph']['num_clusters']), 
                                             em_networks, ae_networks, device)
 
@@ -292,6 +292,7 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                 # std = (dis_gmm.component_distribution.variance)
                 x = torch.linspace(start=0.1, end=mu.max()*1.5, steps=150, device=device)
                 log_pdfs = dis_gmm.component_distribution.log_prob(x.view(-1,1))
+                log_pdfs = log_pdfs*cmpt_w.view(1, -1)
                 normal_pdfs = torch.exp(log_pdfs).to('cpu').detach().numpy()
                 weights = (dis_gmm.mixture_distribution.probs).to('cpu').detach().numpy()
                 plot_distributions([mu.to('cpu').detach().numpy(), 
