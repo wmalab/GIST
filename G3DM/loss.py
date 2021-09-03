@@ -17,7 +17,7 @@ class ClusterWassersteinLoss(nn.Module):
 
         diff = pred_cdf - target_cdf
         res = (torch.abs(diff)).mean(dim=0)
-        bw = balance_weight/(balance_weight.mean()) + 1
+        bw = balance_weight/balance_weight.mean() + 1
         if weight is None:
             w = torch.ones((np.shape[1]), device=np.device)
         else:
@@ -56,7 +56,7 @@ class nllLoss(torch.nn.Module):
     def forward(self, pred, target, balance_weight, weight=None):
         logp = pred # torch.nn.functional.log_softmax(pred, 1)
         # logp = torch.nn.functional.log_softmax(p, 1)
-        bw = balance_weight/(balance_weight.mean()) + 1
+        bw = balance_weight/balance_weight.mean() + 1
         if weight is  None:
             w = torch.ones_like(bw, device=bw.device) # * (weights/weights.mean() + 10.0) # torch.sqrt(weights/weights.mean() + 1.0)
         else:

@@ -521,11 +521,7 @@ class decoder_gmm(torch.nn.Module):
 
         inter = torch.linspace(start=0, end=0.1, steps=self.num_clusters-1, device=self.distance_stdevs.device)
         self.interval = torch.nn.Parameter( inter, requires_grad=False)
-        ms = torch.linspace(-0.1, 4.0, steps=self.num_clusters-1, dtype=torch.float, requires_grad=True)
-        self.bound = torch.nn.Parameter( torch.exp(ms), requires_grad=True)
 
-        self.bottom = torch.nn.Parameter( torch.zeros(1), requires_grad=False)
-        self.top = torch.nn.Parameter( torch.ones(1)*80.0, requires_grad=False)
 
 
 #    # gmm
@@ -539,16 +535,16 @@ class decoder_gmm(torch.nn.Module):
     def forward(self, distance):
         mix = D.Categorical( torch.softmax(self.weights, dim=0))
 
-        # activate = torch.nn.LeakyReLU(0.01)
-        # means = activate(self.means)
-        # means = means.clamp(max=4.5) + self.interval
-        # means = torch.nan_to_num(means, nan=4.5)
+        activate = torch.nn.LeakyReLU(0.01)
+        means = activate(self.means)
+        means = means.clamp(max=4.5) + self.interval
+        means = torch.nan_to_num(means, nan=4.5)
 
-        # stds = (torch.relu(self.distance_stdevs) + 1e-3)
-        # stds = torch.div(stds, (means.clamp(min=1.0))**(1.4))
+        stds = (torch.relu(self.distance_stdevs) + 1e-3)
+        stds = torch.div(stds, (means.clamp(min=1.0))**(1.4))
 
-        # mode = torch.exp(means - stds**2)
-        # _, idx = torch.sort(mode)
+        mode = torch.exp(means - stds**2)
+        _, idx = torch.sort(mode)
 
         # means = means[idx]
         # stds = stds[idx]
@@ -557,17 +553,11 @@ class decoder_gmm(torch.nn.Module):
         # # stds = (torch.relu(self.distance_stdevs) + 1e-3)[idx]
         # # means = torch.log(mode) + stds**2
 
-        bounds, _ = torch.sort(self.bound)
-        bounds = bounds + self.interval
-        low = torch.cat( (self.bottom, bounds), dim=0)
-        high = torch.cat( (bounds, self.top), dim=0)
 
-        # dis_cmp = D.Normal(means, stds)
-        dis_cmp = D.Uniform(low, high)
+        dis_cmp = D.Normal(means, stds)
         dis_gmm = D.MixtureSameFamily(mix, dis_cmp)
 
-        # unsafe_dis_cmpt_lp = dis_gmm.component_distribution.log_prob(torch.log(distance).view(-1,1))
-        unsafe_dis_cmpt_lp = dis_gmm.component_distribution.log_prob( distance.view(-1,1))
+        unsafe_dis_cmpt_lp = dis_gmm.component_distribution.log_prob(torch.log(distance).view(-1,1))
         dis_cmpt_lp = torch.nan_to_num(unsafe_dis_cmpt_lp, nan=-float('inf'))
 
         return [dis_cmpt_lp], [dis_gmm]
