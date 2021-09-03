@@ -523,7 +523,7 @@ class decoder_gmm(torch.nn.Module):
         self.means = torch.nn.Parameter( torch.exp(ms), requires_grad=True)
         # self.alpha = torch.nn.Parameter( torch.empty( (self.num_clusters)), requires_grad=True)
         self.beta = torch.nn.Parameter( torch.empty( (self.num_clusters)), requires_grad=True)
-        torch.nn.init.normal_(self.alpha, mean=1.0, std=1.0)
+        # torch.nn.init.normal_(self.alpha, mean=1.0, std=1.0)
         torch.nn.init.normal_(self.beta, mean=1.0, std=1.0)
 
 #    # gmm
@@ -558,7 +558,7 @@ class decoder_gmm(torch.nn.Module):
         
         beta = torch.abs(self.beta)
         alpha = self.means* beta
-        
+
         mode = torch.div( alpha-1, beta) + self.interval
         _, idx = torch.sort(mode)
 
