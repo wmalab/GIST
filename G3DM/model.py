@@ -557,9 +557,9 @@ class decoder_gmm(torch.nn.Module):
 
         unsafe_dis_cmpt_lp = dis_gmm.component_distribution.log_prob(torch.log(distance).view(-1,1))
         dis_cmpt_lp = torch.nan_to_num(unsafe_dis_cmpt_lp, nan=-float('inf'))
-        dis_cmpt_lp = dis_cmpt_lp * torch.div(1, w.view(1,-1))
+        dis_cmpt_lp = dis_cmpt_lp + torch.nn.functional.log_softmax(self.weights, dim=0).view(1,-1)
 
-        return [dis_cmpt_lp], [dis_gmm, torch.div(1, w.view(1,-1))]
+        return [dis_cmpt_lp], [dis_gmm, torch.nn.functional.log_softmax(self.weights, dim=0).view(1,-1)]
 
 
 def save_model_state_dict(models, optimizer, path, epoch=None, loss=None):
