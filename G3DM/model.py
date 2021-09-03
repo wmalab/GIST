@@ -518,13 +518,13 @@ class decoder_gmm(torch.nn.Module):
 
         inter = torch.linspace(start=0, end=0.1, steps=self.num_clusters, device=self.distance_stdevs.device)
         self.interval = torch.nn.Parameter( inter, requires_grad=False)
-        
-        ms = torch.linspace(-0.1, 4.0, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
-        self.means = torch.nn.Parameter( torch.exp(ms), requires_grad=True)
-        # self.alpha = torch.nn.Parameter( torch.empty( (self.num_clusters)), requires_grad=True)
-        self.beta = torch.nn.Parameter( torch.empty( (self.num_clusters)), requires_grad=True)
-        # torch.nn.init.normal_(self.alpha, mean=1.0, std=1.0)
-        torch.nn.init.normal_(self.beta, mean=1.0, std=1.0)
+
+        ms = torch.linspace(-0.1, 4.0, steps=self.num_clusters-1, dtype=torch.float, requires_grad=True)
+        self.bound = torch.nn.Parameter( torch.exp(ms), requires_grad=True)
+
+        self.bottom = torch.nn.Parameter( torch.zeros(1), requires_grad=False)
+        self.top = torch.nn.Parameter( torch.ones(1)*80.0, requires_grad=False)
+
 
 #    # gmm
 #     def fc(self, stds_l, stds_r, k):
@@ -555,18 +555,13 @@ class decoder_gmm(torch.nn.Module):
         # # stds = (torch.relu(self.distance_stdevs) + 1e-3)[idx]
         # # means = torch.log(mode) + stds**2
 
-        
-        beta = torch.abs(self.beta)
-        alpha = self.means* beta
-
-        mode = torch.div( alpha-1, beta) + self.interval
-        _, idx = torch.sort(mode)
-
-        alpha = alpha[idx]
-        beta = beta[idx]
+        bounds, _ = torch.sort(self.bound)
+        bounds = bounds + self.interval
+        low = torch.cat( (self.bottom, bounds), dim=0)
+        high = torch.cat( (bounds, self.top), dim=0)
 
         # dis_cmp = D.Normal(means, stds)
-        dis_cmp = D.Gamma(alpha, beta)
+        dis_cmp = D.Uniform(low, high)
         dis_gmm = D.MixtureSameFamily(mix, dis_cmp)
 
         # unsafe_dis_cmpt_lp = dis_gmm.component_distribution.log_prob(torch.log(distance).view(-1,1))
