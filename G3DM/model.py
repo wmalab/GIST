@@ -521,8 +521,8 @@ class decoder_gmm(torch.nn.Module):
 
         self.alpha = torch.nn.Parameter( torch.empty( (self.num_clusters)), requires_grad=True)
         self.beta = torch.nn.Parameter( torch.empty( (self.num_clusters)), requires_grad=True)
-        torch.nn.init.uniform_(self.alpha, a=1.0, b=50.0)
-        torch.nn.init.uniform_(self.beta, a=-1.0, b=3.0)
+        torch.nn.init.normal_(self.alpha, mean=1.0, std=1.0)
+        torch.nn.init.normal_(self.beta, mean=1.0, std=1.0)
 
 #    # gmm
 #     def fc(self, stds_l, stds_r, k):
