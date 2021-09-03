@@ -516,10 +516,7 @@ class decoder_gmm(torch.nn.Module):
         
         self.distance_stdevs = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
 
-        # inter = torch.linspace(start=0, end=0.1, steps=self.num_clusters, device=self.distance_stdevs.device)
-        # self.interval = torch.nn.Parameter( inter, requires_grad=False)
-
-        inter = torch.linspace(start=0, end=0.1, steps=self.num_clusters-1, device=self.distance_stdevs.device)
+        inter = torch.linspace(start=0, end=0.1, steps=self.num_clusters, device=self.distance_stdevs.device)
         self.interval = torch.nn.Parameter( inter, requires_grad=False)
 
 
