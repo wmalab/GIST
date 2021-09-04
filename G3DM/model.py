@@ -520,7 +520,7 @@ class decoder_gmm(torch.nn.Module):
 #    # gmm
     def fc(self, stds_l, stds_r, k):
         k = torch.sigmoid(k.clamp(min=-8.0, max=8.0))
-        rate = torch.div(stds_l, stds_r)
+        rate = torch.div(stds_r, stds_l)
         kr = (k*rate).clamp(min=0.10, max=0.99)
         return stds_r * torch.sqrt( -2.0 * torch.log(kr) )
 
@@ -535,9 +535,9 @@ class decoder_gmm(torch.nn.Module):
         d_right = self.fc(stds[0:-1], stds[0:-1], self.k[1:]).clamp(min=0.0)
         d_right = torch.cat( (torch.zeros(1, device=d_right.device), d_right), dim=0)
         means = (d_left + d_right)
+
         means = torch.fliplr(means.view(-1,1)).view(-1,)
         stds = torch.fliplr(stds.view(-1,1)).view(-1,)
-        print(means.shape, stds.shape)
 
         # activate = torch.nn.LeakyReLU(0.01)
         # means = activate(self.means)
