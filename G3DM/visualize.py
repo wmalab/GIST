@@ -112,7 +112,7 @@ def plot_distributions(inputs, writer, item_dir, step=None):
 
     axs = fig.add_subplot(1, 1, 1)
     cmaps = ['tab20']
-    ydata = np.arange(len(m.flatten()))*0.1
+    ydata = np.ones((len(m.flatten()))) # np.arange(len(m.flatten()))*0.1
     scatter = axs.scatter(m.flatten(), ydata, c=c, cmap=cmaps[0])
     n = pdfs.shape[1]
     colors = plt.cm.tab20(np.linspace(0,1,n))
