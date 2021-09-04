@@ -557,7 +557,7 @@ class decoder_gmm(torch.nn.Module):
         # # stds = (torch.relu(self.distance_stdevs) + 1e-3)[idx]
         # # means = torch.log(mode) + stds**2
 
-        dis_cmp = D.Normal(means.view(-1,1), stds.view(-1,1))
+        dis_cmp = D.Normal(means.view(-1,), stds.view(-1,))
         dis_gmm = D.MixtureSameFamily(mix, dis_cmp)
 
         data = torch.log(distance).view(-1,1)
