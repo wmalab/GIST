@@ -528,29 +528,29 @@ class decoder_gmm(torch.nn.Module):
     def forward(self, distance):
         mix = D.Categorical( torch.softmax(self.weights, dim=0))
 
-        stds, idx = torch.sort(self.distance_stdevs.view(-1,), dim=0, descending=True)
-        stds_l = torch.cat( (stds[0:1], stds[0:-1]), dim=0)
-        d_left = self.fc(stds_l, stds, self.k).clamp(min=0.0)
-        d_left = torch.cumsum(d_left, dim=0).clamp(min=0.0)
-        d_right = self.fc(stds[0:-1], stds[0:-1], self.k[1:]).clamp(min=0.0)
-        d_right = torch.cat( (torch.zeros(1, device=d_right.device), d_right), dim=0)
-        means = (d_left + d_right)
+        # stds, idx = torch.sort(self.distance_stdevs.view(-1,), dim=0, descending=True)
+        # stds_l = torch.cat( (stds[0:1], stds[0:-1]), dim=0)
+        # d_left = (self.fc(stds_l, stds, self.k)).clamp(min=0.0)
+        # d_left = (torch.cumsum(d_left, dim=0)).clamp(min=0.0)
+        # d_right = self.fc(stds[0:-1], stds[0:-1], self.k[1:]).clamp(min=0.0)
+        # d_right = torch.cat( (torch.zeros(1, device=d_right.device), d_right), dim=0)
+        # means = (d_left + d_right)
 
-        means = torch.fliplr(means.view(-1,1)).view(-1,)
-        stds = torch.fliplr(stds.view(-1,1)).view(-1,)
+        # means = torch.fliplr(means.view(-1,1)).view(-1,)
+        # stds = torch.fliplr(stds.view(-1,1)).view(-1,)
 
-        # activate = torch.nn.LeakyReLU(0.01)
-        # means = activate(self.means)
-        # means = means.clamp(max=4.5) + self.interval 
-        # means = torch.nan_to_num(means, nan=4.5)
+        activate = torch.nn.LeakyReLU(0.01)
+        means = activate(self.means)
+        means = means.clamp(max=4.5) + self.interval 
+        means = torch.nan_to_num(means, nan=4.5)
 
-        # stds = (torch.relu(self.distance_stdevs) + 1e-3)
+        stds = (torch.relu(self.distance_stdevs) + 1e-3)
 
         # mode = torch.exp(means - stds**2)
         # _, idx = torch.sort(mode)
 
-        # means = means[idx]
-        # stds = stds[idx]
+        means, _ = torch.sort(means, dim=0)
+        stds, _ = torch.sort(stds, dim=0)
 
         # # mode, idx = torch.sort(self.mode)
         # # stds = (torch.relu(self.distance_stdevs) + 1e-3)[idx]
@@ -561,7 +561,7 @@ class decoder_gmm(torch.nn.Module):
 
         data = torch.log(distance).view(-1,1)
         data = data.clamp(max=8.0)
-        data = -1.0 * data + 8.0
+        data = (-1.0 * data).clamp(max=8.0) + 8.0
         unsafe_dis_cmpt_lp = dis_gmm.component_distribution.log_prob(data)
 
         dis_cmpt_lp = torch.nan_to_num(unsafe_dis_cmpt_lp, nan=-float('inf'))
