@@ -536,7 +536,7 @@ class decoder_gmm(torch.nn.Module):
         d_right = torch.cat( (torch.zeros(1, device=d_right.device), d_right), dim=0)
         means = (d_left + d_right)
         means = torch.fliplr(means.view(-1,1))
-        stds = torch.fliplr(stds.veiw(-1,1))
+        stds = torch.fliplr(stds.view(-1,1))
 
         # activate = torch.nn.LeakyReLU(0.01)
         # means = activate(self.means)
