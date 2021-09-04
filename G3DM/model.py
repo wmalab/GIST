@@ -145,8 +145,8 @@ class encoder_chain(torch.nn.Module):
         h = self.layer1(subg_interacts, {ntype[0]: x })
         h = self.layer2(subg_interacts, h)
         h = self.layer3(subg_interacts, h)
-        # x = self.norm_(h[ntype[0]][:,0,:]).view(-1,1,3)
-        h = self.layerMHs(subg_interacts, h)
+        x = self.norm_(h[ntype[0]][:,0,:]).view(-1,1,3)
+        h = self.layerMHs(subg_interacts, {ntype[0]: x })
 
         res = list()
         for i in torch.arange(self.num_heads):
@@ -507,42 +507,46 @@ class decoder_gmm(torch.nn.Module):
         super(decoder_gmm, self).__init__()
         self.num_clusters = num_clusters
         self.weights = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
+        self.k = torch.nn.Parameter( torch.ones(self.num_clusters), requires_grad=True)
 
         ms = torch.linspace(-.1, 4.3, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
         self.means = torch.nn.Parameter( ms, requires_grad=True)
-
-        # ms = torch.linspace(-0.1, 4.0, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
-        # self.means = torch.nn.Parameter( torch.exp(ms), requires_grad=True)
         
         self.distance_stdevs = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
 
-        inter = torch.linspace(start=0, end=0.1, steps=self.num_clusters, device=self.distance_stdevs.device)
+        inter = torch.linspace(start=0, end=0.01, steps=self.num_clusters, device=self.distance_stdevs.device)
         self.interval = torch.nn.Parameter( inter, requires_grad=False)
 
-
-
 #    # gmm
-#     def fc(self, stds_l, stds_r, k):
-#         k = torch.sigmoid(k.clamp(min=-8.0, max=8.0))
-#         r = torch.div(stds_r, stds_l)
-#         clip_kr = (k*r).clamp(min=0.01, max=0.9)
-#         return stds_r * torch.sqrt( -2.0 * torch.log(clip_kr) )
+    def fc(self, stds_l, stds_r, k):
+        k = torch.sigmoid(k.clamp(min=-8.0, max=8.0))
+        rate = torch.div(stds_l, stds_r)
+        kr = (k*rate).clamp(min=0.10, max=0.99)
+        return stds_r * torch.sqrt( -2.0 * torch.log(kr) )
 
 
     def forward(self, distance):
-        w = torch.softmax(self.weights, dim=0)
-        mix = D.Categorical( w )
+        mix = D.Categorical( torch.softmax(self.weights, dim=0))
 
-        activate = torch.nn.LeakyReLU(0.01)
-        means = activate(self.means)
-        means = means.clamp(max=4.5) + self.interval
-        means = torch.nan_to_num(means, nan=4.5)
+        stds, idx = torch.sort(self.distance_stdevs, descending=True, stable=True )
+        stds_l = torch.cat( (stds[0:1], stds[0:-1]), dim=0)
+        d_left = self.fc(stds_l, stds, self.k).clamp(min=0.0)
+        d_left = torch.cumsum(d_left, dim=0).clamp(min=0.0)
+        d_right = self.fc(stds[0:-1], stds[0:-1], self.k[1:]).clamp(min=0.0)
+        d_right = torch.cat( (torch.zeros(1, device=d_right.device), d_right), dim=0)
+        means = (d_left + d_right)
+        means = torch.fliplr(means.view(-1,1))
+        stds = torch.fliplr(stds.veiw(-1,1))
 
-        stds = (torch.relu(self.distance_stdevs) + 1e-3)
-        stds = torch.div(stds, (means.clamp(min=1.0))**(1.4))
+        # activate = torch.nn.LeakyReLU(0.01)
+        # means = activate(self.means)
+        # means = means.clamp(max=4.5) + self.interval 
+        # means = torch.nan_to_num(means, nan=4.5)
 
-        mode = torch.exp(means - stds**2)
-        _, idx = torch.sort(mode)
+        # stds = (torch.relu(self.distance_stdevs) + 1e-3)
+
+        # mode = torch.exp(means - stds**2)
+        # _, idx = torch.sort(mode)
 
         # means = means[idx]
         # stds = stds[idx]
@@ -551,15 +555,17 @@ class decoder_gmm(torch.nn.Module):
         # # stds = (torch.relu(self.distance_stdevs) + 1e-3)[idx]
         # # means = torch.log(mode) + stds**2
 
-
         dis_cmp = D.Normal(means, stds)
         dis_gmm = D.MixtureSameFamily(mix, dis_cmp)
 
-        unsafe_dis_cmpt_lp = dis_gmm.component_distribution.log_prob(torch.log(distance).view(-1,1))
-        dis_cmpt_lp = torch.nan_to_num(unsafe_dis_cmpt_lp, nan=-float('inf'))
-        dis_cmpt_lp = dis_cmpt_lp + torch.nn.functional.log_softmax(self.weights, dim=0).view(1,-1)
+        data = torch.log(distance).view(-1,1)
+        data = data.clamp(max=8.0)
+        data = -1.0 * data + 8.0
+        unsafe_dis_cmpt_lp = dis_gmm.component_distribution.log_prob(data)
 
-        return [dis_cmpt_lp], [dis_gmm, torch.nn.functional.log_softmax(self.weights, dim=0).view(1,-1)]
+        dis_cmpt_lp = torch.nan_to_num(unsafe_dis_cmpt_lp, nan=-float('inf'))
+
+        return [dis_cmpt_lp], [dis_gmm]
 
 
 def save_model_state_dict(models, optimizer, path, epoch=None, loss=None):
