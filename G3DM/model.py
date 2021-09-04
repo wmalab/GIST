@@ -561,7 +561,7 @@ class decoder_gmm(torch.nn.Module):
         # data = torch.log(distance).view(-1,1)
         data = distance.view(-1,1)
         data = data.clamp(max=60.0) - 60.0
-        data = (-1.0 * data).clamp(max=6.0) # + 6.0
+        data = (-1.0 * data).clamp(max=60.0) # + 6.0
         unsafe_dis_cmpt_lp = dis_gmm.component_distribution.log_prob(data)
 
         dis_cmpt_lp = torch.nan_to_num(unsafe_dis_cmpt_lp, nan=-float('inf'))
