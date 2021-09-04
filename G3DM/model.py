@@ -537,8 +537,8 @@ class decoder_gmm(torch.nn.Module):
         d_right = torch.cat( (torch.zeros(1, device=d_right.device), d_right), dim=0)
         means = (d_left + d_right)
 
-        means = torch.fliplr(means.view(-1,1)).view(-1,)
-        stds = torch.fliplr(stds.view(-1,1)).view(-1,)
+        # means = torch.fliplr(means.view(-1,1)).view(-1,)
+        # stds = torch.fliplr(stds.view(-1,1)).view(-1,)
 
         # activate = torch.nn.LeakyReLU(0.01)
         # means = activate(self.means)
@@ -557,7 +557,7 @@ class decoder_gmm(torch.nn.Module):
         # # stds = (torch.relu(self.distance_stdevs) + 1e-3)[idx]
         # # means = torch.log(mode) + stds**2
 
-        dis_cmp = D.Normal(means, stds)
+        dis_cmp = D.Normal(means.view(-1,1), stds.view(-1,1))
         dis_gmm = D.MixtureSameFamily(mix, dis_cmp)
 
         data = torch.log(distance).view(-1,1)
