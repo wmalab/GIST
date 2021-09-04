@@ -529,7 +529,8 @@ class decoder_gmm(torch.nn.Module):
     def forward(self, distance):
         mix = D.Categorical( torch.softmax(self.weights, dim=0))
 
-        stds, idx = torch.sort(self.distance_stdevs.view(-1,), dim=0)
+        stds, idx = torch.sort(torch.relu(self.distance_stdevs).view(-1,), dim=0)
+        stds = stds + 1e-3
         stds_l = torch.cat( (stds[0:1], stds[0:-1]), dim=0)
 
         d_left = torch.relu(self.fc(stds_l, stds, self.k)) #.clamp(min=0.0)
