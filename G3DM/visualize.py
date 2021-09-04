@@ -118,9 +118,9 @@ def plot_distributions(inputs, writer, item_dir, step=None):
     colors = plt.cm.tab20(np.linspace(0,1,n))
     for i in np.arange(pdfs.shape[1]):
         xdata = x.flatten()
-        ydata = pdfs[:,i] + i*0.1
+        ydata = pdfs[:,i] # + i*0.1
         axs.plot(xdata, ydata, color=colors[i])
-        axs.text(m[i], i*0.1, '{:2.2%}'.format(weights[i]) )
+        # axs.text(m[i], i*0.1, '{:2.2%}'.format(weights[i]) )
 
     right_lim = max(9.0, min(x.max(), 120))
     plt.xlim(left=-3.0, right=right_lim)
