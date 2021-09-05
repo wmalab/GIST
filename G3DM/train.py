@@ -113,8 +113,8 @@ def fit_one_step(epoch, require_grad, graphs, features, cluster_weights, em_netw
     one_hot_lt = torch.nn.functional.one_hot(lt.long(), ncluster)
     # weight_r = torch.linspace(1, ncluster, steps=ncluster, dtype=torch.float, device=device)
     # weight_l = torch.linspace(1, ncluster, steps=ncluster, dtype=torch.float, device=device)
-    # weight_r = cw**(0.1)
-    weight_r = torch.ones_like(cw)
+    weight_r = cw**(0.1)
+    # weight_r = torch.ones_like(cw)
     
     l_nll = loss_fc[0](dis_cmpt_lp, lt, cw, weight_r)
     l_wnl = loss_fc[2](dis_cmpt_lp, one_hot_lt, cw, weight_r)
