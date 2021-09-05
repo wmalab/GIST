@@ -513,7 +513,7 @@ class decoder_gmm(torch.nn.Module):
         # ms = torch.linspace(-.1, 4.3, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
         # self.means = torch.nn.Parameter( ms, requires_grad=True)
         
-        ms = torch.linspace(1, 6, steps=self.num_clusters-1, dtype=torch.float, requires_grad=True)
+        ms = torch.linspace(1, 6, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
         self.distance_stdevs = torch.nn.Parameter( ms, requires_grad=True)
 
         inter = torch.linspace(start=0, end=0.01, steps=self.num_clusters, device=self.distance_stdevs.device)
@@ -540,7 +540,7 @@ class decoder_gmm(torch.nn.Module):
         # d_right = self.fc(stds[0:-1], stds[0:-1], self.k[1:])
         # d_right = torch.cat( (torch.zeros(1, device=d_right.device), d_right), dim=0)
         # means = (d_left + d_right)
-        d_right = self.fc(stds, stds, self.k)
+        d_right = self.fc(stds[:-1], stds[:-1], self.k)
         means = torch.cat( (torch.zeros(1, device=d_right.device), d_right), dim=0) + self.offset
         # print(d_left, d_right, means)
 
