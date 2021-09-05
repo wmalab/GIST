@@ -521,7 +521,7 @@ class decoder_gmm(torch.nn.Module):
 #    # gmm
     def fc(self, stds_l, stds_r, k):
         k = torch.sigmoid(k.clamp(min=-9.0, max=9.0))
-        k = k.clamp(min=0.6)
+        k = k.clamp(min=0.5)
         rate = torch.div(stds_l, stds_r)
         kr = (k*rate) # must < 1
         return stds_l * torch.sqrt( -2.0 * torch.log(kr) )
@@ -564,7 +564,7 @@ class decoder_gmm(torch.nn.Module):
 
         data = torch.log(distance).view(-1,1)
         # data = distance.view(-1,1)
-        data = data.clamp(max=6.0) - 6.0
+        data = data.clamp(max=9.0) - 9.0
         data = (-1.0 * data) #.clamp(max=8.0) # + 6.0
         unsafe_dis_cmpt_lp = dis_gmm.component_distribution.log_prob(data)
 
