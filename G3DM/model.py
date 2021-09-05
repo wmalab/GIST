@@ -533,11 +533,12 @@ class decoder_gmm(torch.nn.Module):
         stds = stds + 1e-3
         stds_l = torch.cat( (stds[0:1], stds[0:-1]), dim=0)
 
-        d_left = torch.relu(self.fc(stds_l, stds, self.k)) #.clamp(min=0.0)
+        d_left = self.fc(stds_l, stds, self.k) #.clamp(min=0.0)
         d_left = torch.relu(torch.cumsum(d_left, dim=0)) #.clamp(min=0.0)
-        d_right = self.fc(stds[0:-1], stds[0:-1], self.k[1:]).clamp(min=0.0)
+        d_right = self.fc(stds[0:-1], stds[0:-1], self.k[1:])
         d_right = torch.cat( (torch.zeros(1, device=d_right.device), d_right), dim=0)
         means = (d_left + d_right)
+        print(d_left, d_right, means)
 
         means = torch.fliplr(means.view(1,-1)).view(-1,)
         stds = torch.fliplr(stds.view(1,-1)).view(-1,)
