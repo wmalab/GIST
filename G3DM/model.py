@@ -541,6 +541,7 @@ class decoder_gmm(torch.nn.Module):
         # d_right = torch.cat( (torch.zeros(1, device=d_right.device), d_right), dim=0)
         # means = (d_left + d_right)
         d_right = self.fc(stds[:-1], stds[:-1], self.k)
+        d_right = torch.cumsum(d_right, dim=0)
         means = torch.cat( (torch.zeros(1, device=d_right.device), d_right), dim=0) + self.offset
         # print(d_left, d_right, means)
 
