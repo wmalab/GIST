@@ -507,7 +507,7 @@ class decoder_gmm(torch.nn.Module):
         super(decoder_gmm, self).__init__()
         self.num_clusters = num_clusters
         self.weights = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
-        self.k = torch.nn.Parameter( torch.ones(self.num_clusters-1), requires_grad=True)
+        self.k = torch.nn.Parameter( torch.ones(self.num_clusters), requires_grad=True)
         self.offset = torch.nn.Parameter( torch.ones(1), requires_grad=True)
 
         # ms = torch.linspace(-.1, 4.3, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
@@ -522,7 +522,7 @@ class decoder_gmm(torch.nn.Module):
 #    # gmm
     def fc(self, stds_l, stds_r, k):
         k = torch.sigmoid(k.clamp(min=-9.0, max=9.0))
-        # k = k.clamp(min=0.6)
+        k = k.clamp(min=0.6)
         rate = torch.div(stds_l, stds_r)
         kr = (k*rate) # must < 1
         return stds_l * torch.sqrt( -2.0 * torch.log(kr) )
@@ -534,15 +534,13 @@ class decoder_gmm(torch.nn.Module):
         stds, idx = torch.sort(torch.relu(self.distance_stdevs).view(-1,), dim=0)
         stds = stds + 1e-3
 
-        # d_left = self.fc(stds, stds, self.k) #.clamp(min=0.0)
-        # d_left = torch.relu(torch.cumsum(d_left, dim=0)) #.clamp(min=0.0)
+        d_left = self.fc(stds, stds, self.k) #.clamp(min=0.0)
+        d_left = torch.relu(torch.cumsum(d_left, dim=0)) #.clamp(min=0.0)
 
-        # d_right = self.fc(stds[0:-1], stds[0:-1], self.k[1:])
-        # d_right = torch.cat( (torch.zeros(1, device=d_right.device), d_right), dim=0)
-        # means = (d_left + d_right)
-        d_right = self.fc(stds[:-1], stds[1:], self.k)
-        d_right = torch.cumsum(d_right, dim=0)
-        means = torch.cat( (torch.zeros(1, device=d_right.device), d_right), dim=0) + self.offset
+        d_right = self.fc(stds[0:-1], stds[1:], self.k[1:])
+        d_right = torch.cat( (torch.zeros(1, device=d_right.device), d_right), dim=0)
+        means = (d_left + d_right)
+
         # print(d_left, d_right, means)
 
         means = torch.fliplr(means.view(1,-1)).view(-1,)
