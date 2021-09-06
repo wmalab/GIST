@@ -509,11 +509,11 @@ class decoder_gmm(torch.nn.Module):
         self.weights = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
         self.k = torch.nn.Parameter( torch.ones(self.num_clusters), requires_grad=True)
         # self.weights = weights
-        # ms = torch.linspace(-.1, 4.3, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
-        # self.means = torch.nn.Parameter( ms, requires_grad=True)
+        ms = torch.linspace(-.1, 4.3, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
+        self.means = torch.nn.Parameter( ms, requires_grad=True)
         
-        ms = torch.linspace(0.5, 1.0, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
-        self.distance_stdevs = torch.nn.Parameter( ms**2, requires_grad=True)
+        stds = torch.linspace(0.5, 1.0, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
+        self.distance_stdevs = torch.nn.Parameter( stds**2, requires_grad=True)
 
         inter = torch.linspace(start=0, end=0.01, steps=self.num_clusters, device=self.distance_stdevs.device)
         self.interval = torch.nn.Parameter( inter, requires_grad=False)
@@ -530,44 +530,45 @@ class decoder_gmm(torch.nn.Module):
     def forward(self, distance):
         mix = D.Categorical( torch.softmax(self.weights, dim=0))
 
-        stds, idx = torch.sort(torch.relu(self.distance_stdevs).view(-1,), dim=0)
-        stds = stds + 1e-3
+        # stds, idx = torch.sort(torch.relu(self.distance_stdevs).view(-1,), dim=0)
+        # stds = stds + 1e-3
 
-        d_left = self.fc(stds, stds, self.k) #.clamp(min=0.0)
-        d_left = torch.relu(torch.cumsum(d_left, dim=0)) #.clamp(min=0.0)
+        # d_left = self.fc(stds, stds, self.k) #.clamp(min=0.0)
+        # d_left = torch.relu(torch.cumsum(d_left, dim=0)) #.clamp(min=0.0)
 
-        d_right = self.fc(stds[0:-1], stds[1:], self.k[1:])
-        d_right = torch.cat( (torch.zeros(1, device=d_right.device), d_right), dim=0)
-        means = (d_left + d_right)
+        # d_right = self.fc(stds[0:-1], stds[1:], self.k[1:])
+        # d_right = torch.cat( (torch.zeros(1, device=d_right.device), d_right), dim=0)
+        # means = (d_left + d_right).clamp(max=6.0)
 
-        # print(d_left, d_right, means)
 
-        means = torch.fliplr(means.view(1,-1)).view(-1,)
-        stds = torch.fliplr(stds.view(1,-1)).view(-1,)
+        # means = torch.fliplr(means.view(1,-1)).view(-1,)
+        # stds = torch.fliplr(stds.view(1,-1)).view(-1,)
 
-        # activate = torch.nn.LeakyReLU(0.01)
-        # means = activate(self.means)
-        # means = means.clamp(max=4.5) + self.interval 
-        # means = torch.nan_to_num(means, nan=4.5)
+        activate = torch.nn.LeakyReLU(0.01)
+        means = activate(self.means)
+        means = means.clamp(max=4.5) + self.interval 
+        means = torch.nan_to_num(means, nan=4.5)
 
-        # stds = (torch.relu(self.distance_stdevs) + 1e-3)
+        stds = (torch.relu(self.distance_stdevs) + 1e-3)
 
-        # # mode = torch.exp(means - stds**2)
-        # # _, idx = torch.sort(mode)
+        mode = torch.exp(means - stds**2)
+        _, idx = torch.sort(mode)
+        means = means[idx]
+        stds = stds[idx]
 
-        # # mode, idx = torch.sort(self.mode)
-        # # stds = (torch.relu(self.distance_stdevs) + 1e-3)[idx]
-        # # means = torch.log(mode) + stds**2
+        # mode, idx = torch.sort(self.mode)
+        # stds = (torch.relu(self.distance_stdevs) + 1e-3)[idx]
+        # means = torch.log(mode) + stds**2
 
         dis_cmp = D.Normal(means.view(-1,), stds.view(-1,))
         dis_gmm = D.MixtureSameFamily(mix, dis_cmp)
 
         data = torch.log(distance).view(-1,1)
-        data = data.clamp(max=5.0) - 5.0
+        # data = data.clamp(max=5.0) - 5.0
 
         # data = distance.view(-1,1)
         # data = data.clamp(max=80.0) - 80.0
-        data = (-1.0 * data) #.clamp(max=8.0) # + 6.0
+        # data = (-1.0 * data) #.clamp(max=8.0) # + 6.0
         unsafe_dis_cmpt_lp = dis_gmm.component_distribution.log_prob(data)
 
         dis_cmpt_lp = torch.nan_to_num(unsafe_dis_cmpt_lp, nan=-float('inf'))
