@@ -541,7 +541,6 @@ class decoder_gmm(torch.nn.Module):
         # d_right = torch.cat( (torch.zeros(1, device=d_right.device), d_right), dim=0)
         # means = (d_left + d_right).clamp(max=6.0)
 
-
         # means = torch.fliplr(means.view(1,-1)).view(-1,)
         # stds = torch.fliplr(stds.view(1,-1)).view(-1,)
 
@@ -553,7 +552,7 @@ class decoder_gmm(torch.nn.Module):
         stds = (torch.relu(self.distance_stdevs) + 1e-3)
 
         mode = torch.exp(means - stds**2)
-        _, idx = torch.sort(mode)
+        _, idx = torch.sort(mode.view(-1,), dim=0, descending=True)
         means = means[idx]
         stds = stds[idx]
 
@@ -565,11 +564,11 @@ class decoder_gmm(torch.nn.Module):
         dis_gmm = D.MixtureSameFamily(mix, dis_cmp)
 
         data = torch.log(distance).view(-1,1)
-        # data = data.clamp(max=5.0) - 5.0
+        data = data.clamp(max=5.0) - 5.0
 
         # data = distance.view(-1,1)
         # data = data.clamp(max=80.0) - 80.0
-        # data = (-1.0 * data) #.clamp(max=8.0) # + 6.0
+        data = (-1.0 * data) #.clamp(max=8.0) # + 6.0
         unsafe_dis_cmpt_lp = dis_gmm.component_distribution.log_prob(data)
 
         dis_cmpt_lp = torch.nan_to_num(unsafe_dis_cmpt_lp, nan=-float('inf'))
