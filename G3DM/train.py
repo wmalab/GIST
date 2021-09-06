@@ -54,6 +54,11 @@ def create_network(configuration, device):
                         lr=1e-3, betas=(0.9, 0.999), final_lr=0.1, gamma=1e-3, eps=1e-8, weight_decay=0,
                         amsbound=False)
 
+    opt = optim.RAdam( list(em_bead.parameters()) + list(en_net.parameters()) 
+                        + list(de_distance_net.parameters()) + list(de_gmm_net.parameters()),
+                        lr= 1e-3, betas=(0.9, 0.999),
+                        eps=1e-8, weight_decay=0)
+
     # opt = torch.optim.RMSprop(list(em_bead.parameters()) + list(en_net.parameters()) 
     #                         + list(de_distance_net.parameters()) + list(de_gmm_net.parameters()))
 
