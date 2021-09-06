@@ -121,7 +121,7 @@ def fit_one_step(epoch, require_grad, graphs, features, cluster_weights, em_netw
     # lt = lt[idx]
     # xp = xp[idx]
     # [dis_cdf, cnt_cdf], [dis_cmpt_cdf, cnt_cmpt_cdf], [dis_cmpt_lp, cnt_cmpt_lp], [cnt_gmm, dis_gmm] = de_gmm_net(xp, xt)
-    [dis_cmpt_lp], [dis_gmm, cmpt_w] = de_gmm_net(xp, torch.div(1.0, cw)) 
+    [dis_cmpt_lp], [dis_gmm, cmpt_w] = de_gmm_net(xp, torch.div(1.0, cw)**(0.5)) 
     # l_nll = loss_fc[0](xp, xt, cw) 
     # l_nll_noweight = loss_fc[0](xp, xt, None)
     # l_wnl = loss_fc[1](xp, xt, ncluster)
@@ -136,11 +136,11 @@ def fit_one_step(epoch, require_grad, graphs, features, cluster_weights, em_netw
     one_hot_lt = torch.nn.functional.one_hot(lt.long(), ncluster)
     # weight_r = torch.linspace(1, ncluster, steps=ncluster, dtype=torch.float, device=device)
     # weight_l = torch.linspace(1, ncluster, steps=ncluster, dtype=torch.float, device=device)
-    weight_r = cw**(0.1)
+    weight_r = cw**(0.5)+10.0
     # weight_r = torch.ones_like(cw)
     
-    l_nll = loss_fc[0](dis_cmpt_lp, lt, cw**0.5, weight_r)
-    l_wnl = loss_fc[2](dis_cmpt_lp, one_hot_lt, cw**0.5, weight_r)
+    l_nll = loss_fc[0](dis_cmpt_lp, lt, cw, weight_r)
+    l_wnl = loss_fc[2](dis_cmpt_lp, one_hot_lt, cw, weight_r)
     # if (epoch%10) < 7 or epoch <=20:
     #     l_nll = loss_fc[0](dis_cmpt_lp, lt, cw, weight_r**(0.5))
     #     l_wnl = loss_fc[2](dis_cmpt_lp, one_hot_lt, cw, weight_r**(0.5))
@@ -184,7 +184,7 @@ def inference(graphs, features, cluster_weights, num_heads, num_clusters, em_net
         # xt1 = top_graph.edges['interacts'].data['value']
         # [dis_cdf, cnt_cdf], [dis_cmpt_cdf, cnt_cmpt_cdf], [dis_cmpt_lp, cnt_cmpt_lp], [cnt_gmm, dis_gmm] = de_gmm_net(xp1)
         cw = cluster_weights
-        [dis_cmpt_lp], [dis_gmm, cmpt_w] = de_gmm_net(xp1, torch.div(1.0, cw) )
+        [dis_cmpt_lp], [dis_gmm, cmpt_w] = de_gmm_net(xp1, torch.div(1.0, cw)**(0.5) )
 
         dp1 = torch.exp(dis_cmpt_lp).cpu().detach().numpy()
         # cp1 = torch.exp(cnt_cmpt_lp).cpu().detach().numpy() # 
@@ -334,7 +334,7 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                     A = torch.div( torch.ones(1, device=device), x*std[i]*torch.sqrt(2.0*torch.tensor(np.pi, device=device)))
                     B = (torch.log(x)-mu[i])**2
                     C = 2*std[i]**2
-                    lognormal_pdfs[:,i] = A * torch.exp(-1.0*torch.div(B, C))
+                    lognormal_pdfs[:,i] = (A * torch.exp(-1.0*torch.div(B, C)))*torch.exp(cmpt_w[i])
                     lognormal_mu[i] = torch.exp(mu[i])*torch.sqrt( torch.exp(std[i]**2.0))
                     lognormal_mode[i] = torch.exp(mu[i] - std[i]**2)
                     # lognormal_mode[i] = torch.exp(mu[i])
