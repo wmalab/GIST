@@ -322,7 +322,7 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                 normal_pdfs = torch.exp(log_pdfs).to('cpu').detach().numpy()
                 weights = (dis_gmm.mixture_distribution.probs).to('cpu').detach().numpy()
                 plot_distributions([mu.to('cpu').detach().numpy(), 
-                                    (x**2).to('cpu').detach().numpy(), 
+                                    x.to('cpu').detach().numpy(), 
                                     normal_pdfs,
                                     weights], 
                                     writer, '2,3 hop_dist/Normal ln(x)~N(,)', step=epoch) 
