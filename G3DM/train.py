@@ -63,14 +63,14 @@ def create_network(configuration, device):
     #                     lr= 1e-3, betas=(0.9, 0.999),
     #                     eps=1e-8, weight_decay=0)
 
-    opt = optim.QHAdam( parameters_list,
-                        lr= 1e-3, betas=(0.9, 0.999),
-                        nus=(1.0, 1.0), weight_decay=0,
-                        decouple_weight_decay=False,
-                        eps=1e-8)
+    # opt = optim.QHAdam( parameters_list,
+    #                     lr= 1e-3, betas=(0.9, 0.999),
+    #                     nus=(1.0, 1.0), weight_decay=0,
+    #                     decouple_weight_decay=False,
+    #                     eps=1e-8)
 
-    # opt = torch.optim.RMSprop(list(em_bead.parameters()) + list(en_net.parameters()) 
-    #                         + list(de_distance_net.parameters()) + list(de_gmm_net.parameters()))
+    opt = torch.optim.RMSprop(list(em_bead.parameters()) + list(en_net.parameters()) 
+                            + list(de_distance_net.parameters()) + list(de_gmm_net.parameters()))
 
     # opt = optim.Yogi(list(em_bead.parameters()) + list(en_net.parameters()) 
     #                 + list(de_distance_net.parameters()) + list(de_gmm_net.parameters()),
