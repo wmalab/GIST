@@ -506,13 +506,13 @@ class decoder_gmm(torch.nn.Module):
     def __init__(self, num_clusters):
         super(decoder_gmm, self).__init__()
         self.num_clusters = num_clusters
-        self.weights = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
+        self.weights = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=False)
         self.k = torch.nn.Parameter( torch.ones(self.num_clusters), requires_grad=True)
         # self.weights = weights
         # ms = torch.linspace(-.1, 4.3, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
         # self.means = torch.nn.Parameter( ms, requires_grad=True)
         
-        ms = torch.linspace(0.5, 1.5, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
+        ms = torch.linspace(0.5, 1.0, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
         self.distance_stdevs = torch.nn.Parameter( ms**2, requires_grad=True)
 
         inter = torch.linspace(start=0, end=0.01, steps=self.num_clusters, device=self.distance_stdevs.device)
@@ -573,7 +573,7 @@ class decoder_gmm(torch.nn.Module):
         dis_cmpt_lp = torch.nan_to_num(unsafe_dis_cmpt_lp, nan=-float('inf'))
 
         cmpt_w = torch.softmax(self.weights, dim=0)
-        return [dis_cmpt_lp+torch.log(cmpt_w*self.num_clusters)], [dis_gmm, cmpt_w]
+        return [dis_cmpt_lp], [dis_gmm, cmpt_w] #+torch.log(cmpt_w*self.num_clusters)
 
 
 def save_model_state_dict(models, optimizer, path, epoch=None, loss=None):
