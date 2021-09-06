@@ -506,7 +506,7 @@ class decoder_gmm(torch.nn.Module):
     def __init__(self, num_clusters):
         super(decoder_gmm, self).__init__()
         self.num_clusters = num_clusters
-        self.weights = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
+        # self.weights = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
         self.k = torch.nn.Parameter( torch.ones(self.num_clusters), requires_grad=True)
         # self.weights = weights
         ms = torch.linspace(-.1, 4.3, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
@@ -527,8 +527,9 @@ class decoder_gmm(torch.nn.Module):
     #     return stds_l * torch.sqrt( -2.0 * torch.log(kr) )
 
 
-    def forward(self, distance):
-        mix = D.Categorical( torch.softmax(self.weights, dim=0))
+    def forward(self, distance, cweight):
+        cweight = torch.nn.functional.normalize(cweight.view(-1,), p=1, dim=0)
+        mix = D.Categorical( cweight)
 
         # stds, idx = torch.sort(torch.relu(self.distance_stdevs).view(-1,), dim=0)
         # stds = stds + 1e-3
@@ -573,7 +574,7 @@ class decoder_gmm(torch.nn.Module):
 
         dis_cmpt_lp = torch.nan_to_num(unsafe_dis_cmpt_lp, nan=-float('inf'))
 
-        cmpt_w = torch.softmax(self.weights, dim=0)
+        cmpt_w = cweight # torch.softmax(self.weights, dim=0)
         return [dis_cmpt_lp + torch.log(cmpt_w*self.num_clusters)], [dis_gmm, cmpt_w] #+torch.log(cmpt_w*self.num_clusters)
 
 

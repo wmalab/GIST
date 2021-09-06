@@ -49,15 +49,25 @@ def create_network(configuration, device):
     cwnl = ClusterWassersteinLoss(nc).to(device)
     # rmslel = RMSLELoss().to(device)
 
-    opt = optim.AdaBound( list(em_bead.parameters()) + list(en_net.parameters()) 
-                        + list(de_distance_net.parameters()) + list(de_gmm_net.parameters()),
-                        lr=1e-3, betas=(0.9, 0.999), final_lr=0.1, gamma=1e-3, eps=1e-8, weight_decay=0,
-                        amsbound=False)
+    parameters_list = list(em_bead.parameters()) + \
+                list(en_net.parameters()) + \
+                list(de_distance_net.parameters()) + \
+                list(de_gmm_net.parameters())
 
-    opt = optim.RAdam( list(em_bead.parameters()) + list(en_net.parameters()) 
-                        + list(de_distance_net.parameters()) + list(de_gmm_net.parameters()),
+    # opt = optim.AdaBound( list(em_bead.parameters()) + list(en_net.parameters()) 
+    #                     + list(de_distance_net.parameters()) + list(de_gmm_net.parameters()),
+    #                     lr=1e-3, betas=(0.9, 0.999), final_lr=0.1, gamma=1e-3, eps=1e-8, weight_decay=0,
+    #                     amsbound=False)
+
+    # opt = optim.RAdam( parameters_list,
+    #                     lr= 1e-3, betas=(0.9, 0.999),
+    #                     eps=1e-8, weight_decay=0)
+
+    opt = optim.QHAdam( parameters_list,
                         lr= 1e-3, betas=(0.9, 0.999),
-                        eps=1e-8, weight_decay=0)
+                        nus=(1.0, 1.0), weight_decay=0,
+                        decouple_weight_decay=False,
+                        eps=1e-8)
 
     # opt = torch.optim.RMSprop(list(em_bead.parameters()) + list(en_net.parameters()) 
     #                         + list(de_distance_net.parameters()) + list(de_gmm_net.parameters()))
@@ -111,7 +121,7 @@ def fit_one_step(epoch, require_grad, graphs, features, cluster_weights, em_netw
     # lt = lt[idx]
     # xp = xp[idx]
     # [dis_cdf, cnt_cdf], [dis_cmpt_cdf, cnt_cmpt_cdf], [dis_cmpt_lp, cnt_cmpt_lp], [cnt_gmm, dis_gmm] = de_gmm_net(xp, xt)
-    [dis_cmpt_lp], [dis_gmm, cmpt_w] = de_gmm_net(xp)
+    [dis_cmpt_lp], [dis_gmm, cmpt_w] = de_gmm_net(xp, torch.div(1.0, cw)) 
     # l_nll = loss_fc[0](xp, xt, cw) 
     # l_nll_noweight = loss_fc[0](xp, xt, None)
     # l_wnl = loss_fc[1](xp, xt, ncluster)
@@ -149,7 +159,7 @@ def fit_one_step(epoch, require_grad, graphs, features, cluster_weights, em_netw
     return [l_nll.item(), l_stdl.item(), l_wnl.item()]
 
 
-def inference(graphs, features, num_heads, num_clusters, em_networks, ae_networks, device):
+def inference(graphs, features, cluster_weights, num_heads, num_clusters, em_networks, ae_networks, device):
     top_graph = graphs['top_graph'].to(device)
     top_subgraphs = graphs['top_subgraphs'].to(device)
 
@@ -173,7 +183,8 @@ def inference(graphs, features, num_heads, num_clusters, em_networks, ae_network
 
         # xt1 = top_graph.edges['interacts'].data['value']
         # [dis_cdf, cnt_cdf], [dis_cmpt_cdf, cnt_cmpt_cdf], [dis_cmpt_lp, cnt_cmpt_lp], [cnt_gmm, dis_gmm] = de_gmm_net(xp1)
-        [dis_cmpt_lp], [dis_gmm, cmpt_w] = de_gmm_net(xp1)
+        cw = cluster_weights
+        [dis_cmpt_lp], [dis_gmm, cmpt_w] = de_gmm_net(xp1, torch.div(1.0, cw) )
 
         dp1 = torch.exp(dis_cmpt_lp).cpu().detach().numpy()
         # cp1 = torch.exp(cnt_cmpt_lp).cpu().detach().numpy() # 
@@ -280,7 +291,7 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                 num_heads = int(config['parameter']['G3DM']['num_heads'])
                 [center_X, 
                 pred_distance_mat, 
-                center_true_mat, [dis_gmm, cmpt_w] ] = inference(graphs, h_feat, num_heads, 
+                center_true_mat, [dis_gmm, cmpt_w] ] = inference(graphs, h_feat, cw, num_heads, 
                                             int(config['parameter']['graph']['num_clusters']), 
                                             em_networks, ae_networks, device)
 
