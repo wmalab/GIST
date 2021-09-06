@@ -54,8 +54,15 @@ def create_network(configuration, device):
     #                     lr=1e-3, betas=(0.9, 0.999), final_lr=0.1, gamma=1e-3, eps=1e-8, weight_decay=0,
     #                     amsbound=False)
 
-    opt = torch.optim.RMSprop(list(em_bead.parameters()) + list(en_net.parameters()) 
-                            + list(de_distance_net.parameters()) + list(de_gmm_net.parameters()))
+    # opt = torch.optim.RMSprop(list(em_bead.parameters()) + list(en_net.parameters()) 
+    #                         + list(de_distance_net.parameters()) + list(de_gmm_net.parameters()))
+
+    opt = optim.RAdam( list(em_bead.parameters()) + list(en_net.parameters()) 
+                     + list(de_distance_net.parameters()) + list(de_gmm_net.parameters()),
+                    lr= 1e-3,
+                    betas=(0.9, 0.999),
+                    eps=1e-8,
+                    weight_decay=0)
     scheduler = torch.optim.lr_scheduler.ExponentialLR(opt, gamma=0.9)
 
     em_networks = [em_bead]
@@ -128,7 +135,7 @@ def fit_one_step(epoch, require_grad, graphs, features, cluster_weights, em_netw
     l_stdl = loss_fc[1](std, lt, ncluster)
 
     if require_grad:
-        loss = l_nll*10 # + l_wnl + l_stdl
+        loss = l_nll*10 + l_stdl # + l_wnl + l_stdl
         optimizer[0].zero_grad()
         loss.backward()  # retain_graph=False,
         optimizer[0].step()
