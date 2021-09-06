@@ -70,10 +70,11 @@ def create_graph_1lvl(norm_hic, for_test,
                       cutoff_cluster,
                       output_path, output_prefix_filename):
 
-    log_hic = log1p_hic(norm_hic)
-    # log_hic = norm_hic
-    n_idx = np.sort(np.argwhere(np.sum(log_hic, axis=0)!=0)).flatten()
+    n_idx = np.sort(np.argwhere(np.sum(norm_hic, axis=0)!=0)).flatten()
     idxs = n_idx
+    log_hic = log1p_hic(norm_hic) + 1e-4
+    np.fill_diagonal(log_hic, 0)
+    # log_hic = norm_hic
     # only 1 log Hi-C
     cp_low, cp_high = float(cutoff_clusters_limits['low']), float(cutoff_clusters_limits['high'])
     low = np.nanpercentile(log_hic, cp_low)
