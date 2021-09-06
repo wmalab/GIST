@@ -54,11 +54,16 @@ def create_network(configuration, device):
                 list(de_distance_net.parameters()) + \
                 list(de_gmm_net.parameters())
 
-    opt = optim.AdaBound( list(em_bead.parameters()) + list(en_net.parameters()) 
-                        + list(de_distance_net.parameters()) + list(de_gmm_net.parameters()),
-                        lr=1e-3, betas=(0.9, 0.999), final_lr=0.1, gamma=1e-3, eps=1e-8, weight_decay=0,
-                        amsbound=False)
+    # opt = optim.AdaBound( parameters_list, 
+    #                     lr=1e-3, betas=(0.9, 0.999), 
+    #                     final_lr=0.1, gamma=1e-3, 
+    #                     eps=1e-8, weight_decay=0,
+    #                     amsbound=False)
 
+    opt = optim.NovoGrad(parameters_list,
+                        lr= 1e-3, betas=(0.9, 0.999),
+                        eps=1e-8, weight_decay=0,
+                        grad_averaging=False, amsgrad=False)
     # opt = optim.RAdam( parameters_list,
     #                     lr= 1e-3, betas=(0.9, 0.999),
     #                     eps=1e-8, weight_decay=0)
@@ -120,7 +125,7 @@ def fit_one_step(epoch, require_grad, graphs, features, cluster_weights, em_netw
     # lt = lt[idx]
     # xp = xp[idx]
     # [dis_cdf, cnt_cdf], [dis_cmpt_cdf, cnt_cmpt_cdf], [dis_cmpt_lp, cnt_cmpt_lp], [cnt_gmm, dis_gmm] = de_gmm_net(xp, xt)
-    [dis_cmpt_lp], [dis_gmm, cmpt_w] = de_gmm_net(xp, torch.div(1.0, cw)**(0.5)) 
+    [dis_cmpt_lp], [dis_gmm, cmpt_w] = de_gmm_net(xp, torch.div(1.0, cw)**(1)) 
     # l_nll = loss_fc[0](xp, xt, cw) 
     # l_nll_noweight = loss_fc[0](xp, xt, None)
     # l_wnl = loss_fc[1](xp, xt, ncluster)
@@ -183,7 +188,7 @@ def inference(graphs, features, cluster_weights, num_heads, num_clusters, em_net
         # xt1 = top_graph.edges['interacts'].data['value']
         # [dis_cdf, cnt_cdf], [dis_cmpt_cdf, cnt_cmpt_cdf], [dis_cmpt_lp, cnt_cmpt_lp], [cnt_gmm, dis_gmm] = de_gmm_net(xp1)
         cw = cluster_weights
-        [dis_cmpt_lp], [dis_gmm, cmpt_w] = de_gmm_net(xp1, torch.div(1.0, cw)**(0.5) )
+        [dis_cmpt_lp], [dis_gmm, cmpt_w] = de_gmm_net(xp1, torch.div(1.0, cw)**(1) )
 
         dp1 = torch.exp(dis_cmpt_lp).cpu().detach().numpy()
         # cp1 = torch.exp(cnt_cmpt_lp).cpu().detach().numpy() # 
