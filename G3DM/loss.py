@@ -63,7 +63,7 @@ class nllLoss(torch.nn.Module):
             w = weight 
         w = bw.view(1,-1)*w.view(1,-1)
         w = torch.nn.functional.normalize(w.view(1,-1), p=1)
-        loss = torch.nn.functional.nll_loss(logp, target.long(), weight=w.float(), reduce=True, reduction='mean')
+        loss = torch.nn.functional.nll_loss(logp, target.long(), weight=w.double(), reduce=True, reduction='mean')
         
         return loss
 
