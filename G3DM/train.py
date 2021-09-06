@@ -61,9 +61,9 @@ def create_network(configuration, device):
     #                     amsbound=False)
 
 
-    opt = optim.RAdam( parameters_list,
-                        lr= 1e-2, betas=(0.9, 0.999),
-                        eps=1e-8, weight_decay=0)
+    # opt = optim.RAdam( parameters_list,
+    #                     lr= 1e-2, betas=(0.9, 0.999),
+    #                     eps=1e-8, weight_decay=0)
 
     # opt = optim.QHAdam( parameters_list,
     #                     lr= 1e-3, betas=(0.9, 0.999),
@@ -74,12 +74,12 @@ def create_network(configuration, device):
     # opt = torch.optim.RMSprop(list(em_bead.parameters()) + list(en_net.parameters()) 
     #                         + list(de_distance_net.parameters()) + list(de_gmm_net.parameters()))
 
-    # opt = optim.Yogi(parameters_list,
-    #                 lr= 1e-3,
-    #                 betas=(0.9, 0.999),
-    #                 eps=1e-3,
-    #                 initial_accumulator=1e-6,
-    #                 weight_decay=0)
+    opt = optim.Yogi(parameters_list,
+                    lr= 1e-3,
+                    betas=(0.9, 0.999),
+                    eps=1e-3,
+                    initial_accumulator=1e-6,
+                    weight_decay=0)
     scheduler = torch.optim.lr_scheduler.ExponentialLR(opt, gamma=0.9)
 
     em_networks = [em_bead]
@@ -122,7 +122,7 @@ def fit_one_step(epoch, require_grad, graphs, features, cluster_weights, em_netw
     # lt = lt[idx]
     # xp = xp[idx]
     # [dis_cdf, cnt_cdf], [dis_cmpt_cdf, cnt_cmpt_cdf], [dis_cmpt_lp, cnt_cmpt_lp], [cnt_gmm, dis_gmm] = de_gmm_net(xp, xt)
-    [dis_cmpt_lp], [dis_gmm, cmpt_w] = de_gmm_net(xp, torch.div(1.0, cw+1)**(0.5)) 
+    [dis_cmpt_lp], [dis_gmm, cmpt_w] = de_gmm_net(xp, torch.div(1.0, cw)**(0.5)) 
     # l_nll = loss_fc[0](xp, xt, cw) 
     # l_nll_noweight = loss_fc[0](xp, xt, None)
     # l_wnl = loss_fc[1](xp, xt, ncluster)
@@ -185,7 +185,7 @@ def inference(graphs, features, cluster_weights, num_heads, num_clusters, em_net
         # xt1 = top_graph.edges['interacts'].data['value']
         # [dis_cdf, cnt_cdf], [dis_cmpt_cdf, cnt_cmpt_cdf], [dis_cmpt_lp, cnt_cmpt_lp], [cnt_gmm, dis_gmm] = de_gmm_net(xp1)
         cw = cluster_weights
-        [dis_cmpt_lp], [dis_gmm, cmpt_w] = de_gmm_net(xp1, torch.div(1.0, cw+1)**(0.2) )
+        [dis_cmpt_lp], [dis_gmm, cmpt_w] = de_gmm_net(xp1, torch.div(1.0, cw)**(0.5) )
 
         dp1 = torch.exp(dis_cmpt_lp).cpu().detach().numpy()
         # cp1 = torch.exp(cnt_cmpt_lp).cpu().detach().numpy() # 
