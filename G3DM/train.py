@@ -49,21 +49,21 @@ def create_network(configuration, device):
     cwnl = ClusterWassersteinLoss(nc).to(device)
     # rmslel = RMSLELoss().to(device)
 
-    # opt = optim.AdaBound( list(em_bead.parameters()) + list(en_net.parameters()) 
-    #                     + list(de_distance_net.parameters()) + list(de_gmm_net.parameters()),
-    #                     lr=1e-3, betas=(0.9, 0.999), final_lr=0.1, gamma=1e-3, eps=1e-8, weight_decay=0,
-    #                     amsbound=False)
+    opt = optim.AdaBound( list(em_bead.parameters()) + list(en_net.parameters()) 
+                        + list(de_distance_net.parameters()) + list(de_gmm_net.parameters()),
+                        lr=1e-3, betas=(0.9, 0.999), final_lr=0.1, gamma=1e-3, eps=1e-8, weight_decay=0,
+                        amsbound=False)
 
     # opt = torch.optim.RMSprop(list(em_bead.parameters()) + list(en_net.parameters()) 
     #                         + list(de_distance_net.parameters()) + list(de_gmm_net.parameters()))
 
-    opt = optim.Yogi(list(em_bead.parameters()) + list(en_net.parameters()) 
-                    + list(de_distance_net.parameters()) + list(de_gmm_net.parameters()),
-                    lr= 1e-3,
-                    betas=(0.9, 0.999),
-                    eps=1e-3,
-                    initial_accumulator=1e-6,
-                    weight_decay=0)
+    # opt = optim.Yogi(list(em_bead.parameters()) + list(en_net.parameters()) 
+    #                 + list(de_distance_net.parameters()) + list(de_gmm_net.parameters()),
+    #                 lr= 1e-3,
+    #                 betas=(0.9, 0.999),
+    #                 eps=1e-3,
+    #                 initial_accumulator=1e-6,
+    #                 weight_decay=0)
     scheduler = torch.optim.lr_scheduler.ExponentialLR(opt, gamma=0.9)
 
     em_networks = [em_bead]
@@ -121,7 +121,7 @@ def fit_one_step(epoch, require_grad, graphs, features, cluster_weights, em_netw
     one_hot_lt = torch.nn.functional.one_hot(lt.long(), ncluster)
     # weight_r = torch.linspace(1, ncluster, steps=ncluster, dtype=torch.float, device=device)
     # weight_l = torch.linspace(1, ncluster, steps=ncluster, dtype=torch.float, device=device)
-    weight_r = cw**(0.1)
+    weight_r = cw**(-0.5)
     # weight_r = torch.ones_like(cw)
     
     l_nll = loss_fc[0](dis_cmpt_lp, lt, cw, weight_r)
