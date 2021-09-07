@@ -7,7 +7,7 @@ import numpy as np
 
 from .model import embedding, encoder_chain, decoder_distance, decoder_gmm, save_model_state_dict
 from .loss import nllLoss, stdLoss, ClusterWassersteinLoss
-from .visualize import plot_feature, plot_X, plot_cluster, plot_confusion_mat, plot_distributions, plot_histogram
+from .visualize import plot_feature, plot_X, plot_cluster, plot_confusion_mat, plot_distributions, plot_histogram2d
 from .visualize import plot_scaler
 
 # import GPUtil
@@ -348,9 +348,9 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                                     writer, '2,3 hop_dist/LogNormal x~LogNormal(,)', step=epoch) 
                 
                 inputs = [distance_mat, pred_distance_mat]
-                plot_histogram(inputs, writer, '2,4 historgram/distance, predict', step=epoch)
+                plot_histogram2d(inputs, writer, '2,4 historgram/distance, predict', step=epoch)
                 inputs = [distance_mat, center_true_mat]
-                plot_histogram(inputs, writer, '2,4 historgram/distance, true', step=epoch)
+                plot_histogram2d(inputs, writer, '2,4 historgram/distance, true', step=epoch)
 
             torch.cuda.empty_cache()
         scheduler.step()
