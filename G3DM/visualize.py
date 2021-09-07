@@ -93,7 +93,7 @@ def plot_histogram2d(inputs, writer, item_dir, step=None):
     axs.hist2d(distance.flatten(), cluster.flatten(), bins=(50, int(1+cluster.max()) ))
 
     axs = fig.add_subplot(2, 2, 2)
-    axs.hist2d(distance.flatten(), cluster.flatten(), bins=(int(1+cluster.max(), 50) ))
+    axs.hist2d(distance.flatten(), cluster.flatten(), bins=(int(1+cluster.max()), 50) )
 
     axs = fig.add_subplot(2, 2, 3)
     axs.hist(distance.flatten(), bins=50 , density=True)
