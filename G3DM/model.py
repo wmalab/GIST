@@ -510,8 +510,8 @@ class decoder_gmm(torch.nn.Module):
         self.k = torch.nn.Parameter( torch.ones(self.num_clusters), requires_grad=True)
         # self.weights = weights
 
-        # ms = torch.linspace(0.1, 6.0, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
-        # self.means = torch.nn.Parameter( ms, requires_grad=True)
+        ms = torch.linspace(0.1, 5.0, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
+        self.means = torch.nn.Parameter( ms, requires_grad=True)
         
         stds = torch.linspace(0.1, 2.0, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
         self.distance_stdevs = torch.nn.Parameter( stds, requires_grad=True)
@@ -520,40 +520,40 @@ class decoder_gmm(torch.nn.Module):
         self.interval = torch.nn.Parameter( inter, requires_grad=False)
 
     #    # gmm
-    def fc(self, stds_l, stds_r, k):
-        k = torch.sigmoid(k.clamp(min=-9.0, max=9.0))
-        k = k.clamp(min=0.1)
-        rate = torch.div(stds_l, stds_r)
-        kr = (k*rate) # must < 1
-        return stds_l * torch.sqrt( -2.0 * torch.log(kr) )
+    # def fc(self, stds_l, stds_r, k):
+    #     k = torch.sigmoid(k.clamp(min=-9.0, max=9.0))
+    #     k = k.clamp(min=0.1)
+    #     rate = torch.div(stds_l, stds_r)
+    #     kr = (k*rate) # must < 1
+    #     return stds_l * torch.sqrt( -2.0 * torch.log(kr) )
 
 
     def forward(self, distance, cweight):
         cweight = torch.nn.functional.normalize(cweight.view(-1,), p=1, dim=0)
         mix = D.Categorical( cweight)
 
-        stds, idx = torch.sort(torch.relu(self.distance_stdevs).view(-1,), dim=0)
-        stds = stds + 1e-3
+        # stds, idx = torch.sort(torch.relu(self.distance_stdevs).view(-1,), dim=0)
+        # stds = stds + 1e-3
 
-        d_left = self.fc(stds, stds, self.k) #.clamp(min=0.0)
-        d_left = torch.relu(torch.cumsum(d_left, dim=0)) #.clamp(min=0.0)
+        # d_left = self.fc(stds, stds, self.k) #.clamp(min=0.0)
+        # d_left = torch.relu(torch.cumsum(d_left, dim=0)) #.clamp(min=0.0)
 
-        d_right = self.fc(stds[0:-1], stds[1:], self.k[1:])
-        d_right = torch.cat( (torch.zeros(1, device=d_right.device), d_right), dim=0)
-        means = ((d_left + d_right)**2 + self.interval).clamp(max=100.0)
+        # d_right = self.fc(stds[0:-1], stds[1:], self.k[1:])
+        # d_right = torch.cat( (torch.zeros(1, device=d_right.device), d_right), dim=0)
+        # means = ((d_left + d_right)**2 + self.interval).clamp(max=100.0)
 
         # means = torch.fliplr(means.view(1,-1)).view(-1,)
         # stds = torch.fliplr(stds.view(1,-1)).view(-1,)
 
         # activate = torch.nn.LeakyReLU(0.01)
         # means = activate(self.means)
-        # means = (means**2)
-        # means, idx = torch.sort(means)
-        # means = means.clamp(max=100.0) # + self.interval 
-        # means = torch.nan_to_num(means, nan=100.0)
+        means = (means**2)
+        means = torch.nan_to_num(means, nan=100.0)
+        means = means.clamp(max=100.0) + self.interval 
+        means, idx = torch.sort(means)
 
-        # stds = (torch.relu(self.distance_stdevs) + 1e-3)
-        # stds, _ = torch.sort(stds)
+        stds = (torch.relu(self.distance_stdevs) + 1e-3)
+        stds, _ = torch.sort(stds)
 
         # mode = torch.exp(means - stds**2)
         # _, idx = torch.sort(mode.view(-1,), dim=0, descending=False)
