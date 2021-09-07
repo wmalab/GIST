@@ -560,7 +560,7 @@ class decoder_gmm(torch.nn.Module):
         # mode = torch.exp(means - stds**2)
         # _, idx = torch.sort(mode.view(-1,), dim=0, descending=False)
         # means = means[idx]
-        stds = stds[idx]
+        # stds = stds[idx]
 
         # mode, idx = torch.sort(self.mode)
         # stds = (torch.relu(self.distance_stdevs) + 1e-3)[idx]
