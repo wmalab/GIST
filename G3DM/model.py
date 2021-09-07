@@ -522,7 +522,7 @@ class decoder_gmm(torch.nn.Module):
     #    # gmm
     def fc(self, stds_l, stds_r, k):
         k = torch.sigmoid(k.clamp(min=-9.0, max=9.0))
-        k = k.clamp(min=0.6)
+        k = k.clamp(min=0.1)
         rate = torch.div(stds_l, stds_r)
         kr = (k*rate) # must < 1
         return stds_l * torch.sqrt( -2.0 * torch.log(kr) )
@@ -540,7 +540,7 @@ class decoder_gmm(torch.nn.Module):
 
         d_right = self.fc(stds[0:-1], stds[1:], self.k[1:])
         d_right = torch.cat( (torch.zeros(1, device=d_right.device), d_right), dim=0)
-        means = ((d_left + d_right)**2).clamp(max=100.0)
+        means = ((d_left + d_right)**2 + self.interval).clamp(max=100.0)
 
         # means = torch.fliplr(means.view(1,-1)).view(-1,)
         # stds = torch.fliplr(stds.view(1,-1)).view(-1,)
