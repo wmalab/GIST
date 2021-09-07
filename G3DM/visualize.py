@@ -89,8 +89,14 @@ def plot_histogram2d(inputs, writer, item_dir, step=None):
     [distance, cluster] = inputs
     fig = plt.figure()
 
-    axs = fig.add_subplot(1, 1, 1)
-    axs.hist2d(distance.flatten(), cluster.flatten(), bins=(50,6) )
+    axs = fig.add_subplot(1, 3, 1)
+    axs.hist2d(distance.flatten(), cluster.flatten(), bins=(50, 1+cluster.max()) )
+
+    axs = fig.add_subplot(1, 3, 2)
+    axs.hist(distance.flatten(), bins=50 )
+
+    axs = fig.add_subplot(1, 3, 3)
+    axs.hist(cluster.flatten(), bins=1+cluster.max() )
 
     step = 0 if step is None else step
     writer.add_figure(item_dir, fig, global_step=step)
