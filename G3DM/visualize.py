@@ -90,13 +90,13 @@ def plot_histogram2d(inputs, writer, item_dir, step=None):
     fig = plt.figure()
 
     axs = fig.add_subplot(1, 3, 1)
-    axs.hist2d(distance.flatten(), cluster.flatten(), bins=(50, 1+cluster.max()) )
+    axs.hist2d(distance.flatten(), cluster.flatten(), bins=(50, int(1+cluster.max()) ))
 
     axs = fig.add_subplot(1, 3, 2)
     axs.hist(distance.flatten(), bins=50 )
 
     axs = fig.add_subplot(1, 3, 3)
-    axs.hist(cluster.flatten(), bins=1+cluster.max() )
+    axs.hist(cluster.flatten(), bins=int(1+cluster.max()) )
 
     step = 0 if step is None else step
     writer.add_figure(item_dir, fig, global_step=step)
