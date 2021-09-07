@@ -556,7 +556,7 @@ class decoder_gmm(torch.nn.Module):
         # # stds, _ = torch.sort(stds)
 
         mode = torch.exp(means - stds**2)
-        _, idx = torch.sort(mode.view(-1,), dim=0, descending=True)
+        _, idx = torch.sort(mode.view(-1,), dim=0, descending=False)
         means = means[idx]
         stds = stds[idx]
 
