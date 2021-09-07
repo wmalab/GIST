@@ -90,7 +90,7 @@ def plot_histogram2d(inputs, writer, item_dir, step=None):
     fig = plt.figure()
 
     axs = fig.add_subplot(1, 1, 1)
-    n, bins, patches = axs.hist2d(distance.flatten(), cluster.flatten(), bins=20)
+    axs.hist2d(distance.flatten(), cluster.flatten(), bins=(50,6) )
 
     step = 0 if step is None else step
     writer.add_figure(item_dir, fig, global_step=step)
