@@ -524,7 +524,7 @@ class decoder_gmm(torch.nn.Module):
         k = torch.sigmoid(k.clamp(min=-9.0, max=9.0))
         k = k.clamp(min=0.1)
         rate = torch.div(stds_l, stds_r)
-        kr = (k*rate) # must < 1
+        kr = (k*rate).clamp(max=0.99 ) # must < 1
         return stds_l * torch.sqrt( -2.0 * torch.log(kr) )
 
 
@@ -532,8 +532,8 @@ class decoder_gmm(torch.nn.Module):
         cweight = torch.nn.functional.normalize(cweight.view(-1,), p=1, dim=0)
         mix = D.Categorical( cweight)
 
-        stds, idx = torch.sort(torch.relu(self.distance_stdevs).view(-1,), dim=0)
-        stds = stds + 1e-3
+        # stds, idx = torch.sort(torch.relu(self.distance_stdevs).view(-1,), dim=0)
+        stds = torch.relu(self.distance_stdevs) + 1e-3
 
         d_left = self.fc(stds, stds, self.k) #.clamp(min=0.0)
         d_left = torch.relu(torch.cumsum(d_left, dim=0)) #.clamp(min=0.0)
@@ -555,10 +555,10 @@ class decoder_gmm(torch.nn.Module):
         # stds = (torch.relu(self.distance_stdevs) + 1e-3)
         # # stds, _ = torch.sort(stds)
 
-        # mode = torch.exp(means - stds**2)
-        # _, idx = torch.sort(mode.view(-1,), dim=0, descending=False)
-        # means = means[idx]
-        # stds = stds[idx]
+        mode = torch.exp(means - stds**2)
+        _, idx = torch.sort(mode.view(-1,), dim=0, descending=False)
+        means = means[idx]
+        stds = stds[idx]
 
         # mode, idx = torch.sort(self.mode)
         # stds = (torch.relu(self.distance_stdevs) + 1e-3)[idx]
