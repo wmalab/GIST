@@ -7,7 +7,7 @@ import numpy as np
 
 from .model import embedding, encoder_chain, decoder_distance, decoder_gmm, save_model_state_dict
 from .loss import nllLoss, stdLoss, ClusterWassersteinLoss
-from .visualize import plot_feature, plot_X, plot_cluster, plot_confusion_mat, plot_distributions
+from .visualize import plot_feature, plot_X, plot_cluster, plot_confusion_mat, plot_distributions, plot_histogram
 from .visualize import plot_scaler
 
 # import GPUtil
@@ -188,7 +188,7 @@ def inference(graphs, features, cluster_weights, num_heads, num_clusters, em_net
         cw = cluster_weights
         [dis_cmpt_lp], [dis_gmm, cmpt_w] = de_gmm_net(xp1, torch.div(1.0, cw)**(1) )
 
-        dp1 = torch.exp(dis_cmpt_lp).cpu().detach().numpy()
+        dp1 = (torch.exp(dis_cmpt_lp)*cmpt_w).cpu().detach().numpy()
         # cp1 = torch.exp(cnt_cmpt_lp).cpu().detach().numpy() # 
         tp1 = top_graph.edges['interacts'].data['label'].cpu().detach().numpy()
 
@@ -203,8 +203,10 @@ def inference(graphs, features, cluster_weights, num_heads, num_clusters, em_net
 
         true_cluster_mat = np.ones((pred_X.shape[0], pred_X.shape[0]))*(num_clusters-1)
         true_cluster_mat[xs, ys] = tp1
+
+        distance_mat = xp1.cpu().detach().numpy()
         # return pred_X, pred_distance_cluster_mat, pred_contact_cluster_mat, true_cluster_mat, [cnt_gmm, dis_gmm]
-        return pred_X, pred_distance_cluster_mat, true_cluster_mat, [dis_gmm, cmpt_w]
+        return pred_X, pred_distance_cluster_mat, true_cluster_mat, [dis_gmm, cmpt_w], distance_mat
 
 
 def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device, writer=None, config=None, saved_model=None):
@@ -293,7 +295,7 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                 num_heads = int(config['parameter']['G3DM']['num_heads'])
                 [center_X, 
                 pred_distance_mat, 
-                center_true_mat, [dis_gmm, cmpt_w] ] = inference(graphs, h_feat, cw, num_heads, 
+                center_true_mat, [dis_gmm, cmpt_w], distance_mat ] = inference(graphs, h_feat, cw, num_heads, 
                                             int(config['parameter']['graph']['num_clusters']), 
                                             em_networks, ae_networks, device)
 
@@ -344,6 +346,9 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                                     lognormal_pdfs.to('cpu').detach().numpy(),
                                     weights], 
                                     writer, '2,3 hop_dist/LogNormal x~LogNormal(,)', step=epoch) 
+                
+                inputs = [distance_mat, pred_distance_mat, center_true_mat]
+                plot_histogram(inputs, writer, '2,4 historgram/distance, predict, true', step=epoch)
 
             torch.cuda.empty_cache()
         scheduler.step()

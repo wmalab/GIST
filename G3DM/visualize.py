@@ -85,6 +85,21 @@ def plot_lines(x, writer, item_dir, step=None):
     step = 0 if step is None else step
     writer.add_figure(item_dir, fig, global_step=step)
 
+def plot_histogram(inputs, writer, item_dir, step=None):
+    [distance, pred_cluster, true_cluster] = inputs
+    fig = plt.figure()
+
+    axs = fig.add_subplot(1, 3, 1)
+    n, bins, patches = axs.hist(distance.flatten(), 50, density=True, facecolor='green', alpha=0.75)
+
+    axs = fig.add_subplot(1, 3, 2)
+    n, bins, patches = axs.hist(pred_cluster.flatten(), 50, density=True, facecolor='blue', alpha=0.75)
+
+    axs = fig.add_subplot(1, 3, 3)
+    n, bins, patches = axs.hist(true_cluster.flatten(), 50, density=True, facecolor='red', alpha=0.75)
+    step = 0 if step is None else step
+    writer.add_figure(item_dir, fig, global_step=step)
+
 def plot_distributions(inputs, writer, item_dir, step=None):
     [m, x, pdfs, weights] = inputs
 
