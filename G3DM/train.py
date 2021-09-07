@@ -347,8 +347,10 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                                     weights], 
                                     writer, '2,3 hop_dist/LogNormal x~LogNormal(,)', step=epoch) 
                 
-                inputs = [distance_mat, pred_distance_mat, center_true_mat]
-                plot_histogram(inputs, writer, '2,4 historgram/distance, predict, true', step=epoch)
+                inputs = [distance_mat, pred_distance_mat]
+                plot_histogram(inputs, writer, '2,4 historgram/distance, predict', step=epoch)
+                inputs = [distance_mat, center_true_mat]
+                plot_histogram(inputs, writer, '2,4 historgram/distance, true', step=epoch)
 
             torch.cuda.empty_cache()
         scheduler.step()
