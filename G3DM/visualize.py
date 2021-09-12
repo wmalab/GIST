@@ -49,7 +49,7 @@ def plot_cluster(mat, writer, ncluster, item_dir, step=None):
     data = mat
     cmaps = ['RdBu_r']
     fig, axs = plt.subplots(1, 1)
-    pcm = axs.pcolormesh(data, cmap=cmaps[0], vmin=0, vmax=ncluster)
+    pcm = axs.pcolormesh(data, cmap=cmaps[0], vmin=0, vmax=ncluster-1)
     fig.colorbar(pcm, ax=axs)
     step = 0 if step is None else step
     writer.add_figure(item_dir, fig, global_step=step)
