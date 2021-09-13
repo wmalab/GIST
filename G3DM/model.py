@@ -531,6 +531,7 @@ class decoder_gmm(torch.nn.Module):
     def forward(self, distance, cweight):
         # cweight = torch.nn.functional.normalize(cweight.view(-1,), p=1, dim=0)
         # cweight =  torch.nn.functional.softmax(cweight.view(-1,), 0)
+        cweight = torch.ones_like(cweight)
         mix = D.Categorical( cweight)
 
         activate = torch.nn.LeakyReLU(0.01)
