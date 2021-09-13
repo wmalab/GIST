@@ -565,7 +565,7 @@ class decoder_gmm(torch.nn.Module):
         dis_cmpt_lp = torch.log(dis_cmpt_lp)
 
         cmpt_w = cweight # torch.softmax(self.weights, dim=0)
-        return [dis_cmpt_lp ], [dis_gmm, cmpt_w] #+torch.log(cmpt_w*self.num_clusters)
+        return [dis_cmpt_lp.float() ], [dis_gmm, cmpt_w] #+torch.log(cmpt_w*self.num_clusters)
 
 
 def save_model_state_dict(models, optimizer, path, epoch=None, loss=None):
