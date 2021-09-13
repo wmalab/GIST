@@ -536,7 +536,7 @@ class decoder_gmm(torch.nn.Module):
         means = means + self.interval
 
         stds = torch.relu(self.distance_stdevs) + 1e-3
-        stds = torch.div(stds, means.clamp(min=1.0)**(1.5))
+        stds = torch.div(stds, (means.clamp(min=1.0))**(0.5))
         mode = torch.exp(means - stds**2)
         _, idx = torch.sort(mode.view(-1,), dim=0, descending=False)
         means = means[idx]
