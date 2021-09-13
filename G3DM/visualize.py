@@ -142,7 +142,7 @@ def plot_distributions(inputs, writer, item_dir, step=None):
         axs.text(xdata[np.argmax(ydata)], ydata.max(), '{:2.2%}'.format(weights[i]) )
 
     right_lim = max(9.0, min(x.max(), 120))
-    plt.xlim(left=-3.0, right=right_lim)
+    plt.xlim(left=-3.0 ) # right=right_lim
     legend = axs.legend(*scatter.legend_elements(),
                 bbox_to_anchor=(1.04,1),
                 loc="best", title="Classes")
