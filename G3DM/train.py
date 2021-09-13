@@ -117,40 +117,20 @@ def fit_one_step(epoch, require_grad, graphs, features, cluster_weights, em_netw
     if xp.shape[0]==0 or xp.shape[0]!= lt.shape[0]:
         return [None]
 
-    # idx =  (xp.flatten()).multinomial(num_samples=len(xp), replacement=False)
-    # # xt = xt[idx]
-    # lt = lt[idx]
-    # xp = xp[idx]
-    # [dis_cdf, cnt_cdf], [dis_cmpt_cdf, cnt_cmpt_cdf], [dis_cmpt_lp, cnt_cmpt_lp], [cnt_gmm, dis_gmm] = de_gmm_net(xp, xt)
     [dis_cmpt_lp], [dis_gmm, cmpt_w] = de_gmm_net(xp, torch.div(1.0, cw)**(1)) 
-    # l_nll = loss_fc[0](xp, xt, cw) 
-    # l_nll_noweight = loss_fc[0](xp, xt, None)
-    # l_wnl = loss_fc[1](xp, xt, ncluster)
-    # l_stdl = loss_fc[2](std, xt, ncluster)
-    # if l_nll > 1e4 or l_wnl > 1e4 or l_stdl > 1e4:
-    #     print(xp.min(), xp.max(), xp.mean())
-    #     print(X1.mean(dim=0))
-    #     return [None, None, None, None]
 
-    # rmseloss_all = loss_fc[0](dis_cdf, cnt_cdf)
-    # rmseloss_cmpt = loss_fc[0](dis_cmpt_cdf, cnt_cmpt_cdf)
-    one_hot_lt = torch.nn.functional.one_hot(lt.long(), ncluster)
-    # weight_r = torch.linspace( ncluster, 1, steps=ncluster, dtype=torch.float, device=device)
-    # weight_r = torch.nn.functional.softmax( torch.div(1.0, cw).view(-1,), 0)
-    # weight_l = torch.linspace(1, ncluster, steps=ncluster, dtype=torch.float, device=device)
-    # weight_r = cw**(0.5)+10.0
+    cutoff = torch.rand(lt.shape)
+    mask = cutoff.ge(0.7)
+    dis_cmpt_lp = dis_cmpt_lp[mask, :]
+    lt = lt[mask]
+
     weight_r = torch.linspace(np.pi*0.1, np.pi*0.7, steps=ncluster, dtype=torch.float, device=device)
     weight_r = torch.sin(weight_r) + 1
-    balance_weight = (cw**0.5) # torch.softmax(cw**(0.5), 0) # torch.ones_like(cw) # 
-    l_nll = loss_fc[0](dis_cmpt_lp, lt, balance_weight, weight_r)
-    l_wnl = loss_fc[2](dis_cmpt_lp, one_hot_lt, balance_weight, weight_r)
-    # if (epoch%10) < 7 or epoch <=20:
-    #     l_nll = loss_fc[0](dis_cmpt_lp, lt, cw, weight_r**(0.5))
-    #     l_wnl = loss_fc[2](dis_cmpt_lp, one_hot_lt, cw, weight_r**(0.5))
-    # else:
-    #     l_nll = loss_fc[0](dis_cmpt_lp, lt, cw, weight_l)
-    #     l_wnl = loss_fc[2](dis_cmpt_lp, one_hot_lt, cw, weight_l)
+    balance_weight = torch.ones_like(cw) # (cw**0.5) # torch.softmax(cw**(0.5), 0) #  
 
+    l_nll = loss_fc[0](dis_cmpt_lp, lt, balance_weight, weight_r)
+    one_hot_lt = torch.nn.functional.one_hot(lt.long(), ncluster)
+    l_wnl = loss_fc[2](dis_cmpt_lp, one_hot_lt, balance_weight, weight_r)
     l_stdl = loss_fc[1](std, lt, ncluster)
 
     if require_grad:
