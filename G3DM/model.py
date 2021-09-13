@@ -530,26 +530,26 @@ class decoder_gmm(torch.nn.Module):
         cweight = torch.ones_like(cweight)
         mix = D.Categorical( cweight)
 
-        # activate = torch.nn.LeakyReLU(0.01)
-        # means = activate(self.means).clamp(max=6.0)
-        # means = torch.nan_to_num(means, nan=6.0)
-        # means = means + self.interval
+        activate = torch.nn.LeakyReLU(0.01)
+        means = activate(self.means).clamp(max=6.0)
+        means = torch.nan_to_num(means, nan=6.0)
+        means = means + self.interval
 
         stds = torch.relu(self.distance_stdevs) + 1e-3
-        # mode = torch.exp(means - stds**2)
-        # _, idx = torch.sort(mode.view(-1,), dim=0, descending=False)
-        # means = means[idx]
-        # stds = stds[idx]
-        # dis_cmp = D.Normal(means.view(-1,), stds.view(-1,))
+        mode = torch.exp(means - stds**2)
+        _, idx = torch.sort(mode.view(-1,), dim=0, descending=False)
+        means = means[idx]
+        stds = stds[idx]
+        dis_cmp = D.Normal(mode.view(-1,), stds.view(-1,))
 
 
-        alpha, _ = torch.sort(torch.relu(self.alpha) + self.interval)
-        beta = torch.relu(self.beta) + 1e-4
-        transforms = [ D.AffineTransform( alpha.view(-1,),  beta.view(-1,))]
-        based_distribution = D.Normal(torch.ones_like(stds).view(-1,)*0.0, torch.ones_like(stds).view(-1,))
-        dis_cmp = D.TransformedDistribution( based_distribution, transforms)
+        # alpha, _ = torch.sort(torch.relu(self.alpha) + self.interval)
+        # beta = torch.relu(self.beta) + 1e-4
+        # transforms = [ D.AffineTransform( alpha.view(-1,),  beta.view(-1,))]
+        # based_distribution = D.Normal(torch.ones_like(stds).view(-1,)*0.0, torch.ones_like(stds).view(-1,))
+        # dis_cmp = D.TransformedDistribution( based_distribution, transforms)
+
         dis_gmm = D.MixtureSameFamily(mix, dis_cmp)
-
         # data = torch.log(distance).view(-1,1)
         data = distance.view(-1,1)
         unsafe_dis_cmpt_lp = dis_gmm.component_distribution.log_prob(data)
