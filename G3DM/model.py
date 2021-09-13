@@ -560,7 +560,7 @@ class decoder_gmm(torch.nn.Module):
         dis_cmpt_lp = torch.nan_to_num(unsafe_dis_cmpt_lp, nan=-float('inf'))
 
         cweight = torch.softmax(self.weight, 0) #torch.ones_like(cweight)
-        dis_cmpt_lp = torch.exp(dis_cmpt_lp) * cweight.view(1,-1) + torch.linspace(1e-10, 1e-9, steps=len(cweight), dtype=torch.float, requires_grad=False)
+        dis_cmpt_lp = torch.exp(dis_cmpt_lp) * cweight.view(1,-1) + torch.linspace(1e-10, 1e-9, steps=len(cweight), dtype=torch.float, device=self.weight.device)
         dis_cmpt_lp = torch.nn.functional.normalize(dis_cmpt_lp, p=1.0, dim=1)
         dis_cmpt_lp = torch.log(dis_cmpt_lp)
 
