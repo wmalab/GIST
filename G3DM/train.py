@@ -123,6 +123,7 @@ def fit_one_step(epoch, require_grad, graphs, features, cluster_weights, em_netw
     mask = cutoff.ge(0.7)
     dis_cmpt_lp = dis_cmpt_lp[mask, :]
     lt = lt[mask]
+    std = std[mask]
 
     weight_r = torch.linspace(np.pi*0.1, np.pi*0.7, steps=ncluster, dtype=torch.float, device=device)
     weight_r = torch.sin(weight_r) + 1
