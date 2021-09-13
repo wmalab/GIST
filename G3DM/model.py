@@ -550,9 +550,9 @@ class decoder_gmm(torch.nn.Module):
 
         alpha, _ = torch.sort(torch.relu(self.alpha) + self.interval)
         beta = torch.relu(self.beta) + 1e-4
-        transforms = [ D.AffineTransform( alpha.view(-1,),  beta.view(-1,))]
-        based_distribution = D.Normal(torch.ones_like(stds).view(-1,)*0.0, torch.ones_like(stds).view(-1,))
-        dis_cmp = D.TransformedDistribution( based_distribution, transforms)
+        # transforms = [ D.AffineTransform( alpha.view(-1,),  beta.view(-1,))]
+        # based_distribution = D.Normal(torch.ones_like(stds).view(-1,)*0.0, torch.ones_like(stds).view(-1,))
+        dis_cmp = D.Normal(alpha.view(-1,), beta.view(-1,))# D.TransformedDistribution( based_distribution, transforms)
 
         dis_gmm = D.MixtureSameFamily(mix, dis_cmp)
         # data = torch.log(distance).view(-1,1)
