@@ -519,9 +519,9 @@ class decoder_gmm(torch.nn.Module):
         inter = torch.linspace(start=0, end=1.0, steps=self.num_clusters, device=self.distance_stdevs.device)
         self.interval = torch.nn.Parameter( inter, requires_grad=False)
 
-        a = torch.linspace(0, 33.0, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
-        self.alpha = torch.nn.Parameter( a, requires_grad=True)
-        self.beta = torch.nn.Parameter( torch.ones((self.num_clusters)), requires_grad=True)
+        # a = torch.linspace(0, 33.0, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
+        # self.alpha = torch.nn.Parameter( a, requires_grad=True)
+        # self.beta = torch.nn.Parameter( torch.ones((self.num_clusters)), requires_grad=True)
 
 
     def forward(self, distance, cweight):
@@ -540,7 +540,7 @@ class decoder_gmm(torch.nn.Module):
         _, idx = torch.sort(mode.view(-1,), dim=0, descending=False)
         means = means[idx]
         stds = stds[idx]
-        dis_cmp = D.Normal(emans.view(-1,), stds.view(-1,))
+        dis_cmp = D.Normal(means.view(-1,), stds.view(-1,))
 
 
         # alpha, _ = torch.sort(torch.relu(self.alpha) + self.interval)
