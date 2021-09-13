@@ -119,8 +119,8 @@ def fit_one_step(epoch, require_grad, graphs, features, cluster_weights, em_netw
 
     [dis_cmpt_lp], [dis_gmm, cmpt_w] = de_gmm_net(xp, torch.div(1.0, cw)**(1)) 
 
-
-    n = int(((lt.shape[0])*0.5)/ncluster)
+    tmp = torch.softmax( 1.0+torch.div(1, cw), dim=0)
+    n = int(((lt.shape[0])*0.7)*tmp)
     ids = []
     for i in torch.arange(ncluster):
         idx = (lt == i).nonzero(as_tuple=True)[0]
@@ -134,7 +134,7 @@ def fit_one_step(epoch, require_grad, graphs, features, cluster_weights, em_netw
     lt = lt[mask]
     std = std[mask]
 
-    weight_r = torch.linspace(np.pi*0.1, np.pi*0.7, steps=ncluster, dtype=torch.float, device=device)
+    weight_r = torch.linspace(np.pi*0.1, np.pi*0.9, steps=ncluster, dtype=torch.float, device=device)
     weight_r = torch.sin(weight_r) + 1
     balance_weight = torch.ones_like(cw) # (cw**0.5) # torch.softmax(cw**(0.5), 0) #  
 
@@ -144,7 +144,7 @@ def fit_one_step(epoch, require_grad, graphs, features, cluster_weights, em_netw
     l_stdl = loss_fc[1](std, lt, ncluster)
 
     if require_grad:
-        loss = l_nll # + l_wnl + l_stdl # + l_wnl + l_stdl
+        loss = l_nll + l_wnl # + l_stdl # + l_wnl + l_stdl
         optimizer[0].zero_grad()
         loss.backward()  # retain_graph=False,
         optimizer[0].step()
