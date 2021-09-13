@@ -135,8 +135,8 @@ def fit_one_step(epoch, require_grad, graphs, features, cluster_weights, em_netw
     sample_lt = lt[mask]
     sample_std = std[mask]
 
-    weight_r = torch.linspace(np.pi*0.1, np.pi*0.9, steps=ncluster, dtype=torch.float, device=device)
-    weight_r = torch.sin(weight_r) + 1
+    weight_r = torch.linspace(np.pi*0.1, np.pi*0.8, steps=ncluster, dtype=torch.float, device=device)*2
+    weight_r = torch.sin(weight_r) + 0.5
     balance_weight = torch.ones_like(cw) # (cw**0.5) # torch.softmax(cw**(0.5), 0) #  
 
     l_nll = loss_fc[0](dis_cmpt_lp, lt, balance_weight, weight_r)
