@@ -513,8 +513,8 @@ class decoder_gmm(torch.nn.Module):
         self.k = torch.nn.Parameter( torch.ones(self.num_clusters), requires_grad=True)
         # self.weights = weights
 
-        # ms = torch.linspace(0, 3.0, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
-        # self.means = torch.nn.Parameter( ms, requires_grad=True)
+        ms = torch.linspace(0, 3.0, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
+        self.means = torch.nn.Parameter( ms, requires_grad=True)
         
         # stds = torch.linspace(0.1, 1.0, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
         self.distance_stdevs = torch.nn.Parameter( 0.3*torch.ones((self.num_clusters)), requires_grad=True)
@@ -522,10 +522,10 @@ class decoder_gmm(torch.nn.Module):
         inter = torch.linspace(start=0, end=1.0, steps=self.num_clusters, device=self.distance_stdevs.device)
         self.interval = torch.nn.Parameter( inter, requires_grad=False)
 
-        a = torch.linspace(0, 33.0, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
-        self.alpha = torch.nn.Parameter( a, requires_grad=True)
-        self.beta = torch.nn.Parameter( torch.ones((self.num_clusters)), requires_grad=True)
-        # self.weight = torch.nn.Parameter( torch.ones((self.num_clusters)), requires_grad=True)
+        # a = torch.linspace(0, 33.0, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
+        # self.alpha = torch.nn.Parameter( a, requires_grad=True)
+        # self.beta = torch.nn.Parameter( torch.ones((self.num_clusters)), requires_grad=True)
+        # # self.weight = torch.nn.Parameter( torch.ones((self.num_clusters)), requires_grad=True)
 
 
     def forward(self, distance, cweight):
