@@ -119,8 +119,17 @@ def fit_one_step(epoch, require_grad, graphs, features, cluster_weights, em_netw
 
     [dis_cmpt_lp], [dis_gmm, cmpt_w] = de_gmm_net(xp, torch.div(1.0, cw)**(1)) 
 
-    cutoff = torch.rand(lt.shape)
-    mask = cutoff.ge(0.7)
+
+    n = int(((lt.shape[0])*0.5)/ncluster)
+    ids = []
+    for i in torch.arange(ncluster):
+        idx = (lt == i).nonzero(as_tuple=True)[0]
+        p = torch.ones_like(idx, dtype=float)/idx.shape[0]
+        ids.append(idx[p.multinomial(num_samples=n, replacement=True)])
+    mask = torch.cat(ids, dim=0)
+    mask, _ = torch.sort(mask)
+    # cutoff = torch.rand(lt.shape)
+    # mask = cutoff.ge(0.3)
     dis_cmpt_lp = dis_cmpt_lp[mask, :]
     lt = lt[mask]
     std = std[mask]
