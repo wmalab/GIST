@@ -131,7 +131,7 @@ def plot_distributions(inputs, writer, item_dir, step=None):
 
     axs = fig.add_subplot(1, 1, 1)
     cmaps = ['tab20']
-    ydata = np.ones((len(m.flatten()))) # np.arange(len(m.flatten()))*0.1
+    ydata = np.ones((len(m.flatten())))*(-0.1) # np.arange(len(m.flatten()))*0.1
     scatter = axs.scatter(m.flatten(), ydata, c=c, cmap=cmaps[0])
     n = pdfs.shape[1]
     colors = plt.cm.tab20(np.linspace(0,1,n))
@@ -139,7 +139,7 @@ def plot_distributions(inputs, writer, item_dir, step=None):
         xdata = x.flatten()
         ydata = pdfs[:,i] # + i*0.1
         axs.plot(xdata, ydata, color=colors[i])
-        axs.text(xdata[np.argmax(ydata)], ydata.max(), '{:2.2%}'.format(weights[i]) )
+        # axs.text(xdata[np.argmax(ydata)], ydata.max(), '{:2.2%}'.format(weights[i]) )
 
     right_lim = max(6.0, min(x.max(), 120))
     plt.xlim(left=-3.0, right=right_lim ) # 
