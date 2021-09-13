@@ -513,7 +513,7 @@ class decoder_gmm(torch.nn.Module):
         self.k = torch.nn.Parameter( torch.ones(self.num_clusters), requires_grad=True)
         # self.weights = weights
 
-        ms = torch.linspace(0, 3.5, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
+        ms = torch.linspace(0, 3.0, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
         self.means = torch.nn.Parameter( ms, requires_grad=True)
         
         # stds = torch.linspace(0.1, 1.0, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
@@ -534,8 +534,8 @@ class decoder_gmm(torch.nn.Module):
         mix = D.Categorical( cweight)
 
         activate = torch.nn.LeakyReLU(0.01)
-        means = activate(self.means).clamp(max=6.0)
-        means = torch.nan_to_num(means, nan=6.0)
+        means = activate(self.means).clamp(max=4.5)
+        means = torch.nan_to_num(means, nan=4.5)
         means = means + self.interval
 
         stds = torch.relu(self.distance_stdevs) + 1e-3
@@ -559,11 +559,11 @@ class decoder_gmm(torch.nn.Module):
         unsafe_dis_cmpt_lp = dis_gmm.component_distribution.log_prob(data)
         dis_cmpt_lp = torch.nan_to_num(unsafe_dis_cmpt_lp, nan=-float('inf'))
 
-        cweight = torch.softmax(self.weight, 0) #torch.ones_like(cweight)
-        dis_cmpt_lp = torch.exp(dis_cmpt_lp) * cweight.view(1,-1) + \
-                    torch.linspace(1e-10, 1e-9, steps=len(cweight), dtype=torch.float, device=self.weight.device)
-        dis_cmpt_lp = torch.nn.functional.normalize(dis_cmpt_lp, p=1.0, dim=1)
-        dis_cmpt_lp = torch.log(dis_cmpt_lp)
+        # cweight = torch.softmax(self.weight, 0) #torch.ones_like(cweight)
+        # dis_cmpt_lp = torch.exp(dis_cmpt_lp) * cweight.view(1,-1) + \
+        #                 torch.linspace(1e-10, 1e-9, steps=len(cweight), dtype=torch.float, device=self.weight.device)
+        # dis_cmpt_lp = torch.nn.functional.normalize(dis_cmpt_lp, p=1.0, dim=1)
+        # dis_cmpt_lp = torch.log(dis_cmpt_lp)
 
         cmpt_w = cweight # torch.softmax(self.weights, dim=0)
         return [dis_cmpt_lp.float() ], [dis_gmm, cmpt_w] #+torch.log(cmpt_w*self.num_clusters)
