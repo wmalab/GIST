@@ -119,7 +119,7 @@ def fit_one_step(epoch, require_grad, graphs, features, cluster_weights, em_netw
 
     [dis_cmpt_lp], [dis_gmm, cmpt_w] = de_gmm_net(xp, torch.div(1.0, cw)**(1)) 
 
-    tmp = torch.div( torch.ones_like(cw), ncluster) #torch.softmax( 1.0+torch.div(1, cw), dim=0)
+    tmp = torch.softmax( 1.0+torch.div(1, cw), dim=0) # torch.div( torch.ones_like(cw), ncluster) #
     n = (lt.shape[0])*0.7*tmp
     ids = []
     for i in torch.arange(ncluster):
