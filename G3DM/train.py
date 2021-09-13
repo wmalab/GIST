@@ -119,7 +119,7 @@ def fit_one_step(epoch, require_grad, graphs, features, cluster_weights, em_netw
 
     [dis_cmpt_lp], [dis_gmm, cmpt_w] = de_gmm_net(xp, torch.div(1.0, cw)**(1)) 
 
-    tmp = torch.softmax( 1.0+torch.div(1, cw), dim=0)
+    tmp = torch.div( torch.ones_like(cw), ncluster) #torch.softmax( 1.0+torch.div(1, cw), dim=0)
     n = (lt.shape[0])*0.7*tmp
     ids = []
     for i in torch.arange(ncluster):
@@ -130,21 +130,22 @@ def fit_one_step(epoch, require_grad, graphs, features, cluster_weights, em_netw
     mask, _ = torch.sort(mask)
     # cutoff = torch.rand(lt.shape)
     # mask = cutoff.ge(0.3)
-    dis_cmpt_lp = dis_cmpt_lp[mask, :]
-    lt = lt[mask]
-    std = std[mask]
+    sample_dis_cmpt_lp = dis_cmpt_lp[mask, :]
+    sample_lt = lt[mask]
+    sample_std = std[mask]
 
     weight_r = torch.linspace(np.pi*0.1, np.pi*0.9, steps=ncluster, dtype=torch.float, device=device)
     weight_r = torch.sin(weight_r) + 1
     balance_weight = torch.ones_like(cw) # (cw**0.5) # torch.softmax(cw**(0.5), 0) #  
 
     l_nll = loss_fc[0](dis_cmpt_lp, lt, balance_weight, weight_r)
+    l_nll_sample = loss_fc[0](sample_dis_cmpt_lp, sample_lt, balance_weight, weight_r)
     one_hot_lt = torch.nn.functional.one_hot(lt.long(), ncluster)
     l_wnl = loss_fc[2](dis_cmpt_lp, one_hot_lt, balance_weight, weight_r)
     l_stdl = loss_fc[1](std, lt, ncluster)
 
     if require_grad:
-        loss = l_nll + l_wnl # + l_stdl # + l_wnl + l_stdl
+        loss = l_nll + l_nll_sample*10 # + l_stdl # + l_wnl + l_stdl
         optimizer[0].zero_grad()
         loss.backward()  # retain_graph=False,
         optimizer[0].step()
