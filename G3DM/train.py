@@ -139,14 +139,14 @@ def fit_one_step(epoch, require_grad, graphs, features, cluster_weights, em_netw
     weight_r = 2*torch.sin(weight_r) + 1.0
     balance_weight = torch.ones_like(cw) # (cw**0.5) # torch.softmax(cw**(0.5), 0) #  
 
-    # l_nll = loss_fc[0](dis_cmpt_lp, lt, balance_weight, weight_r)
-    l_nll = loss_fc[0](sample_dis_cmpt_lp, sample_lt, balance_weight, weight_r)
+    l_nll = loss_fc[0](dis_cmpt_lp, lt, balance_weight, weight_r)
+    sample_l_nll = loss_fc[0](sample_dis_cmpt_lp, sample_lt, balance_weight, weight_r)
     one_hot_lt = torch.nn.functional.one_hot(lt.long(), ncluster)
     l_wnl = loss_fc[2](dis_cmpt_lp, one_hot_lt, balance_weight, weight_r)
     l_stdl = loss_fc[1](std, lt, ncluster)
 
     if require_grad:
-        loss = l_wnl*50 + l_nll # + l_stdl # + l_wnl + l_stdl
+        loss = l_wnl*50 + 10*sample_l_nll + l_nll # + l_stdl # + l_wnl + l_stdl
         optimizer[0].zero_grad()
         loss.backward()  # retain_graph=False,
         optimizer[0].step()
