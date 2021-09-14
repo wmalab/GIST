@@ -120,7 +120,7 @@ def fit_one_step(epoch, require_grad, graphs, features, cluster_weights, em_netw
     [dis_cmpt_lp], [dis_gmm, cmpt_w] = de_gmm_net(xp, torch.div(1.0, cw)**(1)) 
 
     tmp = torch.div( torch.ones_like(cw), ncluster) # torch.softmax( 1.0+torch.div(1, cw), dim=0) #
-    n = (lt.shape[0])*0.8*tmp
+    n = (lt.shape[0])*0.7*tmp
     ids = []
     for i in torch.arange(ncluster):
         idx = ((lt == i).nonzero(as_tuple=True)[0]).view(-1,)
@@ -135,8 +135,8 @@ def fit_one_step(epoch, require_grad, graphs, features, cluster_weights, em_netw
     sample_lt = lt[mask]
     sample_std = std[mask]
 
-    weight_r = torch.linspace(np.pi, np.pi*0.65, steps=ncluster, dtype=torch.float, device=device)
-    weight_r = 3*torch.sin(weight_r) + 1.0
+    weight_r = torch.linspace(np.pi*0.1, np.pi*0.65, steps=ncluster, dtype=torch.float, device=device)
+    weight_r = 2*torch.sin(weight_r) + 1.0
     balance_weight = torch.ones_like(cw) # (cw**0.5) # torch.softmax(cw**(0.5), 0) #  
 
     # l_nll = loss_fc[0](dis_cmpt_lp, lt, balance_weight, weight_r)
