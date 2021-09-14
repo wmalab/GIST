@@ -17,10 +17,10 @@
         "graph":{
             "max_len": 900,
             "iteration": 0,
-            "num_clusters": 30,
-            "cutoff_clusters":{"low": 35.0, "high": 99.99},
+            "num_clusters": 10,
+            "cutoff_clusters":{"low": 45.0, "high": 99.99},
             "cutoff_percent": 0,
-            "cutoff_cluster": 10
+            "cutoff_cluster": 5
         },
         "feature":{
             "in_dim": 300,
