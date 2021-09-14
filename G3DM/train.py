@@ -54,19 +54,12 @@ def create_network(configuration, device):
                 list(de_distance_net.parameters()) + \
                 list(de_gmm_net.parameters())
 
-    # opt = optim.AdaBound( parameters_list, 
-    #                     lr=1e-3, betas=(0.9, 0.999), 
-    #                     final_lr=0.1, gamma=1e-3, 
-    #                     eps=1e-8, weight_decay=0,
-    #                     amsbound=False)
+    opt = optim.AdaBound( parameters_list, 
+                        lr=1e-3, betas=(0.9, 0.999), 
+                        final_lr=0.1, gamma=1e-3, 
+                        eps=1e-8, weight_decay=0,
+                        amsbound=True)
 
-    opt = optim.RangerVA( parameters_list,
-                        lr=1e-3, alpha=0.5,
-                        k=6, n_sma_threshhold=5,
-                        betas=(.95, 0.999),
-                        eps=1e-5, weight_decay=0,
-                        amsgrad=True, transformer='softplus',
-                        smooth=50, grad_transformer='square')
     # - opt = optim.AdamP(parameters_list,
     #                     lr= 1e-3, betas=(0.9, 0.999),
     #                     eps=1e-8, weight_decay=0,
@@ -95,6 +88,15 @@ def create_network(configuration, device):
     #                 eps=1e-3,
     #                 initial_accumulator=1e-6,
     #                 weight_decay=0)
+
+    # x opt = optim.RangerVA( parameters_list,
+    #                     lr=1e-3, alpha=0.5,
+    #                     k=6, n_sma_threshhold=5,
+    #                     betas=(.95, 0.999),
+    #                     eps=1e-5, weight_decay=0,
+    #                     amsgrad=True, transformer='softplus',
+    #                     smooth=50, grad_transformer='square')
+
     scheduler = torch.optim.lr_scheduler.ExponentialLR(opt, gamma=0.9)
 
     em_networks = [em_bead]
