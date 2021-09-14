@@ -190,15 +190,19 @@ def inference(graphs, features, cluster_weights, num_heads, num_clusters, em_net
 
         pred_distance_cluster_mat = np.ones((pred_X.shape[0], pred_X.shape[0]))*(num_clusters-1)
         pred_distance_cluster_mat[xs, ys] = np.argmax(dp1, axis=1)
+        pred_distance_cluster_mat[ys, xs] = np.argmax(dp1, axis=1)
 
         # pred_contact_cluster_mat = np.ones((pred_X.shape[0], pred_X.shape[0]))*(num_clusters-1)
         # pred_contact_cluster_mat[xs, ys] = np.argmax(cp1, axis=1)
 
         true_cluster_mat = np.ones((pred_X.shape[0], pred_X.shape[0]))*(num_clusters-1)
         true_cluster_mat[xs, ys] = tp1
+        true_cluster_mat[ys, xs] = tp1
 
         distance_mat = np.zeros((pred_X.shape[0], pred_X.shape[0]))
         distance_mat[xs, ys] = xp1.view(-1,).cpu().detach().numpy()
+        distance_mat[ys, xs] = xp1.view(-1,).cpu().detach().numpy()
+
         # return pred_X, pred_distance_cluster_mat, pred_contact_cluster_mat, true_cluster_mat, [cnt_gmm, dis_gmm]
         return pred_X, pred_distance_cluster_mat, true_cluster_mat, [dis_gmm, cmpt_w], distance_mat
 

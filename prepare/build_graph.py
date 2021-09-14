@@ -28,20 +28,27 @@ def create_subgraph_(ID, mat_hic, mat_chic, idx,
     fid = np.where(chic < cutoff)
     if len(fid[0])==0 or len(fid[1])==0:
         return False
-    fid_interacts = fid
+
     u = np.concatenate(fid[0].reshape(-1, 1))
     v = np.concatenate(fid[1].reshape(-1, 1))
+    masked = np.argwhere(u < v)
+    u = u[masked].flatten()
+    v = v[masked].flatten()
+    fid_interacts = (u, v)
     graph_data[('bead', 'interacts', 'bead')] = (u, v)
 
     c_list = [r for r in range(cutoff_cluster)]  # int(n_cluster)-1)
-    fid = []
+    # fid = []
     for i in c_list:
         [src, dst] = np.where(chic == i)
         u = np.concatenate([src])
         v = np.concatenate([dst])
+        masked = np.argwhere(u < v)
+        u = u[masked].flatten()
+        v = v[masked].flatten()
         if len(u)==0 or len(v)==0:
             return False
-        fid.append(np.where(chic == i))
+        # fid.append(np.where(chic == i))
         graph_data[('bead', 'interacts_c{}'.format(str(i)), 'bead')] = (u, v)
     num_nodes_dict = {'bead': len(idx)}
     g = dgl.heterograph(graph_data, num_nodes_dict, idtype=torch.long)

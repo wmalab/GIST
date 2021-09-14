@@ -1,4 +1,4 @@
-{   "id": "1",
+{   "id": "0",
     "cool_data_path":"",
     "cool_file": "Rao2014-IMR90-MboI-allreps-filtered.10kb.cool", 
     "cell_name": "Rao2014-IMR90-MboI-allreps-filtered",
@@ -17,10 +17,10 @@
         "graph":{
             "max_len": 900,
             "iteration": 0,
-            "num_clusters": 6,
+            "num_clusters": 30,
             "cutoff_clusters":{"low": 35.0, "high": 99.99},
             "cutoff_percent": 0,
-            "cutoff_cluster": 4
+            "cutoff_cluster": 10
         },
         "feature":{
             "in_dim": 300,
