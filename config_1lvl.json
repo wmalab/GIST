@@ -18,7 +18,7 @@
             "max_len": 1000,
             "iteration": 0,
             "num_clusters": 6,
-            "cutoff_clusters":{"low": 35.0, "high": 99.99},
+            "cutoff_clusters":{"low": 30.0, "high": 99.99},
             "cutoff_percent": 0,
             "cutoff_cluster": 4
         },
@@ -28,7 +28,7 @@
         },
         "G3DM":{
             "iteration": 400,
-            "num_heads": 20,
+            "num_heads": 10,
             "graph_dim":{"in_dim":40, "hidden_dim":10, "out_dim": 3}
         }
     }
