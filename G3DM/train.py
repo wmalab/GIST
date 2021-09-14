@@ -54,16 +54,16 @@ def create_network(configuration, device):
                 list(de_distance_net.parameters()) + \
                 list(de_gmm_net.parameters())
 
-    # opt = optim.AdaBound( parameters_list, 
-    #                     lr=1e-3, betas=(0.9, 0.999), 
-    #                     final_lr=0.1, gamma=1e-3, 
-    #                     eps=1e-8, weight_decay=0,
-    #                     amsbound=False)
+    opt = optim.AdaBound( parameters_list, 
+                        lr=1e-3, betas=(0.9, 0.999), 
+                        final_lr=0.1, gamma=1e-3, 
+                        eps=1e-8, weight_decay=0,
+                        amsbound=False)
 
 
-    opt = optim.RAdam( parameters_list,
-                        lr= 1e-3, betas=(0.9, 0.999),
-                        eps=1e-8, weight_decay=0)
+    # opt = optim.RAdam( parameters_list,
+    #                     lr= 1e-3, betas=(0.9, 0.999),
+    #                     eps=1e-8, weight_decay=0)
 
     # opt = optim.QHAdam( parameters_list,
     #                     lr= 1e-3, betas=(0.9, 0.999),
@@ -136,7 +136,7 @@ def fit_one_step(epoch, require_grad, graphs, features, cluster_weights, em_netw
     sample_std = std[mask]
 
     weight_r = torch.linspace(np.pi*0.1, np.pi*0.8, steps=ncluster, dtype=torch.float, device=device)
-    weight_r = (torch.sin(weight_r) + 1.0)**3
+    weight_r = 2*torch.sin(weight_r) + 1.0
     balance_weight = torch.ones_like(cw) # (cw**0.5) # torch.softmax(cw**(0.5), 0) #  
 
     # l_nll = loss_fc[0](dis_cmpt_lp, lt, balance_weight, weight_r)
