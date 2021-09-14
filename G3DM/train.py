@@ -65,7 +65,7 @@ def create_network(configuration, device):
     #                     lr= 1e-3, betas=(0.9, 0.999),
     #                     eps=1e-8, weight_decay=0)
 
-    opt = optim.Adahessian(parameter_list,
+    opt = optim.Adahessian(parameters_list,
                             lr= 1e-2,
                             betas= (0.9, 0.999),
                             eps= 1e-4,
