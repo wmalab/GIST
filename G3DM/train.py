@@ -58,7 +58,7 @@ def create_network(configuration, device):
                         lr=1e-3, betas=(0.9, 0.999), 
                         final_lr=0.1, gamma=1e-3, 
                         eps=1e-8, weight_decay=0,
-                        amsbound=False)
+                        amsbound=True)
 
     # - opt = optim.AdamP(parameters_list,
     #                     lr= 1e-3, betas=(0.9, 0.999),
@@ -137,16 +137,16 @@ def fit_one_step(epoch, require_grad, graphs, features, cluster_weights, em_netw
     [dis_cmpt_lp], [dis_gmm, cmpt_w] = de_gmm_net(xp, torch.div(1.0, cw)**(1)) 
 
     tmp = torch.div( torch.ones_like(cw), ncluster) # torch.softmax( 1.0+torch.div(1, cw), dim=0) #
-    n = (lt.shape[0])*0.7*tmp
+    n = (lt.shape[0])*0.8*tmp
     ids = []
     for i in torch.arange(ncluster):
         idx = ((lt == i).nonzero(as_tuple=True)[0]).view(-1,)
         p = torch.ones_like(idx, dtype=float)/idx.shape[0]
         # ids.append(idx[p.multinomial(num_samples=int( torch.minimum(n[i], torch.tensor(idx.shape[0])) ), replacement=False)])
-        ids.append(idx[p.multinomial(num_samples=int( n[i] ), replacement=True)])
+        ids.append(idx[p.multinomial(num_samples=int( torch.minimum(n[i], torch.tensor(idx.shape[0]) ), replacement=False)])
     mask = torch.cat(ids, dim=0)
-    mask, _ = torch.sort(mask)
-    # mask = torch.unique(mask, sorted=True, return_inverse=False, return_counts=False)
+    # mask, _ = torch.sort(mask)
+    mask = torch.unique(mask, sorted=True, return_inverse=False, return_counts=False)
 
     sample_dis_cmpt_lp = dis_cmpt_lp[mask, :]
     sample_lt = lt[mask]
