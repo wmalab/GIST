@@ -10,6 +10,6 @@
 date
 hostname
 source activate env_G3DM
-echo python test_prepare_1lvl_data.py
-cp config_1lvl.json ../data/
-python test_prepare_1lvl_data.py
+echo python test_prepare_data.py
+cp config_train.json ../data/
+python test_prepare_data.py

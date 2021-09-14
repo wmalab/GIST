@@ -13,6 +13,6 @@ hostname
 source activate env_G3DM
 module load cuda/10.2.2
 module load GCC/8.3.0
-echo python test_train_1lvl.py
-cp config_1lvl.json ../data/
-python test_train_1lvl.py
+echo python test_train.py
+cp config_train.json ../data/
+python test_train.py

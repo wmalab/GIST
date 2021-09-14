@@ -3,10 +3,10 @@ import json, pickle
 import numpy as np
 import multiprocessing
 
-from feature.utils import feature_hic, position_hic, save_feature, load_feature
-from prepare.utils import log1p_hic, save_graph, load_graph
-from prepare.data_prepare import hic_prepare_pooling
-from prepare.build_graph import create_hierarchical_graph_2lvl
+from prepare.utils import log1p_hic, save_graph, load_graph, hic_prepare
+from prepare.build_data import create_data
+from prepare.build_feature import load_feature
+
 from prepare.build_dataset import HiCDataset
 
 import torch
@@ -14,78 +14,13 @@ import torch
 import warnings
 warnings.filterwarnings('ignore')
 
-def check_dim(dim, x):
-    assert dim <= int(x.shape[0]/2)-1
-    return int(dim)
- 
-def create_feature(ratio, stride, dim, chromosome, cool_path, cool_file, output_path, output_file):
-    ''' create Hi-C feature '''
-    ratios = np.array([1, ratio])
-    strides = np.array([1, stride])
-    cool = os.path.join(cool_path, cool_file)
-    # 2 Hi-C matrices, iced normalization, diagonal fill 0
-    norm_hics = hic_prepare_pooling(
-        rawfile=cool,
-        chromosome='chr{}'.format(str(chromosome)),
-        ratios=ratios, strides=strides,
-        remove_zero_col=False)
-
-    for i, m in enumerate(norm_hics):
-        print('create featrue chromosome {} level {}, iced normalization Hi-C shape: {}'.format(chromosome, i, m.shape))
-
-    log_hics = [log1p_hic(x) for x in norm_hics]
-    idxs = [np.arange(len(hic)) for hic in norm_hics]
-
-    #! dim can't larger than int(x.shape[0]/2)-1
-    features = [ feature_hic(x, check_dim(dim[i], x)) for i, x in enumerate(log_hics) ]
-
-    positions = []
-    for f in features:
-        pe = np.array(position_hic(f, f.shape[1]))
-        positions.append(pe)
-
-    f_dict = {'hic_h0': {'feat':features[0], 'pos': positions[0]}, 'hic_h1': {'feat':features[1], 'pos': positions[1]}}
-    save_feature(output_path, output_file, f_dict)
-
-def create_graph(ratio, stride, num_clusters, chromosome, cutoff_percent, cutoff_cluster, cool_path, cool_file, output_path, output_file):
-    ''' create Hi-C graph. 2 levels, high lvl 0 as center, low lvl 1 as bead '''
-    ratios = np.array([1, ratio], dtype=np.int)
-    strides = np.array([1, stride], dtype=np.int)
-    cool = os.path.join(cool_path, cool_file)
-
-    # 2 Hi-C matrices, iced normalization, diagonal fill 0
-    norm_hics = hic_prepare_pooling(
-        rawfile=cool,
-        chromosome='chr{}'.format(str(chromosome)),
-        ratios=ratios, strides=strides,
-        remove_zero_col=False)
-
-    for i, m in enumerate(norm_hics):
-        print('create graph chromosome {} level {}, iced normalization Hi-C shape: {}'.format(chromosome, i, m.shape))
-
-    g, g_list, cw_list, mats_list = create_hierarchical_graph_2lvl(
-        norm_hics, num_clusters, ratios, strides, 
-        cutoff_percent=cutoff_percent, 
-        cutoff_cluster=cutoff_cluster)
-    save_graph(g_list, output_path, output_file)
-    
-    cluster_weight_dict = dict()
-    for i, cw in enumerate(cw_list):
-        cluster_weight_dict[str(i)] = cw
-        cluster_weight_dict['mat_{}'.format(i)] = mats_list[i]
-
-    with open(os.path.join(output_path, 'cw_'+output_file + '.pkl'), 'wb') as f:
-        pickle.dump(cluster_weight_dict, f, pickle.HIGHEST_PROTOCOL)
-    
-    print('Done graphs saved in {}'.format(output_path))
-
 
 if __name__ == '__main__':
-    root = '.'
-    # root = '/rhome/yhu/bigdata/proj/experiment_G3DM'
+    # root = '.'
+    root = '/rhome/yhu/bigdata/proj/experiment_G3DM'
 
     configuration_src_path = os.path.join(root, 'data')
-    configuration_name = 'config.json'
+    configuration_name = 'config_train.json'
     with open(os.path.join(configuration_src_path, configuration_name)) as f:
         config_data = json.load(f)
 
@@ -107,7 +42,7 @@ if __name__ == '__main__':
     dataset_name = config_data['dataset_path']['name'] if config_data['dataset_path']['name'] else 'dataset.pt'
     output_path = config_data['output_path'] if config_data['output_path'] else os.path.join( root, 'data', cell, hyper, 'output')
 
-    saved_model_path = config_data['saved_model']['path'] if config_data['saved_model']['path'] else os.path.join( root, 'saved_model')
+    saved_model_path = config_data['saved_model']['path'] if config_data['saved_model']['path'] else os.path.join( root, 'data', cell, hyper, 'saved_model')
     saved_model_name = config_data['saved_model']['name'] if config_data['saved_model']['name'] else 'model_net'
 
     os.makedirs(graph_path, exist_ok=True)
@@ -115,63 +50,55 @@ if __name__ == '__main__':
     os.makedirs(output_path, exist_ok=True)
     os.makedirs(saved_model_path, exist_ok=True)
 
-    ratio = config_data['hyper']['ratio']
-    stride = config_data['hyper']['stride']
-    dim = [ config_data['parameter']['feature']['in_dim']['h0'], config_data['parameter']['feature']['in_dim']['h1'] ]
     all_chromosome = config_data['all_chromosomes']
-    train_chromosomes = config_data['train_chromosomes']
-    valid_chromosomes = config_data['valid_chromosomes']
+    train_chromosomes = config_data['train_valid_chromosomes']
     test_chromosomes = config_data['test_chromosomes']
 
-    clusters = config_data['parameter']['graph']['num_clusters']
-    # load dict
-    num_clusters = dict()
-    for key, value in clusters.items():
-        num_clusters[int(key)] = int(value)
-
-    percents = config_data['parameter']['graph']['cutoff_percent']
-    cutoff_percents = dict()
-    for key, value in percents.items():
-        cutoff_percents[int(key)] = int(value)
-
+    num_clusters = config_data['parameter']['graph']['num_clusters']
+    max_len = config_data['parameter']['graph']['max_len']
+    iteration = config_data['parameter']['graph']['iteration']
+    # offset = config_data['parameter']['graph']['offset']
+    # cutoff_percents = config_data['parameter']['graph']['cutoff_percent']
+    cutoff_clusters_limits = config_data['parameter']['graph']['cutoff_clusters']
     cutoff_cluster = config_data['parameter']['graph']['cutoff_cluster']
 
-    # pool_num = len(all_chromosome)*2 if multiprocessing.cpu_count() > len(all_chromosome)*2 else multiprocessing.cpu_count()
-    # pool = multiprocessing.Pool(pool_num)
-    # for chromosome in all_chromosome:
-    #     feat_args = (ratio, stride, dim, chromosome,
-    #                 cool_data_path, cool_file,
-    #                 feature_path, 'F_chr-{}'.format(chromosome))
-    #     pool.apply_async(create_feature, args=feat_args)
-    #     graph_args = (ratio, stride, num_clusters, chromosome,
-    #                 cutoff_percents, cutoff_cluster,
-    #                 cool_data_path, cool_file,
-    #                 graph_path, 'G_chr-{}'.format(chromosome))
-    #     pool.apply_async(create_graph, args=graph_args)
-    # pool.close()
-    # pool.join()
+    dim = config_data['parameter']['feature']['in_dim']
+
+    for chromosome in all_chromosome:
+        for_test = True if chromosome in test_chromosomes else False
+        create_data(num_clusters, chromosome, for_test,
+                    dim,
+                    cutoff_clusters_limits, 
+                    cutoff_cluster, 
+                    max_len, iteration,
+                    cool_data_path, cool_file,
+                    [feature_path, graph_path])
 
     graph_dict = dict()
     feature_dict = dict()
     cluster_weight_dict = dict()
-    train_list, valid_list, test_list = list(), list(), list()
+    train_list, test_list = list(), list()
     for chromosome in all_chromosome:
-        # graph_dict[chromosome] = {top_graph, top_subgraphs, bottom_graph, inter_graph}
-        # feature_dict[chromosome] = {'hic_feat_h0', 'hic_feat_h1'}
-        g, _ = load_graph(graph_path, 'G_chr-{}'.format(chromosome))
-        graph_dict[str(chromosome)] = g
-        c = load_feature(graph_path, 'cw_G_chr-{}'.format(chromosome))
-        cluster_weight_dict[str(chromosome)] = c
         feature_dict[str(chromosome)] = load_feature(feature_path, 'F_chr-{}'.format(chromosome))
+        cluster_weight_dict[str(chromosome)] = feature_dict[str(chromosome)]['cluster_weight']
+
+        graph_dict[str(chromosome)]=dict()
+        g_path = os.path.join(graph_path, 'chr{}'.format(chromosome))
+        files = [f for f in os.listdir(g_path) if 'chr-{}'.format(chromosome) in f]
+        for file in files:
+            gid = file.split('.')[0]
+            gid = gid.split('_')[-1]
+            gid = int(gid)
+            g, _ = load_graph(g_path, file)
+            graph_dict[str(chromosome)][gid] = g
+
         if str(chromosome) in train_chromosomes:
             train_list.append(str(chromosome))
-        if str(chromosome) in valid_chromosomes:
-            valid_list.append(str(chromosome))
         if str(chromosome) in test_chromosomes:
             test_list.append(str(chromosome))
     
     # create HiCDataset and save
-    HD = HiCDataset(graph_dict, feature_dict, cluster_weight_dict, train_list, valid_list, test_list, dataset_path, dataset_name)
+    HD = HiCDataset(graph_dict, feature_dict, cluster_weight_dict, train_list, test_list, dataset_path, dataset_name)
     torch.save(HD, os.path.join( dataset_path, dataset_name))
 
     '''load_HD = torch.load(os.path.join( dataset_path, dataset_name))
