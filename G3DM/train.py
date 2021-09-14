@@ -151,9 +151,9 @@ def fit_one_step(epoch, require_grad, graphs, features, cluster_weights, em_netw
     sample_lt = lt[mask]
     sample_std = std[mask]
 
-    # weight = torch.linspace(np.pi*0.1, np.pi*0.65, steps=ncluster, dtype=torch.float, device=device)
-    # weight = torch.sin(weight_r) + 1.0
-    weight = torch.ones_like(cw)  
+    weight = torch.linspace(np.pi*0.1, np.pi*0.65, steps=ncluster, dtype=torch.float, device=device)
+    weight = torch.sin(weight_r) + 1.0
+    # weight = torch.ones_like(cw)  
 
     l_nll = loss_fc[0](dis_cmpt_lp, lt, weight)
     sample_l_nll = loss_fc[0](sample_dis_cmpt_lp, sample_lt, weight)
@@ -192,13 +192,10 @@ def inference(graphs, features, cluster_weights, num_heads, num_clusters, em_net
 
         xp1, _ = de_dis_net(top_graph, h_center)
 
-        # xt1 = top_graph.edges['interacts'].data['value']
-        # [dis_cdf, cnt_cdf], [dis_cmpt_cdf, cnt_cmpt_cdf], [dis_cmpt_lp, cnt_cmpt_lp], [cnt_gmm, dis_gmm] = de_gmm_net(xp1)
         cw = cluster_weights
         [dis_cmpt_lp], [dis_gmm, cmpt_w] = de_gmm_net(xp1, torch.div(1.0, cw)**(1) )
 
         dp1 = (torch.exp(dis_cmpt_lp)*cmpt_w).cpu().detach().numpy()
-        # cp1 = torch.exp(cnt_cmpt_lp).cpu().detach().numpy() # 
         tp1 = top_graph.edges['interacts'].data['label'].cpu().detach().numpy()
 
         pred_X = h_center.cpu().detach().numpy()
@@ -207,9 +204,6 @@ def inference(graphs, features, cluster_weights, num_heads, num_clusters, em_net
         pred_distance_cluster_mat = np.ones((pred_X.shape[0], pred_X.shape[0]))*(num_clusters-1)
         pred_distance_cluster_mat[xs, ys] = np.argmax(dp1, axis=1)
         # pred_distance_cluster_mat[ys, xs] = np.argmax(dp1, axis=1)
-
-        # pred_contact_cluster_mat = np.ones((pred_X.shape[0], pred_X.shape[0]))*(num_clusters-1)
-        # pred_contact_cluster_mat[xs, ys] = np.argmax(cp1, axis=1)
 
         true_cluster_mat = np.ones((pred_X.shape[0], pred_X.shape[0]))*(num_clusters-1)
         true_cluster_mat[xs, ys] = tp1
