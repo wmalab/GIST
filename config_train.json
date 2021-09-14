@@ -1,4 +1,4 @@
-{   "id": "0",
+{   "id": "1",
     "cool_data_path":"",
     "cool_file": "Rao2014-IMR90-MboI-allreps-filtered.10kb.cool", 
     "cell_name": "Rao2014-IMR90-MboI-allreps-filtered",
@@ -15,12 +15,12 @@
     "saved_model": {"path": "", "name": ""},
     "parameter": {
         "graph":{
-            "max_len": 1000,
+            "max_len": 2000,
             "iteration": 0,
-            "num_clusters": 7,
-            "cutoff_clusters":{"low": 30.0, "high": 99.99},
+            "num_clusters": 8,
+            "cutoff_clusters":{"low": 30.0, "high": 98.0},
             "cutoff_percent": 0,
-            "cutoff_cluster": 5
+            "cutoff_cluster": 4
         },
         "feature":{
             "in_dim": 300,
