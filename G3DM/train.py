@@ -71,15 +71,15 @@ def create_network(configuration, device):
     #                     decouple_weight_decay=False,
     #                     eps=1e-8)
 
-    opt = torch.optim.RMSprop(list(em_bead.parameters()) + list(en_net.parameters()) 
-                            + list(de_distance_net.parameters()) + list(de_gmm_net.parameters()))
+    # x opt = torch.optim.RMSprop(list(em_bead.parameters()) + list(en_net.parameters()) 
+    #                         + list(de_distance_net.parameters()) + list(de_gmm_net.parameters()))
 
-    # opt = optim.Yogi(parameters_list,
-    #                 lr= 1e-3,
-    #                 betas=(0.9, 0.999),
-    #                 eps=1e-3,
-    #                 initial_accumulator=1e-6,
-    #                 weight_decay=0)
+    opt = optim.Yogi(parameters_list,
+                    lr= 1e-3,
+                    betas=(0.9, 0.999),
+                    eps=1e-3,
+                    initial_accumulator=1e-6,
+                    weight_decay=0)
     scheduler = torch.optim.lr_scheduler.ExponentialLR(opt, gamma=0.9)
 
     em_networks = [em_bead]
