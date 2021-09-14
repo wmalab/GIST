@@ -125,17 +125,16 @@ def fit_one_step(epoch, require_grad, graphs, features, cluster_weights, em_netw
     for i in torch.arange(ncluster):
         idx = (lt == i).nonzero(as_tuple=True)[0]
         p = torch.ones_like(idx, dtype=float)/idx.shape[0]
-        ids.append(idx[p.multinomial(num_samples=int(n[i]), replacement=True)])
+        ids.append(idx[p.multinomial(num_samples=int(n[i]), replacement=False)])
     mask = torch.cat(ids, dim=0)
     mask, _ = torch.sort(mask)
     # mask = torch.unique(mask, sorted=True, return_inverse=False, return_counts=False)
-    # cutoff = torch.rand(lt.shape)
-    # mask = cutoff.ge(0.3)
+
     sample_dis_cmpt_lp = dis_cmpt_lp[mask, :]
     sample_lt = lt[mask]
     sample_std = std[mask]
 
-    weight_r = torch.linspace(np.pi*0.1, np.pi*0.75, steps=ncluster, dtype=torch.float, device=device)
+    weight_r = torch.linspace(np.pi*0.1, np.pi*0.65, steps=ncluster, dtype=torch.float, device=device)
     weight_r = torch.sin(weight_r) + 1.0
     balance_weight = torch.ones_like(cw) # (cw**0.5) # torch.softmax(cw**(0.5), 0) #  
 
