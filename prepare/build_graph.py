@@ -31,9 +31,9 @@ def create_subgraph_(ID, mat_hic, mat_chic, idx,
 
     u = np.concatenate(fid[0].reshape(-1, 1))
     v = np.concatenate(fid[1].reshape(-1, 1))
-    masked = np.argwhere(u < v)
-    u = u[masked].flatten()
-    v = v[masked].flatten()
+    # masked = np.argwhere(u < v)
+    # u = u[masked].flatten()
+    # v = v[masked].flatten()
     fid_interacts = (u, v)
     graph_data[('bead', 'interacts', 'bead')] = (u, v)
 
@@ -43,9 +43,9 @@ def create_subgraph_(ID, mat_hic, mat_chic, idx,
         [src, dst] = np.where(chic == i)
         u = np.concatenate([src])
         v = np.concatenate([dst])
-        masked = np.argwhere(u < v)
-        u = u[masked].flatten()
-        v = v[masked].flatten()
+        # masked = np.argwhere(u < v)
+        # u = u[masked].flatten()
+        # v = v[masked].flatten()
         if len(u)==0 or len(v)==0:
             return False
         # fid.append(np.where(chic == i))
