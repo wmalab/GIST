@@ -120,15 +120,15 @@ def fit_one_step(epoch, require_grad, graphs, features, cluster_weights, em_netw
     [dis_cmpt_lp], [dis_gmm, cmpt_w] = de_gmm_net(xp, torch.div(1.0, cw)**(1)) 
 
     tmp = torch.div( torch.ones_like(cw), ncluster) # torch.softmax( 1.0+torch.div(1, cw), dim=0) #
-    n = (lt.shape[0])*0.6*tmp
+    n = (lt.shape[0])*0.8*tmp
     ids = []
     for i in torch.arange(ncluster):
         idx = (lt == i).nonzero(as_tuple=True)[0]
         p = torch.ones_like(idx, dtype=float)/idx.shape[0]
         ids.append(idx[p.multinomial(num_samples=int(n[i]), replacement=True)])
     mask = torch.cat(ids, dim=0)
-    # mask, _ = torch.sort(mask)
-    mask = torch.unique(mask, sorted=True, return_inverse=False, return_counts=False)
+    mask, _ = torch.sort(mask)
+    # mask = torch.unique(mask, sorted=True, return_inverse=False, return_counts=False)
     # cutoff = torch.rand(lt.shape)
     # mask = cutoff.ge(0.3)
     sample_dis_cmpt_lp = dis_cmpt_lp[mask, :]
