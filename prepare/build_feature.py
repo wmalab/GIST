@@ -26,7 +26,7 @@ def create_feature(norm_hic, dim):
         for j in np.arange(features.shape[1]):
             features[i, j] = mean_fs[j] if features[i,j]==0 else features[i,j] 
 
-    pe = position_hic(features, features.shape[1], idx=n_idx, scale=10000)
+    pe = position_hic(features, features.shape[1], idx=n_idx, scale=10)
     positions = np.array(pe)
 
     f_dict = {'feat':features, 'pos': positions}
