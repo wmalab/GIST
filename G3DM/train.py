@@ -65,17 +65,14 @@ def create_network(configuration, device):
     #                     lr= 1e-3, betas=(0.9, 0.999),
     #                     eps=1e-8, weight_decay=0)
 
-    opt = optim.Adahessian(parameters_list,
-                            lr= 1e-2,
-                            betas= (0.9, 0.999),
-                            eps= 1e-4,
-                            weight_decay=0.0,
-                            hessian_power=1.0)
-
     # -  opt = optim.RAdam( parameters_list,
     #                     lr= 1e-3, betas=(0.9, 0.999),
     #                     eps=1e-8, weight_decay=0)
 
+    opt = optim.AdamP(parameters_list,
+        lr= 1e-3, betas=(0.9, 0.999),
+        eps=1e-8, weight_decay=0,
+        delta = 0.1, wd_ratio = 0.1 )
     # x opt = optim.QHAdam( parameters_list,
     #                     lr= 1e-3, betas=(0.9, 0.999),
     #                     nus=(1.0, 1.0), weight_decay=0,
@@ -159,7 +156,7 @@ def fit_one_step(epoch, require_grad, graphs, features, cluster_weights, em_netw
     if require_grad:
         loss = sample_l_nll # + l_stdl # + l_wnl + l_stdl
         optimizer[0].zero_grad()
-        loss.backward(create_graph = True)  # retain_graph=False,
+        loss.backward()  # retain_graph=False, create_graph = True
         optimizer[0].step()
 
     return [l_nll.item(), l_stdl.item(), l_wnl.item()]
