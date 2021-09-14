@@ -28,7 +28,7 @@
         },
         "G3DM":{
             "iteration": 2000,
-            "num_heads": 80,
+            "num_heads": 10,
             "graph_dim":{"in_dim":40, "hidden_dim":9, "out_dim": 3}
         }
     }
