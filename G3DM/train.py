@@ -54,16 +54,16 @@ def create_network(configuration, device):
                 list(de_distance_net.parameters()) + \
                 list(de_gmm_net.parameters())
 
-    opt = optim.AdaBound( parameters_list, 
-                        lr=1e-3, betas=(0.9, 0.999), 
-                        final_lr=0.1, gamma=1e-3, 
-                        eps=1e-8, weight_decay=0,
-                        amsbound=False)
+    # opt = optim.AdaBound( parameters_list, 
+    #                     lr=1e-3, betas=(0.9, 0.999), 
+    #                     final_lr=0.1, gamma=1e-3, 
+    #                     eps=1e-8, weight_decay=0,
+    #                     amsbound=False)
 
 
-    # opt = optim.RAdam( parameters_list,
-    #                     lr= 1e-2, betas=(0.9, 0.999),
-    #                     eps=1e-8, weight_decay=0)
+    opt = optim.RAdam( parameters_list,
+                        lr= 1e-3, betas=(0.9, 0.999),
+                        eps=1e-8, weight_decay=0)
 
     # opt = optim.QHAdam( parameters_list,
     #                     lr= 1e-3, betas=(0.9, 0.999),
@@ -120,7 +120,7 @@ def fit_one_step(epoch, require_grad, graphs, features, cluster_weights, em_netw
     [dis_cmpt_lp], [dis_gmm, cmpt_w] = de_gmm_net(xp, torch.div(1.0, cw)**(1)) 
 
     tmp = torch.div( torch.ones_like(cw), ncluster) # torch.softmax( 1.0+torch.div(1, cw), dim=0) #
-    n = (lt.shape[0])*0.5*tmp
+    n = (lt.shape[0])*0.7*tmp
     ids = []
     for i in torch.arange(ncluster):
         idx = (lt == i).nonzero(as_tuple=True)[0]
