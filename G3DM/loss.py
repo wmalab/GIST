@@ -10,19 +10,17 @@ class ClusterWassersteinLoss(nn.Module):
         self.num_cluster = num_cluster
         
 
-    def forward(self, pred, target, balance_weight, weight=None):
+    def forward(self, pred, target, weight=None):
         np = torch.nn.functional.normalize(torch.exp(pred), p=1, dim=-1)
         pred_cdf = torch.cumsum(np, dim=-1)
         target_cdf = torch.cumsum(target, dim=-1)
 
         diff = pred_cdf - target_cdf
         res = (torch.abs(diff)**2).mean(dim=0)
-        bw = balance_weight/balance_weight.mean() + 1
         if weight is None:
             w = torch.ones((np.shape[1]), device=np.device)
         else:
             w = weight # *torch.sqrt(cw/cw.mean()+1.0) 
-        w = bw.view(1,-1)*w.view(1,-1)
         w = torch.nn.functional.normalize(w.view(1,-1), p=1)
         res = res.view(1,-1)*w.view(1,-1)
         res = res.sum(dim=-1)
@@ -53,15 +51,13 @@ class nllLoss(torch.nn.Module):
     def __init__(self):
         super(nllLoss, self).__init__()
     
-    def forward(self, pred, target, balance_weight, weight=None):
+    def forward(self, pred, target, weight=None):
         logp = pred # torch.nn.functional.log_softmax(pred, 1)
         # logp = torch.nn.functional.log_softmax(p, 1)
-        bw = balance_weight/balance_weight.mean() + 1
         if weight is  None:
             w = torch.ones_like(bw, device=bw.device) # * (weights/weights.mean() + 10.0) # torch.sqrt(weights/weights.mean() + 1.0)
         else:
             w = weight 
-        w = bw.view(1,-1)*w.view(1,-1)
         w = torch.nn.functional.normalize(w.view(1,-1), p=1)
         loss = torch.nn.functional.nll_loss(logp, target.long(), weight=w.float(), reduce=True, reduction='mean')
         
