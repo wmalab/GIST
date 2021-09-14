@@ -125,7 +125,8 @@ def fit_one_step(epoch, require_grad, graphs, features, cluster_weights, em_netw
     for i in torch.arange(ncluster):
         idx = ((lt == i).nonzero(as_tuple=True)[0]).view(-1,)
         p = torch.ones_like(idx, dtype=float)/idx.shape[0]
-        ids.append(idx[p.multinomial(num_samples=int( torch.minimum(n[i], torch.tensor(idx.shape[0])) ), replacement=False)])
+        # ids.append(idx[p.multinomial(num_samples=int( torch.minimum(n[i], torch.tensor(idx.shape[0])) ), replacement=False)])
+        ids.append(idx[p.multinomial(num_samples=int( n[i] ), replacement=True)])
     mask = torch.cat(ids, dim=0)
     mask, _ = torch.sort(mask)
     # mask = torch.unique(mask, sorted=True, return_inverse=False, return_counts=False)
@@ -134,8 +135,8 @@ def fit_one_step(epoch, require_grad, graphs, features, cluster_weights, em_netw
     sample_lt = lt[mask]
     sample_std = std[mask]
 
-    weight_r = torch.linspace(np.pi*0.1, np.pi*0.65, steps=ncluster, dtype=torch.float, device=device)
-    weight_r = torch.sin(weight_r) + 1.0
+    weight_r = torch.linspace(np.pi, np.pi*0.65, steps=ncluster, dtype=torch.float, device=device)
+    weight_r = 3*torch.sin(weight_r) + 1.0
     balance_weight = torch.ones_like(cw) # (cw**0.5) # torch.softmax(cw**(0.5), 0) #  
 
     # l_nll = loss_fc[0](dis_cmpt_lp, lt, balance_weight, weight_r)
@@ -145,7 +146,7 @@ def fit_one_step(epoch, require_grad, graphs, features, cluster_weights, em_netw
     l_stdl = loss_fc[1](std, lt, ncluster)
 
     if require_grad:
-        loss = l_wnl + l_nll # + l_stdl # + l_wnl + l_stdl
+        loss = l_wnl*50 + l_nll # + l_stdl # + l_wnl + l_stdl
         optimizer[0].zero_grad()
         loss.backward()  # retain_graph=False,
         optimizer[0].step()
