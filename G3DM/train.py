@@ -123,9 +123,9 @@ def fit_one_step(epoch, require_grad, graphs, features, cluster_weights, em_netw
     n = (lt.shape[0])*0.8*tmp
     ids = []
     for i in torch.arange(ncluster):
-        idx = (lt == i).nonzero(as_tuple=True)[0]
+        idx = ((lt == i).nonzero(as_tuple=True)[0]).view(-1,)
         p = torch.ones_like(idx, dtype=float)/idx.shape[0]
-        ids.append(idx[p.multinomial(num_samples=int(n[i]), replacement=False)])
+        ids.append(idx[p.multinomial(num_samples=int(torch.mininum(n[i], len(idx))), replacement=False)])
     mask = torch.cat(ids, dim=0)
     mask, _ = torch.sort(mask)
     # mask = torch.unique(mask, sorted=True, return_inverse=False, return_counts=False)
