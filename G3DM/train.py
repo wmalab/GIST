@@ -60,8 +60,19 @@ def create_network(configuration, device):
     #                     eps=1e-8, weight_decay=0,
     #                     amsbound=False)
 
+    opt = optim.RangerVA( parameters_list,
+                        lr=1e-3, alpha=0.5,
+                        k=6, n_sma_threshhold=5,
+                        betas=(.95, 0.999),
+                        eps=1e-5, weight_decay=0,
+                        amsgrad=True, transformer='softplus',
+                        smooth=50, grad_transformer='square')
+    # - opt = optim.AdamP(parameters_list,
+    #                     lr= 1e-3, betas=(0.9, 0.999),
+    #                     eps=1e-8, weight_decay=0,
+    #                     delta = 0.1, wd_ratio = 0.1 )
 
-    # - opt = optim.DiffGrad( parameters_list,
+    # x opt = optim.DiffGrad( parameters_list,
     #                     lr= 1e-3, betas=(0.9, 0.999),
     #                     eps=1e-8, weight_decay=0)
 
@@ -69,10 +80,6 @@ def create_network(configuration, device):
     #                     lr= 1e-3, betas=(0.9, 0.999),
     #                     eps=1e-8, weight_decay=0)
 
-    opt = optim.AdamP(parameters_list,
-        lr= 1e-3, betas=(0.9, 0.999),
-        eps=1e-8, weight_decay=0,
-        delta = 0.1, wd_ratio = 0.1 )
     # x opt = optim.QHAdam( parameters_list,
     #                     lr= 1e-3, betas=(0.9, 0.999),
     #                     nus=(1.0, 1.0), weight_decay=0,
