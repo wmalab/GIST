@@ -180,7 +180,7 @@ class decoder_gmm(torch.nn.Module):
 
         a = torch.linspace(1.0, 33.0, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
         self.alpha = torch.nn.Parameter( a, requires_grad=True)
-        self.beta = torch.nn.Parameter( 0.3*torch.ones((self.num_clusters)), requires_grad=True)
+        self.beta = torch.nn.Parameter( 2*torch.ones((self.num_clusters)), requires_grad=True)
 
         self.cweight = torch.nn.Parameter( torch.ones((self.num_clusters)), requires_grad=True)
 
