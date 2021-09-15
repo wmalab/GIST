@@ -117,11 +117,10 @@ class encoder_chain(torch.nn.Module):
         h = torch.squeeze(h[ntype[0]], dim=1)
         h = self.layer3(subg_interacts, {ntype[0]: h })
         x = torch.squeeze(h[ntype[0]], dim=1)
-        xlist = list()
+
         for i, et in enumerate(etypes):
-            xlist.append( self.layerConstruct(subg_interacts, x, [lr_ranges[i], lr_ranges[i+2]], et) )
-        x = torch.stack(xlist, dim=-1)
-        x = torch.mean(x, dim=-1)
+            x = self.layerConstruct(subg_interacts, x, [lr_ranges[i], lr_ranges[i+2]], et)
+
         x = self.norm_(x).view(-1,3)
         h = self.layerMHs(subg_interacts, {ntype[0]: x })
 
@@ -181,12 +180,12 @@ class decoder_gmm(torch.nn.Module):
         inter = torch.linspace(start=0, end=1.0, steps=self.num_clusters, device=self.k.device)
         self.interval = torch.nn.Parameter( inter, requires_grad=False)
 
-        a = torch.linspace(1.0, 27.0, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
-        self.alpha = torch.nn.Parameter( a, requires_grad=True)
-        self.beta = torch.nn.Parameter( torch.ones((self.num_clusters)), requires_grad=True)
+        a = torch.linspace(0, 4.0, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
+        self.alpha = torch.nn.Parameter( torch.exp(a), requires_grad=True)
+        self.beta = torch.nn.Parameter( 2*torch.ones((self.num_clusters)), requires_grad=True)
 
         self.cweight = torch.nn.Parameter( torch.ones((self.num_clusters)), requires_grad=True)
-        self.bias =  torch.nn.Parameter( torch.linspace(1e-6, 1e-5, steps=self.num_clusters, dtype=torch.float), requires_grad=False)
+        self.bias =  torch.nn.Parameter( torch.linspace(1e-8, 1e-6, steps=self.num_clusters, dtype=torch.float), requires_grad=False)
 
 
     def forward(self, distance):
@@ -240,7 +239,7 @@ class ConstructLayer(torch.nn.Module):
     def edge_scale(self, edges):
         d = edges.dst['z'] - edges.src['z']
         z2 = torch.norm(d, dim=-1, keepdim=True) + 1e-5
-        clamp_d = torch.div(d, z2)*(z2.float().clamp(min=1.05*self.le, max=0.95*self.ge))
+        clamp_d = torch.div(d, z2)*(z2.float().clamp(min=self.le, max=self.ge))
         return {'e': clamp_d}
 
     def message_func(self, edges):
