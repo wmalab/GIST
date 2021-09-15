@@ -82,11 +82,11 @@ def setup_train(configuration):
     return itn
 
 
-def fit_one_step(epoch, require_grad, graphs, features, cluster_weights, em_networks, ae_networks, loss_fc, optimizer, device):
+def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae_networks, loss_fc, optimizer, device):
     top_graph = graphs['top_graph'].to(device)
     top_subgraphs = graphs['top_subgraphs'].to(device)
 
-    ncluster = len(cluster_weights)
+    ncluster = len(cluster_ranges)
 
     h_feat = features
 
@@ -97,8 +97,8 @@ def fit_one_step(epoch, require_grad, graphs, features, cluster_weights, em_netw
 
     top_list = [e for e in top_subgraphs.etypes if 'interacts_c' in e]
 
-    X1 = em_bead(h_feat)
-    h_center = en_net(top_subgraphs, X1, top_list, ['w'], ['bead'])
+    X = em_bead(h_feat)
+    h_center = en_net(top_subgraphs, X, cluster_ranges, top_list, ['bead'])
     xp, std = de_dis_net(top_graph, h_center)
     # xt = top_graph.edges['interacts'].data['value']
     lt = top_graph.edges['interacts'].data['label']
@@ -107,10 +107,12 @@ def fit_one_step(epoch, require_grad, graphs, features, cluster_weights, em_netw
 
     [dis_cmpt_lp], [dis_gmm] = de_gmm_net(xp) 
 
-    tmp = torch.div( torch.ones_like(cluster_weights), ncluster) # torch.softmax( 1.0+torch.div(1, cw), dim=0) #
+    tmp = torch.div( torch.ones(ncluster), ncluster) # torch.softmax( 1.0+torch.div(1, cw), dim=0) #
     ids, n = list(), (lt.shape[0])*0.6*tmp
     for i in torch.arange(ncluster):
         idx = ((lt == i).nonzero(as_tuple=True)[0]).view(-1,)
+        if idx.nelement()==0:
+            continue
         p = torch.ones_like(idx, dtype=float)/idx.shape[0]
         # ids.append(idx[p.multinomial(num_samples=int( torch.minimum(n[i], torch.tensor(idx.shape[0])) ), replacement=False)])
         ids.append(idx[ p.multinomial( num_samples=int( torch.minimum(n[i], 3*torch.tensor(idx.shape[0])) ), replacement=True)])
@@ -138,10 +140,10 @@ def fit_one_step(epoch, require_grad, graphs, features, cluster_weights, em_netw
         loss.backward()  # retain_graph=False, create_graph = True
         optimizer[0].step()
 
-    return [l_nll.item(), l_stdl.item(), l_wnl.item()]
+    return [l_nll.item(), l_stdl.item(), l_wnl.item()], dis_gmm
 
 
-def inference(graphs, features, num_heads, num_clusters, em_networks, ae_networks, device):
+def inference(graphs, features, lr_ranges, num_heads, num_clusters, em_networks, ae_networks, device):
     top_graph = graphs['top_graph'].to(device)
     top_subgraphs = graphs['top_subgraphs'].to(device)
 
@@ -159,11 +161,14 @@ def inference(graphs, features, num_heads, num_clusters, em_networks, ae_network
     with torch.no_grad():
 
         X1 = em_bead(h_feat)
-        h_center = en_net( top_subgraphs, X1, top_list, ['w'], ['bead'])
+        h_center = en_net( top_subgraphs, X1, lr_ranges, top_list, ['bead'])
 
         xp1, _ = de_dis_net(top_graph, h_center)
 
         [dis_cmpt_lp], [dis_gmm] = de_gmm_net(xp1)
+        # mu = dis_gmm.component_distribution.mean
+        # stddev = dis_gmm.component_distribution.stddev
+        # modes = torch.exp(mu[i] - stddev[i]**2)
 
         dp1 = torch.exp(dis_cmpt_lp).cpu().detach().numpy()
         tp1 = top_graph.edges['interacts'].data['label'].cpu().detach().numpy()
@@ -205,21 +210,23 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
 
     test_loss_list, valid_loss_list, dur = [], [], []
     best_nll_loss = 10
+    lr_ranges = torch.linspace(1.0, 23.0, 
+                            steps=int(config['parameter']['graph']['num_clusters'])-1, 
+                            dtype=torch.float, requires_grad=False).to(device)
     for epoch in np.arange(iterations):
         print("epoch {:d} ".format(epoch), end=' ')
         t0 = time.time()
         for j, data in enumerate(train_dataset):
             graphs, features, _, cluster_weights, _ = data
-
-            # 1 over density of cluster
-            cw = torch.tensor(cluster_weights['cw']).to(device)
-
             h_f, h_p = features['feat'], features['pos']
             h_f_n = torch.nn.functional.normalize(torch.tensor(h_f, dtype=torch.float), p=1.0, dim=1)*h_f.shape[1]
             h_p_n =torch.nn.functional.normalize(torch.tensor(h_p, dtype=torch.float), p=1.0, dim=1)*h_p.shape[1]
             h_feat = torch.stack([h_f_n, h_p_n], dim=1).to(device)
 
-            ll = fit_one_step(epoch, True, graphs, h_feat, cw, em_networks, ae_networks, loss_fc, optimizer, device)
+            ll, dis_gmm = fit_one_step(True, graphs, h_feat, lr_ranges, em_networks, ae_networks, loss_fc, optimizer, device)
+            mu = dis_gmm.component_distribution.mean.detach()
+            stddev = dis_gmm.component_distribution.stddev.detach()
+            lr_ranges = torch.exp(mu - stddev**2)
             if None in ll:
                 continue
             
@@ -251,14 +258,14 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
             graphs, features, _, cluster_weights, _ = data
 
             # 1 over density of cluster
-            cw = torch.tensor(cluster_weights['cw']).to(device)
+            # cw = torch.tensor(cluster_weights['cw']).to(device)
  
             h_f, h_p = features['feat'], features['pos']
             h_f_n = torch.nn.functional.normalize(torch.tensor(h_f, dtype=torch.float), p=1.0, dim=1)*h_f.shape[1]
             h_p_n =torch.nn.functional.normalize(torch.tensor(h_p, dtype=torch.float), p=1.0, dim=1)*h_p.shape[1]
             h_feat = torch.stack( [h_f_n, h_p_n], dim=1).to(device)
 
-            ll = fit_one_step(epoch, False, graphs, h_feat, cw, em_networks, ae_networks, loss_fc, optimizer, device)
+            ll, _ = fit_one_step(False, graphs, h_feat, lr_ranges, em_networks, ae_networks, loss_fc, optimizer, device)
             if None in ll:
                 continue
             valid_loss_list.append(ll)
@@ -273,7 +280,7 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                 num_heads = int(config['parameter']['G3DM']['num_heads'])
                 [center_X, 
                 pred_distance_mat, 
-                center_true_mat, [dis_gmm], distance_mat ] = inference(graphs, h_feat, num_heads, 
+                center_true_mat, [dis_gmm], distance_mat ] = inference(graphs, h_feat, lr_ranges, num_heads, 
                                             int(config['parameter']['graph']['num_clusters']), 
                                             em_networks, ae_networks, device)
 

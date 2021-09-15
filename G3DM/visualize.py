@@ -139,7 +139,7 @@ def plot_distributions(inputs, writer, item_dir, step=None):
         xdata = x.flatten()
         ydata = pdfs[:,i] # + i*0.1
         axs.plot(xdata, ydata, color=colors[i])
-        axs.text(xdata[np.argmax(ydata)], ydata.max(), '{:2.2%}'.format(weights[i]) )
+        axs.text(m[i], -0.02, '{:2.2%}'.format(weights[i]) )
 
     right_lim = max(6.0, min(x.max(), 120))
     plt.xlim(left=-3.0, right=right_lim ) # 

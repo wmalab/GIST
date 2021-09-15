@@ -84,6 +84,8 @@ class encoder_chain(torch.nn.Module):
         gain = torch.nn.init.calculate_gain('leaky_relu', 0.2)
         torch.nn.init.xavier_uniform_(self.fc3.weight, gain=gain)
 
+        self.layerConstruct = ConstructLayer()
+
 
     def agg_func2(self, tensors, dsttype):
         stacked = torch.stack(tensors, dim=-1)
@@ -102,8 +104,12 @@ class encoder_chain(torch.nn.Module):
         x = torch.cumsum(torch.div(dx, dmean)*1.0, dim=0)
         return x
 
-    def forward(self, g, x, etypes, efeat, ntype):
+    def forward(self, g, x, lr_ranges, etypes, ntype):
         subg_interacts = g.edge_type_subgraph(etypes)
+        lr_ranges = torch.cat( ( torch.zeros(1), 
+                                lr_ranges.view(-1,), 
+                                torch.tensor(float('inf')).view(-1,) ), 
+                            dim=0).float().to(x.device)
 
         h = self.layer1(subg_interacts, {ntype[0]: x })
         h = torch.squeeze(h[ntype[0]], dim=1)
@@ -112,6 +118,9 @@ class encoder_chain(torch.nn.Module):
         h = self.layer3(subg_interacts, {ntype[0]: h })
         h = torch.squeeze(h[ntype[0]], dim=1)
         x = self.norm_(h).view(-1,3)
+        for i, et in enumerate(etypes):
+            x = self.layerConstruct(subg_interacts, x, [lr_ranges[i], lr_ranges[i+2]], et)
+
         h = self.layerMHs(subg_interacts, {ntype[0]: x })
 
         res = list()
@@ -219,6 +228,32 @@ class decoder_gmm(torch.nn.Module):
 
         return [dis_cmpt_lp.float()], [dis_gmm] #+torch.log(cmpt_w*self.num_clusters)
 
+class ConstructLayer(torch.nn.Module):
+    def __init__(self):
+        super(ConstructLayer, self).__init__()
+        # src: h1 -> dst: h0
+
+    def edge_scale(self, edges):
+        d = edges.dst['z'] - edges.src['z']
+        z2 = torch.norm(d, dim=-1, keepdim=True) + 1e-5
+        clamp_d = torch.div(d, z2)*(z2.float().clamp(min=self.le, max=self.ge))
+        return {'e': clamp_d}
+
+    def message_func(self, edges):
+        return {'src_z': edges.src['z'], 'e': edges.data['e'], 'dst_z': edges.dst['z']}
+
+    def reduce_func(self, nodes):
+        h = torch.mean( nodes.mailbox['src_z'] + nodes.mailbox['e'], dim=1)
+        return {'ah': h}
+
+    def forward(self, graph, h, lr_ranges, etype):
+        self.le, self.ge = lr_ranges
+        with graph.local_scope():
+            graph.ndata['z'] = h
+            graph.apply_edges(self.edge_scale, etype=etype)
+            graph.update_all(self.message_func, self.reduce_func, etype=etype)
+            res = graph.ndata.pop('ah')
+            return res
 
 def save_model_state_dict(models, optimizer, path, epoch=None, loss=None):
     state_dict = {
