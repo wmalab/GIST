@@ -173,14 +173,13 @@ class decoder_gmm(torch.nn.Module):
         # a = torch.linspace(0, 33.0, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
         # self.alpha = torch.nn.Parameter( a, requires_grad=True)
         # self.beta = torch.nn.Parameter( torch.ones((self.num_clusters)), requires_grad=True)
-        # # self.weight = torch.nn.Parameter( torch.ones((self.num_clusters)), requires_grad=True)
+        self.cweight = torch.nn.Parameter( torch.ones((self.num_clusters)), requires_grad=True)
 
 
-    def forward(self, distance, cweight):
+    def forward(self, distance):
         # cweight = torch.nn.functional.normalize(cweight.view(-1,), p=1, dim=0)
         # cweight =  torch.nn.functional.softmax(cweight.view(-1,), 0)
-        cweight = torch.ones_like(cweight)
-        mix = D.Categorical( cweight)
+        mix = D.Categorical( self.cweight)
 
         activate = torch.nn.LeakyReLU(0.01)
         means = activate(self.means).clamp(max=4.5)
@@ -206,7 +205,11 @@ class decoder_gmm(torch.nn.Module):
         data = torch.log(distance).view(-1,1)
         # data = distance.view(-1,1)
         unsafe_dis_cmpt_lp = dis_gmm.component_distribution.log_prob(data)
-        dis_cmpt_lp = torch.nan_to_num(unsafe_dis_cmpt_lp, nan=-float('inf'))
+        dis_cmpt_lp = torch.nan_to_num(unsafe_dis_cmpt_lp, nan=-1e20)
+
+        dis_cmpt_p = torch.exp(dis_cmpt_lp) * (dis_gmm.mixture_distribution.probs).view(1,-1)
+        dis_cmpt_p = torch.nn.normalize(dis_cmpt_p, p=1, dim=1)
+        dis_cmpt_lp = torch.log(dis_cmpt_p)
 
         # cweight = torch.softmax(self.weight, 0) #torch.ones_like(cweight)
         # dis_cmpt_lp = torch.exp(dis_cmpt_lp) * cweight.view(1,-1) + \
@@ -214,8 +217,7 @@ class decoder_gmm(torch.nn.Module):
         # dis_cmpt_lp = torch.nn.functional.normalize(dis_cmpt_lp, p=1.0, dim=1)
         # dis_cmpt_lp = torch.log(dis_cmpt_lp)
 
-        cmpt_w = cweight # torch.softmax(self.weights, dim=0)
-        return [dis_cmpt_lp.float() ], [dis_gmm, cmpt_w] #+torch.log(cmpt_w*self.num_clusters)
+        return [dis_cmpt_lp.float()], [dis_gmm] #+torch.log(cmpt_w*self.num_clusters)
 
 
 def save_model_state_dict(models, optimizer, path, epoch=None, loss=None):

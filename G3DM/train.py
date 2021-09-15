@@ -105,7 +105,7 @@ def fit_one_step(epoch, require_grad, graphs, features, cluster_weights, em_netw
     if xp.shape[0]==0 or xp.shape[0]!= lt.shape[0]:
         return [None]
 
-    [dis_cmpt_lp], [dis_gmm, cmpt_w] = de_gmm_net(xp, torch.div(1.0, cluster_weights)**(1)) 
+    [dis_cmpt_lp], [dis_gmm] = de_gmm_net(xp) 
 
     tmp = torch.div( torch.ones_like(cluster_weights), ncluster) # torch.softmax( 1.0+torch.div(1, cw), dim=0) #
     ids, n = list(), (lt.shape[0])*0.6*tmp
@@ -141,7 +141,7 @@ def fit_one_step(epoch, require_grad, graphs, features, cluster_weights, em_netw
     return [l_nll.item(), l_stdl.item(), l_wnl.item()]
 
 
-def inference(graphs, features, cluster_weights, num_heads, num_clusters, em_networks, ae_networks, device):
+def inference(graphs, features, num_heads, num_clusters, em_networks, ae_networks, device):
     top_graph = graphs['top_graph'].to(device)
     top_subgraphs = graphs['top_subgraphs'].to(device)
 
@@ -163,10 +163,10 @@ def inference(graphs, features, cluster_weights, num_heads, num_clusters, em_net
 
         xp1, _ = de_dis_net(top_graph, h_center)
 
-        cw = cluster_weights
-        [dis_cmpt_lp], [dis_gmm, cmpt_w] = de_gmm_net(xp1, torch.div(1.0, cw)**(1) )
+        [dis_cmpt_lp], [dis_gmm] = de_gmm_net(xp1)
 
-        dp1 = (torch.exp(dis_cmpt_lp)*cmpt_w).cpu().detach().numpy()
+        dp1 = torch.exp(dis_cmpt_lp)*(dis_gmm.mixture_distribution.probs).view(1,-1)
+        dp1 = torch.nn.normalize(dp1, p=1,dim=1).cpu().detach().numpy()
         tp1 = top_graph.edges['interacts'].data['label'].cpu().detach().numpy()
 
         pred_X = h_center.cpu().detach().numpy()
@@ -274,7 +274,7 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                 num_heads = int(config['parameter']['G3DM']['num_heads'])
                 [center_X, 
                 pred_distance_mat, 
-                center_true_mat, [dis_gmm, cmpt_w], distance_mat ] = inference(graphs, h_feat, cw, num_heads, 
+                center_true_mat, [dis_gmm, cmpt_w], distance_mat ] = inference(graphs, h_feat, num_heads, 
                                             int(config['parameter']['graph']['num_clusters']), 
                                             em_networks, ae_networks, device)
 
