@@ -86,7 +86,6 @@ def fit_one_step(epoch, require_grad, graphs, features, cluster_weights, em_netw
     top_graph = graphs['top_graph'].to(device)
     top_subgraphs = graphs['top_subgraphs'].to(device)
 
-    cw = cluster_weights
     ncluster = len(cluster_weights)
 
     h_feat = features
@@ -106,15 +105,15 @@ def fit_one_step(epoch, require_grad, graphs, features, cluster_weights, em_netw
     if xp.shape[0]==0 or xp.shape[0]!= lt.shape[0]:
         return [None]
 
-    [dis_cmpt_lp], [dis_gmm, cmpt_w] = de_gmm_net(xp, torch.div(1.0, cw)**(1)) 
+    [dis_cmpt_lp], [dis_gmm, cmpt_w] = de_gmm_net(xp, torch.div(1.0, cluster_weights)**(1)) 
 
-    tmp = torch.div( torch.ones_like(cw), ncluster) # torch.softmax( 1.0+torch.div(1, cw), dim=0) #
+    tmp = torch.div( torch.ones_like(cluster_weights), ncluster) # torch.softmax( 1.0+torch.div(1, cw), dim=0) #
     ids, n = list(), (lt.shape[0])*0.6*tmp
     for i in torch.arange(ncluster):
         idx = ((lt == i).nonzero(as_tuple=True)[0]).view(-1,)
         p = torch.ones_like(idx, dtype=float)/idx.shape[0]
         # ids.append(idx[p.multinomial(num_samples=int( torch.minimum(n[i], torch.tensor(idx.shape[0])) ), replacement=False)])
-        ids.append(idx[ p.multinomial( num_samples=int( torch.minimum(n[i], 10*torch.tensor(idx.shape[0])) ), replacement=True)])
+        ids.append(idx[ p.multinomial( num_samples=int( torch.minimum(n[i], 3*torch.tensor(idx.shape[0])) ), replacement=True)])
     mask = torch.cat(ids, dim=0)
     mask, _ = torch.sort(mask)
     # mask = torch.unique(mask, sorted=True, return_inverse=False, return_counts=False)
@@ -134,7 +133,7 @@ def fit_one_step(epoch, require_grad, graphs, features, cluster_weights, em_netw
     l_stdl = loss_fc[1](std, lt, ncluster)
 
     if require_grad:
-        loss = sample_l_nll + l_wnl*20 #+ l_stdl #  + l_stdl
+        loss = sample_l_nll + l_wnl #+ l_stdl #  + l_stdl
         optimizer[0].zero_grad()
         loss.backward()  # retain_graph=False, create_graph = True
         optimizer[0].step()
