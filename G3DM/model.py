@@ -178,12 +178,12 @@ class decoder_gmm(torch.nn.Module):
         inter = torch.linspace(start=0, end=1.0, steps=self.num_clusters, device=self.k.device)
         self.interval = torch.nn.Parameter( inter, requires_grad=False)
 
-        a = torch.linspace(1.0, 33.0, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
+        a = torch.linspace(1.0, 27.0, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
         self.alpha = torch.nn.Parameter( a, requires_grad=True)
-        self.beta = torch.nn.Parameter( 2*torch.ones((self.num_clusters)), requires_grad=True)
+        self.beta = torch.nn.Parameter( torch.ones((self.num_clusters)), requires_grad=True)
 
         self.cweight = torch.nn.Parameter( torch.ones((self.num_clusters)), requires_grad=True)
-        self.bias =  torch.nn.Parameter( torch.linspace(1e-10, 1e-8, steps=self.num_clusters, dtype=torch.float), requires_grad=False)
+        self.bias =  torch.nn.Parameter( torch.linspace(1e-6, 1e-5, steps=self.num_clusters, dtype=torch.float), requires_grad=False)
 
 
     def forward(self, distance):
@@ -237,7 +237,7 @@ class ConstructLayer(torch.nn.Module):
     def edge_scale(self, edges):
         d = edges.dst['z'] - edges.src['z']
         z2 = torch.norm(d, dim=-1, keepdim=True) + 1e-5
-        clamp_d = torch.div(d, z2)*(z2.float().clamp(min=self.le, max=self.ge))
+        clamp_d = torch.div(d, z2)*(z2.float().clamp(min=1.05*self.le, max=0.95*self.ge))
         return {'e': clamp_d}
 
     def message_func(self, edges):
