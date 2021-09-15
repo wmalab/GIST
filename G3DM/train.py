@@ -294,8 +294,9 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                 # std = (dis_gmm.component_distribution.variance)
                 x = torch.linspace(start=0.1, end=6.5, steps=150, device=device) # mu.max()*1.5,
                 log_pdfs = dis_gmm.component_distribution.log_prob(x.view(-1,1))
-                log_pdfs = log_pdfs + torch.log(dis_gmm.mixture_distribution.probs).view(1, -1)
-                normal_pdfs = torch.nn.functional.normalize(torch.exp(log_pdfs), p=1, dim=1).to('cpu').detach().numpy()
+                # log_pdfs = log_pdfs + torch.log(dis_gmm.mixture_distribution.probs).view(1, -1)
+                normal_pdfs = torch.nn.functional.normalize( torch.exp(log_pdfs)*(dis_gmm.mixture_distribution.probs).view(1, -1), p=1, dim=1)
+                normal_pdfs = normal_pdfs.to('cpu').detach().numpy()
                 weights = (dis_gmm.mixture_distribution.probs).to('cpu').detach().numpy()
                 plot_distributions([ mu.to('cpu').detach().numpy(), 
                                     x.to('cpu').detach().numpy(), 

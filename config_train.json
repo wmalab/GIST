@@ -15,7 +15,7 @@
     "saved_model": {"path": "", "name": ""},
     "parameter": {
         "graph":{
-            "max_len": 2000,
+            "max_len": 1200,
             "iteration": 0,
             "num_clusters": 7,
             "cutoff_clusters":{"low": 30.0, "high": 100},
@@ -28,7 +28,7 @@
         },
         "G3DM":{
             "iteration": 400,
-            "num_heads": 25,
+            "num_heads": 20,
             "graph_dim":{"in_dim":40, "hidden_dim":10, "out_dim": 3}
         }
     }
