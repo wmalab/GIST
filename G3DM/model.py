@@ -205,9 +205,9 @@ class decoder_gmm(torch.nn.Module):
         data = torch.log(distance).view(-1,1)
         # data = distance.view(-1,1)
         unsafe_dis_cmpt_lp = dis_gmm.component_distribution.log_prob(data)
-        dis_cmpt_lp = torch.nan_to_num(unsafe_dis_cmpt_lp, nan=-1e20)
+        dis_cmpt_lp = torch.nan_to_num(unsafe_dis_cmpt_lp, nan=-float('inf'))
 
-        dis_cmpt_p = torch.exp(dis_cmpt_lp) * (dis_gmm.mixture_distribution.probs).view(1,-1)
+        dis_cmpt_p = torch.exp(dis_cmpt_lp) * (dis_gmm.mixture_distribution.probs).view(1,-1) + 1e-10
         dis_cmpt_p = torch.nn.functional.normalize(dis_cmpt_p, p=1, dim=1)
         dis_cmpt_lp = torch.log(dis_cmpt_p)
 
