@@ -225,8 +225,8 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
 
             ll, dis_gmm = fit_one_step(True, graphs, h_feat, lr_ranges, em_networks, ae_networks, loss_fc, optimizer, device)
             mu = dis_gmm.component_distribution.mean.detach()
-            stddev = dis_gmm.component_distribution.stddev.detach()
-            lr_ranges = torch.exp(mu - stddev**2)
+            # stddev = dis_gmm.component_distribution.stddev.detach()
+            lr_ranges = mu # torch.exp(mu - stddev**2)
             if None in ll:
                 continue
             
