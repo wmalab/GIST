@@ -116,11 +116,10 @@ class encoder_chain(torch.nn.Module):
         h = self.layer2(subg_interacts, {ntype[0]: h })
         h = torch.squeeze(h[ntype[0]], dim=1)
         h = self.layer3(subg_interacts, {ntype[0]: h })
-        h = torch.squeeze(h[ntype[0]], dim=1)
-        x = self.norm_(h).view(-1,3)
+        x = torch.squeeze(h[ntype[0]], dim=1)
         for i, et in enumerate(etypes):
             x = self.layerConstruct(subg_interacts, x, [lr_ranges[i], lr_ranges[i+2]], et)
-
+        x = self.norm_(x).view(-1,3)
         h = self.layerMHs(subg_interacts, {ntype[0]: x })
 
         res = list()
@@ -179,9 +178,10 @@ class decoder_gmm(torch.nn.Module):
         inter = torch.linspace(start=0, end=1.0, steps=self.num_clusters, device=self.distance_stdevs.device)
         self.interval = torch.nn.Parameter( inter, requires_grad=False)
 
-        # a = torch.linspace(0, 33.0, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
-        # self.alpha = torch.nn.Parameter( a, requires_grad=True)
-        # self.beta = torch.nn.Parameter( torch.ones((self.num_clusters)), requires_grad=True)
+        a = torch.linspace(1.0, 33.0, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
+        self.alpha = torch.nn.Parameter( a, requires_grad=True)
+        self.beta = torch.nn.Parameter( 0.3*torch.ones((self.num_clusters)), requires_grad=True)
+
         self.cweight = torch.nn.Parameter( torch.ones((self.num_clusters)), requires_grad=True)
 
 
@@ -190,29 +190,29 @@ class decoder_gmm(torch.nn.Module):
         cweight = torch.nn.functional.softmax(self.cweight.view(-1,), 0)
         mix = D.Categorical( cweight)
 
-        activate = torch.nn.LeakyReLU(0.01)
-        means = activate(self.means).clamp(max=4.5)
-        means = torch.nan_to_num(means, nan=4.5)
-        means = means + self.interval
+        # activate = torch.nn.LeakyReLU(0.01)
+        # means = activate(self.means).clamp(max=4.5)
+        # means = torch.nan_to_num(means, nan=4.5)
+        # means = means + self.interval
 
-        stds = torch.relu(self.distance_stdevs) + 1e-3
-        # stds = torch.div(stds, (means.clamp(min=1.0))**(0.5))
-        mode = torch.exp(means - stds**2)
-        _, idx = torch.sort(mode.view(-1,), dim=0, descending=False)
-        means = means[idx]
-        stds = stds[idx]
-        dis_cmp = D.Normal(means.view(-1,), stds.view(-1,))
+        # stds = torch.relu(self.distance_stdevs) + 1e-3
+        # # stds = torch.div(stds, (means.clamp(min=1.0))**(0.5))
+        # mode = torch.exp(means - stds**2)
+        # _, idx = torch.sort(mode.view(-1,), dim=0, descending=False)
+        # means = means[idx]
+        # stds = stds[idx]
+        # dis_cmp = D.Normal(means.view(-1,), stds.view(-1,))
 
 
-        # alpha, _ = torch.sort(torch.relu(self.alpha) + self.interval)
-        # beta = torch.relu(self.beta) + 1e-4
-        # # transforms = [ D.AffineTransform( alpha.view(-1,),  beta.view(-1,))]
-        # # based_distribution = D.Normal(torch.ones_like(stds).view(-1,)*0.0, torch.ones_like(stds).view(-1,))
-        # dis_cmp = D.Normal(alpha.view(-1,), beta.view(-1,))# D.TransformedDistribution( based_distribution, transforms)
+        alpha, _ = torch.sort(torch.relu(self.alpha) + self.interval)
+        beta = torch.relu(self.beta) + 1e-4
+        # transforms = [ D.AffineTransform( alpha.view(-1,),  beta.view(-1,))]
+        # based_distribution = D.Normal(torch.ones_like(stds).view(-1,)*0.0, torch.ones_like(stds).view(-1,))
+        dis_cmp = D.Normal(alpha.view(-1,), beta.view(-1,))# D.TransformedDistribution( based_distribution, transforms)
 
         dis_gmm = D.MixtureSameFamily(mix, dis_cmp)
-        data = torch.log(distance).view(-1,1)
-        # data = distance.view(-1,1)
+        # data = torch.log(distance).view(-1,1)
+        data = distance.view(-1,1)
         unsafe_dis_cmpt_lp = dis_gmm.component_distribution.log_prob(data)
         dis_cmpt_lp = torch.nan_to_num(unsafe_dis_cmpt_lp, nan=-float('inf'))
 
