@@ -165,8 +165,7 @@ def inference(graphs, features, num_heads, num_clusters, em_networks, ae_network
 
         [dis_cmpt_lp], [dis_gmm] = de_gmm_net(xp1)
 
-        dp1 = torch.exp(dis_cmpt_lp)*(dis_gmm.mixture_distribution.probs).view(1,-1)
-        dp1 = torch.nn.normalize(dp1, p=1,dim=1).cpu().detach().numpy()
+        dp1 = torch.exp(dis_cmpt_lp).cpu().detach().numpy()
         tp1 = top_graph.edges['interacts'].data['label'].cpu().detach().numpy()
 
         pred_X = h_center.cpu().detach().numpy()
@@ -185,7 +184,7 @@ def inference(graphs, features, num_heads, num_clusters, em_networks, ae_network
         # distance_mat[ys, xs] = xp1.view(-1,).cpu().detach().numpy()
 
         # return pred_X, pred_distance_cluster_mat, pred_contact_cluster_mat, true_cluster_mat, [cnt_gmm, dis_gmm]
-        return pred_X, pred_distance_cluster_mat, true_cluster_mat, [dis_gmm, cmpt_w], distance_mat
+        return pred_X, pred_distance_cluster_mat, true_cluster_mat, [dis_gmm], distance_mat
 
 
 def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device, writer=None, config=None, saved_model=None):
@@ -274,7 +273,7 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                 num_heads = int(config['parameter']['G3DM']['num_heads'])
                 [center_X, 
                 pred_distance_mat, 
-                center_true_mat, [dis_gmm, cmpt_w], distance_mat ] = inference(graphs, h_feat, num_heads, 
+                center_true_mat, [dis_gmm], distance_mat ] = inference(graphs, h_feat, num_heads, 
                                             int(config['parameter']['graph']['num_clusters']), 
                                             em_networks, ae_networks, device)
 
@@ -295,8 +294,8 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                 # std = (dis_gmm.component_distribution.variance)
                 x = torch.linspace(start=0.1, end=6.5, steps=150, device=device) # mu.max()*1.5,
                 log_pdfs = dis_gmm.component_distribution.log_prob(x.view(-1,1))
-                log_pdfs = log_pdfs + torch.log(cmpt_w).view(1, -1)
-                normal_pdfs = torch.exp(log_pdfs).to('cpu').detach().numpy()
+                log_pdfs = log_pdfs + torch.log(dis_gmm.mixture_distribution.probs).view(1, -1)
+                normal_pdfs = torch.nn.functional.normalize(torch.exp(log_pdfs), p=1, dim=1).to('cpu').detach().numpy()
                 weights = (dis_gmm.mixture_distribution.probs).to('cpu').detach().numpy()
                 plot_distributions([ mu.to('cpu').detach().numpy(), 
                                     x.to('cpu').detach().numpy(), 
