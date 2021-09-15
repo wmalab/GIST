@@ -42,6 +42,203 @@ class embedding(torch.nn.Module):
         X = self.bn(X)
         return X
 
+
+class encoder_chain(torch.nn.Module):
+    def __init__(self, in_dim, hidden_dim, out_dim, num_heads, etypes):
+        super(encoder_chain, self).__init__()
+        self.num_heads = num_heads
+
+        l1 = dict()
+        for et in etypes:
+            l1[et] = dgl.nn.GATConv( in_dim, hidden_dim, 
+                                    num_heads=1, residual=False, 
+                                    allow_zero_in_degree=True)
+        self.layer1 = dgl.nn.HeteroGraphConv( l1, aggregate = 'mean')
+
+        l2 = dict()
+        for et in etypes:
+            l2[et] = dgl.nn.GATConv( hidden_dim, out_dim, 
+                                    num_heads=1, residual=False, 
+                                    allow_zero_in_degree=True)
+        self.layer2 = dgl.nn.HeteroGraphConv( l2, aggregate = self.agg_func2)
+
+        l3 = dict()
+        for et in etypes:
+            l3[et] = dgl.nn.GATConv( out_dim, out_dim, 
+                                    num_heads=1, residual=False, 
+                                    allow_zero_in_degree=True)
+        self.layer3 = dgl.nn.HeteroGraphConv( l3, aggregate = self.agg_func3)
+
+        lMH = dict()
+        for et in etypes:
+            lMH[et] = dgl.nn.GATConv( out_dim, out_dim, 
+                                    num_heads=num_heads, residual=False, 
+                                    allow_zero_in_degree=True)
+        self.layerMHs = dgl.nn.HeteroGraphConv( lMH, aggregate=self.agg_func3)
+
+        self.fc2 = torch.nn.Linear(len(etypes), len(etypes), bias=False)
+        gain = torch.nn.init.calculate_gain('leaky_relu', 0.2)
+        torch.nn.init.xavier_uniform_(self.fc2.weight, gain=gain)
+
+        self.fc3 = torch.nn.Linear(len(etypes), len(etypes), bias=False)
+        gain = torch.nn.init.calculate_gain('leaky_relu', 0.2)
+        torch.nn.init.xavier_uniform_(self.fc3.weight, gain=gain)
+
+
+    def agg_func2(self, tensors, dsttype):
+        stacked = torch.stack(tensors, dim=-1)
+        res = self.fc2(stacked)
+        return torch.mean(res, dim=-1)
+
+    def agg_func3(self, tensors, dsttype):
+        stacked = torch.stack(tensors, dim=-1)
+        res = self.fc3(stacked)
+        return torch.mean(res, dim=-1)
+
+    def norm_(self, x):
+        xp = torch.cat([torch.zeros((1,3), device=x.device), x[0:-1, :]], dim=0)
+        dx = x - xp
+        dmean = torch.median( torch.norm(dx, dim=-1))+1e-4
+        x = torch.cumsum(torch.div(dx, dmean)*1.0, dim=0)
+        return x
+
+    def forward(self, g, x, etypes, efeat, ntype):
+        subg_interacts = g.edge_type_subgraph(etypes)
+
+        h = self.layer1(subg_interacts, {ntype[0]: x })
+        h = torch.squeeze(h[ntype[0]], dim=1)
+        h = self.layer2(subg_interacts, {ntype[0]: h })
+        h = torch.squeeze(h[ntype[0]], dim=1)
+        h = self.layer3(subg_interacts, {ntype[0]: h })
+        h = torch.squeeze(h[ntype[0]], dim=1)
+        x = self.norm_(h).view(-1,3)
+        h = self.layerMHs(subg_interacts, {ntype[0]: x })
+
+        res = list()
+        for i in torch.arange(self.num_heads):
+            x = h[ntype[0]][:,i,:]
+            x = self.norm_(x)
+            # x = torch.nan_to_num(x, nan=0.0, posinf=100.0, neginf=-100.0)
+            # dist = torch.distributions.Normal(x, 0.3*torch.ones_like(x))
+            # x = dist.rsample()
+            res.append(x)
+        res = torch.stack(res, dim=1)
+        return res
+
+
+class decoder_distance(torch.nn.Module):
+    ''' num_heads, num_clusters, ntype, etype '''
+    def __init__(self, num_heads, num_clusters, ntype, etype):
+        # True: increasing, Flase: decreasing
+        super(decoder_distance, self).__init__()
+        self.num_heads = num_heads
+        self.num_clusters = num_clusters
+        self.ntype = ntype
+        self.etype = etype
+
+        self.w = torch.nn.Parameter(torch.empty( (self.num_heads)), requires_grad=True)
+        self.register_parameter('w', self.w)
+        torch.nn.init.uniform_(self.w, a=-10.0, b=10.0)
+
+    def edge_distance(self, edges):
+        n2 = torch.norm((edges.dst['z'] - edges.src['z']), dim=-1, keepdim=False)
+        weight = torch.nn.functional.softmax(self.w, dim=0)
+        dist = torch.sum(n2*weight, dim=-1, keepdim=True)
+        std, mean = torch.std_mean(n2, dim=-1, unbiased=False, keepdim=False)
+        return {'dist_pred': dist, 'std': std/(mean+1.0)}
+
+    def forward(self, g, h):
+        with g.local_scope():
+            g.nodes[self.ntype].data['z'] = h
+            g.apply_edges(self.edge_distance, etype=self.etype)
+            return g.edata.pop('dist_pred'), g.edata.pop('std')
+
+class decoder_gmm(torch.nn.Module):
+    def __init__(self, num_clusters):
+        super(decoder_gmm, self).__init__()
+        self.num_clusters = num_clusters
+        # self.weights = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
+        self.k = torch.nn.Parameter( torch.ones(self.num_clusters), requires_grad=True)
+        # self.weights = weights
+
+        ms = torch.linspace(0, 3.0, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
+        self.means = torch.nn.Parameter( ms, requires_grad=True)
+        
+        # stds = torch.linspace(0.1, 1.0, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
+        self.distance_stdevs = torch.nn.Parameter( 0.3*torch.ones((self.num_clusters)), requires_grad=True)
+
+        inter = torch.linspace(start=0, end=1.0, steps=self.num_clusters, device=self.distance_stdevs.device)
+        self.interval = torch.nn.Parameter( inter, requires_grad=False)
+
+        # a = torch.linspace(0, 33.0, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
+        # self.alpha = torch.nn.Parameter( a, requires_grad=True)
+        # self.beta = torch.nn.Parameter( torch.ones((self.num_clusters)), requires_grad=True)
+        # # self.weight = torch.nn.Parameter( torch.ones((self.num_clusters)), requires_grad=True)
+
+
+    def forward(self, distance, cweight):
+        # cweight = torch.nn.functional.normalize(cweight.view(-1,), p=1, dim=0)
+        # cweight =  torch.nn.functional.softmax(cweight.view(-1,), 0)
+        cweight = torch.ones_like(cweight)
+        mix = D.Categorical( cweight)
+
+        activate = torch.nn.LeakyReLU(0.01)
+        means = activate(self.means).clamp(max=4.5)
+        means = torch.nan_to_num(means, nan=4.5)
+        means = means + self.interval
+
+        stds = torch.relu(self.distance_stdevs) + 1e-3
+        # stds = torch.div(stds, (means.clamp(min=1.0))**(0.5))
+        mode = torch.exp(means - stds**2)
+        _, idx = torch.sort(mode.view(-1,), dim=0, descending=False)
+        means = means[idx]
+        stds = stds[idx]
+        dis_cmp = D.Normal(means.view(-1,), stds.view(-1,))
+
+
+        # alpha, _ = torch.sort(torch.relu(self.alpha) + self.interval)
+        # beta = torch.relu(self.beta) + 1e-4
+        # # transforms = [ D.AffineTransform( alpha.view(-1,),  beta.view(-1,))]
+        # # based_distribution = D.Normal(torch.ones_like(stds).view(-1,)*0.0, torch.ones_like(stds).view(-1,))
+        # dis_cmp = D.Normal(alpha.view(-1,), beta.view(-1,))# D.TransformedDistribution( based_distribution, transforms)
+
+        dis_gmm = D.MixtureSameFamily(mix, dis_cmp)
+        data = torch.log(distance).view(-1,1)
+        # data = distance.view(-1,1)
+        unsafe_dis_cmpt_lp = dis_gmm.component_distribution.log_prob(data)
+        dis_cmpt_lp = torch.nan_to_num(unsafe_dis_cmpt_lp, nan=-float('inf'))
+
+        # cweight = torch.softmax(self.weight, 0) #torch.ones_like(cweight)
+        # dis_cmpt_lp = torch.exp(dis_cmpt_lp) * cweight.view(1,-1) + \
+        #                 torch.linspace(1e-10, 1e-9, steps=len(cweight), dtype=torch.float, device=self.weight.device)
+        # dis_cmpt_lp = torch.nn.functional.normalize(dis_cmpt_lp, p=1.0, dim=1)
+        # dis_cmpt_lp = torch.log(dis_cmpt_lp)
+
+        cmpt_w = cweight # torch.softmax(self.weights, dim=0)
+        return [dis_cmpt_lp.float() ], [dis_gmm, cmpt_w] #+torch.log(cmpt_w*self.num_clusters)
+
+
+def save_model_state_dict(models, optimizer, path, epoch=None, loss=None):
+    state_dict = {
+        'embedding_model_state_dict': models['embedding_model'].state_dict(),
+        'encoder_model_state_dict': models['encoder_model'].state_dict(),
+        'decoder_distance_model_state_dict': models['decoder_distance_model'].state_dict(),
+        'decoder_gmm_model_state_dict': models['decoder_gmm_model'].state_dict(),
+        'optimizer_state_dict': optimizer.state_dict()
+    }
+
+    if epoch is not None:
+        state_dict['epoch'] = epoch
+    if loss is not None:
+        state_dict['nll_loss'] = loss
+
+    torch.save(state_dict, path)
+
+
+def save_model_entire():
+    pass
+
+
 """class constrainLayer(torch.nn.Module):
     def __init__(self, in_dim):
         super(constrainLayer, self).__init__()
@@ -67,100 +264,6 @@ class embedding(torch.nn.Module):
         dh = torch.cat([x,y,z], dim=-1)'''
         return dh
         # return h"""
-
-class encoder_chain(torch.nn.Module):
-    def __init__(self, in_dim, hidden_dim, out_dim, num_heads, etypes):
-        super(encoder_chain, self).__init__()
-
-        l1 = dict()
-        for et in etypes:
-            l1[et] = dgl.nn.GATConv( in_dim, hidden_dim, 
-                                    num_heads=1, residual=False, 
-                                    allow_zero_in_degree=True)
-        self.layer1 = dgl.nn.HeteroGraphConv( l1, aggregate = 'mean')
-
-        l2 = dict()
-        for et in etypes:
-            l2[et] = dgl.nn.GATConv( hidden_dim, out_dim, 
-                                    num_heads=1, residual=False, 
-                                    allow_zero_in_degree=True)
-        self.layer2 = dgl.nn.HeteroGraphConv( l2, aggregate = self.agg_func2)
-
-        l3 = dict()
-        for et in etypes:
-            l3[et] = dgl.nn.GATConv( out_dim, out_dim, 
-                                    num_heads=1, residual=False, 
-                                    allow_zero_in_degree=True)
-        self.layer3 = dgl.nn.HeteroGraphConv( l3, aggregate = self.agg_func3)
-
-
-        lMH = dict()
-        for et in etypes:
-            lMH[et] = dgl.nn.GATConv( out_dim, out_dim, 
-                                    num_heads=num_heads, residual=False, 
-                                    allow_zero_in_degree=True)
-        self.layerMHs = dgl.nn.HeteroGraphConv( lMH, aggregate=self.agg_func3)
-
-
-        '''self.chain = constrainLayer(out_dim)'''
-        self.num_heads = num_heads
-
-        self.fc2 = torch.nn.Linear(len(etypes), len(etypes), bias=False)
-        gain = torch.nn.init.calculate_gain('leaky_relu', 0.2)
-        torch.nn.init.xavier_uniform_(self.fc2.weight, gain=gain)
-
-        self.fc3 = torch.nn.Linear(len(etypes), len(etypes), bias=False)
-        gain = torch.nn.init.calculate_gain('leaky_relu', 0.2)
-        torch.nn.init.xavier_uniform_(self.fc3.weight, gain=gain)
-
-
-        # self.std = torch.nn.Parameter(torch.empty((1)), requires_grad=True)
-        # gain = torch.nn.init.calculate_gain('relu')
-        # torch.nn.init.normal_(self.std)
-
-
-    def agg_func2(self, tensors, dsttype):
-        stacked = torch.stack(tensors, dim=-1)
-        # concat = torch.cat(tensors, dim=-1)
-        res = self.fc2(stacked)
-        return torch.mean(res, dim=-1)
-
-    def agg_func3(self, tensors, dsttype):
-        stacked = torch.stack(tensors, dim=-1)
-        res = self.fc3(stacked)
-        return torch.mean(res, dim=-1)
-
-    def norm_(self, x):
-        xp = torch.cat([torch.zeros((1,3), device=x.device), x[0:-1, :]], dim=0)
-        dx = x - xp
-        dmean = torch.median( torch.norm(dx, dim=-1))+1e-4
-        x = torch.cumsum(torch.div(dx, dmean)*1.0, dim=0)
-        return x
-
-    def forward(self, g, x, etypes, efeat, ntype):
-
-        subg_interacts = g.edge_type_subgraph(etypes)
-        # edge_weight = subg_interacts.edata[efeat[0]]
-
-        h = self.layer1(subg_interacts, {ntype[0]: x })
-        h = torch.squeeze(h[ntype[0]], dim=1)
-        h = self.layer2(subg_interacts, {ntype[0]: h })
-        h = torch.squeeze(h[ntype[0]], dim=1)
-        h = self.layer3(subg_interacts, {ntype[0]: h })
-        h = torch.squeeze(h[ntype[0]], dim=1)
-        x = self.norm_(h).view(-1,3)
-        h = self.layerMHs(subg_interacts, {ntype[0]: x })
-
-        res = list()
-        for i in torch.arange(self.num_heads):
-            x = h[ntype[0]][:,i,:]
-            x = self.norm_(x)
-            # x = torch.nan_to_num(x, nan=0.0, posinf=100.0, neginf=-100.0)
-            # dist = torch.distributions.Normal(x, 0.3*torch.ones_like(x))
-            # x = dist.rsample()
-            res.append(x)
-        res = torch.stack(res, dim=1)
-        return res
 
 """class encoder_bead(torch.nn.Module): 
     def __init__(self, in_dim, hidden_dim, out_dim):
@@ -477,115 +580,3 @@ class encoder_chain(torch.nn.Module):
             self.r_dist = torch.relu( torch.matmul(self.bound, self.subtract_mat) )
             g.apply_edges(self.edge_distance, etype=self.etype)
             return g.edata.pop('dist_pred'), g.edata.pop('std')"""
-
-class decoder_distance(torch.nn.Module):
-    ''' num_heads, num_clusters, ntype, etype '''
-    def __init__(self, num_heads, num_clusters, ntype, etype):
-        # True: increasing, Flase: decreasing
-        super(decoder_distance, self).__init__()
-        self.num_heads = num_heads
-        self.num_clusters = num_clusters
-        self.ntype = ntype
-        self.etype = etype
-
-        self.w = torch.nn.Parameter(torch.empty( (self.num_heads)), requires_grad=True)
-        self.register_parameter('w', self.w)
-        torch.nn.init.uniform_(self.w, a=-10.0, b=10.0)
-
-    def edge_distance(self, edges):
-        n2 = torch.norm((edges.dst['z'] - edges.src['z']), dim=-1, keepdim=False)
-        weight = torch.nn.functional.softmax(self.w, dim=0)
-        dist = torch.sum(n2*weight, dim=-1, keepdim=True)
-        std, mean = torch.std_mean(n2, dim=-1, unbiased=False, keepdim=False)
-        return {'dist_pred': dist, 'std': std/(mean+1.0)}
-
-    def forward(self, g, h):
-        with g.local_scope():
-            g.nodes[self.ntype].data['z'] = h
-            g.apply_edges(self.edge_distance, etype=self.etype)
-            return g.edata.pop('dist_pred'), g.edata.pop('std')
-
-class decoder_gmm(torch.nn.Module):
-    def __init__(self, num_clusters):
-        super(decoder_gmm, self).__init__()
-        self.num_clusters = num_clusters
-        # self.weights = torch.nn.Parameter( torch.ones( (self.num_clusters)), requires_grad=True)
-        self.k = torch.nn.Parameter( torch.ones(self.num_clusters), requires_grad=True)
-        # self.weights = weights
-
-        ms = torch.linspace(0, 3.0, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
-        self.means = torch.nn.Parameter( ms, requires_grad=True)
-        
-        # stds = torch.linspace(0.1, 1.0, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
-        self.distance_stdevs = torch.nn.Parameter( 0.3*torch.ones((self.num_clusters)), requires_grad=True)
-
-        inter = torch.linspace(start=0, end=1.0, steps=self.num_clusters, device=self.distance_stdevs.device)
-        self.interval = torch.nn.Parameter( inter, requires_grad=False)
-
-        # a = torch.linspace(0, 33.0, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
-        # self.alpha = torch.nn.Parameter( a, requires_grad=True)
-        # self.beta = torch.nn.Parameter( torch.ones((self.num_clusters)), requires_grad=True)
-        # # self.weight = torch.nn.Parameter( torch.ones((self.num_clusters)), requires_grad=True)
-
-
-    def forward(self, distance, cweight):
-        # cweight = torch.nn.functional.normalize(cweight.view(-1,), p=1, dim=0)
-        # cweight =  torch.nn.functional.softmax(cweight.view(-1,), 0)
-        cweight = torch.ones_like(cweight)
-        mix = D.Categorical( cweight)
-
-        activate = torch.nn.LeakyReLU(0.01)
-        means = activate(self.means).clamp(max=4.5)
-        means = torch.nan_to_num(means, nan=4.5)
-        means = means + self.interval
-
-        stds = torch.relu(self.distance_stdevs) + 1e-3
-        # stds = torch.div(stds, (means.clamp(min=1.0))**(0.5))
-        mode = torch.exp(means - stds**2)
-        _, idx = torch.sort(mode.view(-1,), dim=0, descending=False)
-        means = means[idx]
-        stds = stds[idx]
-        dis_cmp = D.Normal(means.view(-1,), stds.view(-1,))
-
-
-        # alpha, _ = torch.sort(torch.relu(self.alpha) + self.interval)
-        # beta = torch.relu(self.beta) + 1e-4
-        # # transforms = [ D.AffineTransform( alpha.view(-1,),  beta.view(-1,))]
-        # # based_distribution = D.Normal(torch.ones_like(stds).view(-1,)*0.0, torch.ones_like(stds).view(-1,))
-        # dis_cmp = D.Normal(alpha.view(-1,), beta.view(-1,))# D.TransformedDistribution( based_distribution, transforms)
-
-        dis_gmm = D.MixtureSameFamily(mix, dis_cmp)
-        data = torch.log(distance).view(-1,1)
-        # data = distance.view(-1,1)
-        unsafe_dis_cmpt_lp = dis_gmm.component_distribution.log_prob(data)
-        dis_cmpt_lp = torch.nan_to_num(unsafe_dis_cmpt_lp, nan=-float('inf'))
-
-        # cweight = torch.softmax(self.weight, 0) #torch.ones_like(cweight)
-        # dis_cmpt_lp = torch.exp(dis_cmpt_lp) * cweight.view(1,-1) + \
-        #                 torch.linspace(1e-10, 1e-9, steps=len(cweight), dtype=torch.float, device=self.weight.device)
-        # dis_cmpt_lp = torch.nn.functional.normalize(dis_cmpt_lp, p=1.0, dim=1)
-        # dis_cmpt_lp = torch.log(dis_cmpt_lp)
-
-        cmpt_w = cweight # torch.softmax(self.weights, dim=0)
-        return [dis_cmpt_lp.float() ], [dis_gmm, cmpt_w] #+torch.log(cmpt_w*self.num_clusters)
-
-
-def save_model_state_dict(models, optimizer, path, epoch=None, loss=None):
-    state_dict = {
-        'embedding_model_state_dict': models['embedding_model'].state_dict(),
-        'encoder_model_state_dict': models['encoder_model'].state_dict(),
-        'decoder_distance_model_state_dict': models['decoder_distance_model'].state_dict(),
-        'decoder_gmm_model_state_dict': models['decoder_gmm_model'].state_dict(),
-        'optimizer_state_dict': optimizer.state_dict()
-    }
-
-    if epoch is not None:
-        state_dict['epoch'] = epoch
-    if loss is not None:
-        state_dict['nll_loss'] = loss
-
-    torch.save(state_dict, path)
-
-
-def save_model_entire():
-    pass

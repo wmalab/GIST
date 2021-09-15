@@ -65,37 +65,9 @@ def create_network(configuration, device):
     #                     eps=1e-8, weight_decay=0,
     #                     delta = 0.1, wd_ratio = 0.1 )
 
-    # x opt = optim.DiffGrad( parameters_list,
-    #                     lr= 1e-3, betas=(0.9, 0.999),
-    #                     eps=1e-8, weight_decay=0)
-
     # -  opt = optim.RAdam( parameters_list,
     #                     lr= 1e-3, betas=(0.9, 0.999),
     #                     eps=1e-8, weight_decay=0)
-
-    # x opt = optim.QHAdam( parameters_list,
-    #                     lr= 1e-3, betas=(0.9, 0.999),
-    #                     nus=(1.0, 1.0), weight_decay=0,
-    #                     decouple_weight_decay=False,
-    #                     eps=1e-8)
-
-    # x opt = torch.optim.RMSprop(list(em_bead.parameters()) + list(en_net.parameters()) 
-    #                         + list(de_distance_net.parameters()) + list(de_gmm_net.parameters()))
-
-    # x opt = optim.Yogi(parameters_list,
-    #                 lr= 1e-3,
-    #                 betas=(0.9, 0.999),
-    #                 eps=1e-3,
-    #                 initial_accumulator=1e-6,
-    #                 weight_decay=0)
-
-    # x opt = optim.RangerVA( parameters_list,
-    #                     lr=1e-3, alpha=0.5,
-    #                     k=6, n_sma_threshhold=5,
-    #                     betas=(.95, 0.999),
-    #                     eps=1e-5, weight_decay=0,
-    #                     amsgrad=True, transformer='softplus',
-    #                     smooth=50, grad_transformer='square')
 
     scheduler = torch.optim.lr_scheduler.ExponentialLR(opt, gamma=0.9)
 
@@ -141,8 +113,8 @@ def fit_one_step(epoch, require_grad, graphs, features, cluster_weights, em_netw
     for i in torch.arange(ncluster):
         idx = ((lt == i).nonzero(as_tuple=True)[0]).view(-1,)
         p = torch.ones_like(idx, dtype=float)/idx.shape[0]
-        ids.append(idx[p.multinomial(num_samples=int( torch.minimum(n[i], torch.tensor(idx.shape[0])) ), replacement=False)])
-        # ids.append(idx[ p.multinomial( num_samples=int(n[i]), replacement=True)])
+        # ids.append(idx[p.multinomial(num_samples=int( torch.minimum(n[i], torch.tensor(idx.shape[0])) ), replacement=False)])
+        ids.append(idx[ p.multinomial( num_samples=int( torch.minimum(n[i], 10*torch.tensor(idx.shape[0])) ), replacement=True)])
     mask = torch.cat(ids, dim=0)
     mask, _ = torch.sort(mask)
     # mask = torch.unique(mask, sorted=True, return_inverse=False, return_counts=False)
@@ -311,19 +283,14 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                 plot_cluster(pred_distance_mat, writer, 
                             int(config['parameter']['graph']['num_clusters']),
                             '2,1 cluster/prediction distance', step=epoch)
-                # plot_cluster(pred_contact_mat, writer, 
-                #             int(config['parameter']['graph']['num_clusters']),
-                #             '2,1 cluster/prediction contact', step=epoch)
 
                 plot_cluster(center_true_mat, writer, 
                             int(config['parameter']['graph']['num_clusters']),
                             '2,1 cluster/true', step=epoch) if epoch==0 else None
 
-                # plot_confusion_mat(pred_distance_mat, pred_contact_mat,  writer, '2,2 confusion matrix/predicted distance - predicted contact', step=epoch)
                 plot_confusion_mat(pred_distance_mat, center_true_mat,  writer, '2,2 confusion matrix/normalize: ture, predicted distance - true contact', step=epoch, normalize='true')
                 plot_confusion_mat(pred_distance_mat, center_true_mat,  writer, '2,2 confusion matrix/normalize: all, predicted distance - true contact', step=epoch, normalize='all')
-                # plot_confusion_mat(pred_contact_mat, center_true_mat,  writer, '2,3 confusion matrix/predicted contact - true contact', step=epoch)
-
+                
                 mu = (dis_gmm.component_distribution.mean)
                 std = (dis_gmm.component_distribution.stddev)
                 # std = (dis_gmm.component_distribution.variance)
@@ -371,8 +338,6 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
 
         dur.append(time.time() - t0)
         print("Loss:", np.nanmean(test_ll, axis=0), "| Time(s) {:.4f} ".format( np.mean(dur)), sep =" " )
-        # if epoch%10==0:
-        #     GPUtil.showUtilization()
 
     os.makedirs(model_saved_path, exist_ok=True)
     path = os.path.join(model_saved_path, 'finial_' + model_saved_name)
