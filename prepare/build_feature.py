@@ -18,7 +18,7 @@ def create_feature(norm_hic, dim):
     remove_hic = log_hic[n_idx,:]
     remove_hic = remove_hic[:, n_idx]
 
-    #! dim can't larger than int(x.shape[0]/2)-1
+    # dim can't larger than int(x.shape[0]/2)-1 !
     features = feature_hic(remove_hic, check_dim(dim, remove_hic))
 
     mean_fs = np.nanmean(features[n_idx.flatten(),:],axis=0)
@@ -26,7 +26,7 @@ def create_feature(norm_hic, dim):
         for j in np.arange(features.shape[1]):
             features[i, j] = mean_fs[j] if features[i,j]==0 else features[i,j] 
 
-    pe = position_hic(features, features.shape[1], idx=n_idx, scale=10)
+    pe = position_hic(features, features.shape[1], idx=n_idx, scale=20)
     positions = np.array(pe)
 
     f_dict = {'feat':features, 'pos': positions}
