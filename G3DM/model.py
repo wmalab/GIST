@@ -183,7 +183,7 @@ class decoder_gmm(torch.nn.Module):
         # self.beta = torch.nn.Parameter( 2*torch.ones((self.num_clusters)), requires_grad=True)
 
         self.cweight = torch.nn.Parameter( torch.ones((self.num_clusters)), requires_grad=True)
-        # self.bias =  torch.nn.Parameter( torch.linspace(1e-8, 1e-6, steps=self.num_clusters, dtype=torch.float), requires_grad=False)
+        self.bias =  torch.nn.Parameter( torch.linspace(1e-8, 1e-6, steps=self.num_clusters, dtype=torch.float), requires_grad=False)
 
 
     def forward(self, distance):
