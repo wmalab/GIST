@@ -219,7 +219,7 @@ class decoder_gmm(torch.nn.Module):
 
         dis_cmpt_p = torch.exp(dis_cmpt_lp) * (dis_gmm.mixture_distribution.probs).view(1,-1) + self.bias
         dis_cmpt_p = torch.nn.functional.normalize(dis_cmpt_p, p=1, dim=1)
-        # dis_cmpt_lp = torch.log(dis_cmpt_p)
+        dis_cmpt_lp = torch.log(dis_cmpt_p)
 
         return [dis_cmpt_lp.float()], [dis_gmm] #+torch.log(cmpt_w*self.num_clusters)
 
