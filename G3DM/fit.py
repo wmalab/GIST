@@ -124,9 +124,9 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
     sample_lt = lt[mask]
     sample_std = std[mask]
 
-    # weight = torch.linspace(np.pi*0.1, np.pi*0.9, steps=ncluster, dtype=torch.float, device=device)
-    # weight = torch.sin(weight) + 1.0
-    weight = torch.ones((ncluster), dtype=torch.float, device=device)  
+    weight = torch.linspace(np.pi*0.1, np.pi*0.9, steps=ncluster, dtype=torch.float, device=device)
+    weight = torch.sin(weight) + 1.0
+    # weight = torch.ones((ncluster), dtype=torch.float, device=device)  
 
     l_nll = loss_fc[0](dis_cmpt_lp, lt, weight)
     sample_l_nll = loss_fc[0](sample_dis_cmpt_lp, sample_lt, weight)
@@ -166,9 +166,6 @@ def inference(graphs, features, lr_ranges, num_heads, num_clusters, em_networks,
         xp1, _ = de_dis_net(top_graph, h_center)
 
         [dis_cmpt_lp], [dis_gmm] = de_gmm_net(xp1)
-        # mu = dis_gmm.component_distribution.mean
-        # stddev = dis_gmm.component_distribution.stddev
-        # modes = torch.exp(mu[i] - stddev[i]**2)
 
         dp1 = torch.exp(dis_cmpt_lp).cpu().detach().numpy()
         tp1 = top_graph.edges['interacts'].data['label'].cpu().detach().numpy()
