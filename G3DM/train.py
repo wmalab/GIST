@@ -224,10 +224,10 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
             h_feat = torch.stack([h_f_n, h_p_n], dim=1).to(device)
 
             ll, dis_gmm = fit_one_step(True, graphs, h_feat, lr_ranges, em_networks, ae_networks, loss_fc, optimizer, device)
-            # mu = dis_gmm.component_distribution.mean.detach()
-            # stddev = dis_gmm.component_distribution.stddev.detach()
-            # lr_ranges = torch.exp(mu - stddev**2)
-            lr_ranges = dis_gmm.component_distribution.mean.detach()
+            mu = dis_gmm.component_distribution.mean.detach()
+            stddev = dis_gmm.component_distribution.stddev.detach()
+            lr_ranges = torch.exp(mu - stddev**2)
+            # lr_ranges = dis_gmm.component_distribution.mean.detach()
             if None in ll:
                 continue
             
@@ -312,22 +312,23 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                                     weights], 
                                     writer, '2,3 hop_dist/Normal ln(x)~N(,)', step=epoch) 
 
-                # lognormal_pdfs = torch.empty(normal_pdfs.shape)
-                # lognormal_mu = torch.empty(mu.shape)
-                # lognormal_mode = torch.empty(mu.shape)
-                # x = torch.linspace(start=-2.0, end=35.0, steps=150, device=device) # mu.max()*(1+1e-4)
-                # for i in np.arange(len(mu)):
-                #     A = torch.div( torch.ones(1, device=device), x*std[i]*torch.sqrt(2.0*torch.tensor(np.pi, device=device)))
-                #     B = (torch.log(x)-mu[i])**2
-                #     C = 2*std[i]**2
-                #     lognormal_pdfs[:,i] = (A * torch.exp(-1.0*torch.div(B, C)))*weights[i]
-                #     lognormal_mu[i] = torch.exp(mu[i])*torch.sqrt( torch.exp(std[i]**2.0))
-                #     lognormal_mode[i] = torch.exp(mu[i] - std[i]**2)
-                # plot_distributions( [lognormal_mode.to('cpu').detach().numpy(), 
-                #                     x.to('cpu').detach().numpy(), 
-                #                     lognormal_pdfs.to('cpu').detach().numpy(),
-                #                     weights], 
-                #                     writer, '2,3 hop_dist/LogNormal x~LogNormal(,)', step=epoch) 
+                lognormal_pdfs = torch.empty(normal_pdfs.shape)
+                lognormal_mu = torch.empty(mu.shape)
+                lognormal_mode = torch.empty(mu.shape)
+                x = torch.linspace(start=-2.0, end=35.0, steps=150, device=device) # mu.max()*(1+1e-4)
+                for i in np.arange(len(mu)):
+                    A = torch.div( torch.ones(1, device=device), x*std[i]*torch.sqrt(2.0*torch.tensor(np.pi, device=device)))
+                    B = (torch.log(x)-mu[i])**2
+                    C = 2*std[i]**2
+                    lognormal_pdfs[:,i] = (A * torch.exp(-1.0*torch.div(B, C)))*weights[i]
+                    lognormal_mu[i] = torch.exp(mu[i])*torch.sqrt( torch.exp(std[i]**2.0))
+                    lognormal_mode[i] = torch.exp(mu[i] - std[i]**2)
+                lognormal_pdfs = torch.nn.functional.normalize( lognormal_pdfs, p=1, dim=1)
+                plot_distributions( [lognormal_mode.to('cpu').detach().numpy(), 
+                                    x.to('cpu').detach().numpy(), 
+                                    lognormal_pdfs.to('cpu').detach().numpy(),
+                                    weights], 
+                                    writer, '2,3 hop_dist/LogNormal x~LogNormal(,)', step=epoch) 
                 
                 inputs = [distance_mat, pred_distance_mat]
                 plot_histogram2d(inputs, writer, '2,4 historgram/distance, predict', step=epoch)

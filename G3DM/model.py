@@ -169,21 +169,21 @@ class decoder_gmm(torch.nn.Module):
         self.k = torch.nn.Parameter( torch.ones(self.num_clusters), requires_grad=True)
         # self.weights = weights
 
-        # ms = torch.linspace(0, 3.0, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
-        # self.means = torch.nn.Parameter( ms, requires_grad=True)
+        ms = torch.linspace(0, 3.0, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
+        self.means = torch.nn.Parameter( ms, requires_grad=True)
         
-        # # stds = torch.linspace(0.1, 1.0, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
-        # self.distance_stdevs = torch.nn.Parameter( 0.3*torch.ones((self.num_clusters)), requires_grad=True)
+        # stds = torch.linspace(0.1, 1.0, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
+        self.distance_stdevs = torch.nn.Parameter( 0.3*torch.ones((self.num_clusters)), requires_grad=True)
 
         inter = torch.linspace(start=0, end=1.0, steps=self.num_clusters, device=self.k.device)
         self.interval = torch.nn.Parameter( inter, requires_grad=False)
 
-        a = torch.linspace(-0.1, 3.5, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
-        self.alpha = torch.nn.Parameter( a, requires_grad=True)
-        self.beta = torch.nn.Parameter( 2*torch.ones((self.num_clusters)), requires_grad=True)
+        # a = torch.linspace(-0.1, 3.5, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
+        # self.alpha = torch.nn.Parameter( a, requires_grad=True)
+        # self.beta = torch.nn.Parameter( 2*torch.ones((self.num_clusters)), requires_grad=True)
 
         self.cweight = torch.nn.Parameter( torch.ones((self.num_clusters)), requires_grad=True)
-        self.bias =  torch.nn.Parameter( torch.linspace(1e-8, 1e-6, steps=self.num_clusters, dtype=torch.float), requires_grad=False)
+        # self.bias =  torch.nn.Parameter( torch.linspace(1e-8, 1e-6, steps=self.num_clusters, dtype=torch.float), requires_grad=False)
 
 
     def forward(self, distance):
@@ -191,29 +191,29 @@ class decoder_gmm(torch.nn.Module):
         cweight = torch.nn.functional.softmax(self.cweight.view(-1,), 0)
         mix = D.Categorical( cweight)
 
-        # activate = torch.nn.LeakyReLU(0.01)
-        # means = activate(self.means).clamp(max=4.5)
-        # means = torch.nan_to_num(means, nan=4.5)
-        # means = means + self.interval
+        activate = torch.nn.LeakyReLU(0.01)
+        means = activate(self.means).clamp(max=4.5)
+        means = torch.nan_to_num(means, nan=4.5)
+        means = means + self.interval
 
-        # stds = torch.relu(self.distance_stdevs) + 1e-3
-        # # stds = torch.div(stds, (means.clamp(min=1.0))**(0.5))
-        # mode = torch.exp(means - stds**2)
-        # _, idx = torch.sort(mode.view(-1,), dim=0, descending=False)
-        # means = means[idx]
-        # stds = stds[idx]
-        # dis_cmp = D.Normal(means.view(-1,), stds.view(-1,))
+        stds = torch.relu(self.distance_stdevs) + 1e-3
+        # stds = torch.div(stds, (means.clamp(min=1.0))**(0.5))
+        mode = torch.exp(means - stds**2)
+        _, idx = torch.sort(mode.view(-1,), dim=0, descending=False)
+        means = means[idx]
+        stds = stds[idx]
+        dis_cmp = D.Normal(means.view(-1,), stds.view(-1,))
 
-        mu = torch.exp(torch.relu(self.alpha)) + self.interval
-        alpha, _ = torch.sort(mu)
-        beta = torch.relu(self.beta) + 1e-4
-        # transforms = [ D.AffineTransform( alpha.view(-1,),  beta.view(-1,))]
-        # based_distribution = D.Normal(torch.ones_like(stds).view(-1,)*0.0, torch.ones_like(stds).view(-1,))
-        dis_cmp = D.Normal(alpha.view(-1,), beta.view(-1,))# D.TransformedDistribution( based_distribution, transforms)
+        # mu = torch.exp(torch.relu(self.alpha)) + self.interval
+        # alpha, _ = torch.sort(mu)
+        # beta = torch.relu(self.beta) + 1e-4
+        # # transforms = [ D.AffineTransform( alpha.view(-1,),  beta.view(-1,))]
+        # # based_distribution = D.Normal(torch.ones_like(stds).view(-1,)*0.0, torch.ones_like(stds).view(-1,))
+        # dis_cmp = D.Normal(alpha.view(-1,), beta.view(-1,))# D.TransformedDistribution( based_distribution, transforms)
 
         dis_gmm = D.MixtureSameFamily(mix, dis_cmp)
-        # data = torch.log(distance).view(-1,1)
-        data = distance.view(-1,1)
+        data = torch.log(distance).view(-1,1)
+        # data = distance.view(-1,1)
         unsafe_dis_cmpt_lp = dis_gmm.component_distribution.log_prob(data)
         dis_cmpt_lp = torch.nan_to_num(unsafe_dis_cmpt_lp, nan=-float('inf'))
 
