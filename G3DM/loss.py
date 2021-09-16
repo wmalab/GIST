@@ -14,13 +14,14 @@ class ClusterWassersteinLoss(nn.Module):
         np = torch.nn.functional.normalize(torch.exp(pred), p=1, dim=-1)
         pred_cdf = torch.cumsum(np, dim=-1)
         target_cdf = torch.cumsum(target, dim=-1)
-
-        diff = pred_cdf - target_cdf
-        res = (torch.abs(diff)**2).mean(dim=0)
+        ncluster = np.shape[-1]
+        diff = torch.abs(pred_cdf - target_cdf)
+        res = diff.mean(dim=0)
+        res = (res*ncluster)**2
         if weight is None:
             w = torch.ones((np.shape[1]), device=np.device)
         else:
-            w = weight # *torch.sqrt(cw/cw.mean()+1.0) 
+            w = weight
         w = torch.nn.functional.normalize(w.view(1,-1), p=1)
         res = res.view(1,-1)*w.view(1,-1)
         res = res.sum(dim=-1)

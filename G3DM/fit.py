@@ -58,7 +58,7 @@ def create_network(configuration, device):
                         lr=1e-3, betas=(0.9, 0.999), 
                         final_lr=0.1, gamma=1e-3, 
                         eps=1e-8, weight_decay=0,
-                        amsbound=True)
+                        amsbound=False)
 
     # - opt = optim.AdamP(parameters_list,
     #                     lr= 1e-3, betas=(0.9, 0.999),
@@ -108,7 +108,7 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
     [dis_cmpt_lp], [dis_gmm] = de_gmm_net(xp) 
 
     tmp = torch.div( torch.ones(ncluster), ncluster) # torch.softmax( 1.0+torch.div(1, cw), dim=0) #
-    ids, n = list(), (lt.shape[0])*0.7*tmp
+    ids, n = list(), (lt.shape[0])*0.8*tmp
     for i in torch.arange(ncluster):
         idx = ((lt == i).nonzero(as_tuple=True)[0]).view(-1,)
         if idx.nelement()==0:
@@ -124,7 +124,7 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
     sample_lt = lt[mask]
     sample_std = std[mask]
 
-    weight = torch.linspace(np.pi*0.1, np.pi*0.9, steps=ncluster, dtype=torch.float, device=device)
+    weight = torch.linspace(np.pi*0.1, np.pi*0.75, steps=ncluster, dtype=torch.float, device=device)
     weight = torch.sin(weight) + 1.0
     # weight = torch.ones((ncluster), dtype=torch.float, device=device)  
 
@@ -160,8 +160,8 @@ def inference(graphs, features, lr_ranges, num_heads, num_clusters, em_networks,
 
     with torch.no_grad():
 
-        X1 = em_bead(h_feat)
-        h_center = en_net( top_subgraphs, X1, lr_ranges, top_list, ['bead'])
+        X = em_bead(h_feat)
+        h_center = en_net( top_subgraphs, X, lr_ranges, top_list, ['bead'])
 
         xp1, _ = de_dis_net(top_graph, h_center)
 
