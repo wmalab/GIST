@@ -108,14 +108,14 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
     [dis_cmpt_lp], [dis_gmm] = de_gmm_net(xp) 
 
     tmp = torch.div( torch.ones(ncluster), ncluster) # torch.softmax( 1.0+torch.div(1, cw), dim=0) #
-    ids, n = list(), (lt.shape[0])*0.6*tmp
+    ids, n = list(), (lt.shape[0])*0.7*tmp
     for i in torch.arange(ncluster):
         idx = ((lt == i).nonzero(as_tuple=True)[0]).view(-1,)
         if idx.nelement()==0:
             continue
         p = torch.ones_like(idx, dtype=float)/idx.shape[0]
         # ids.append(idx[p.multinomial(num_samples=int( torch.minimum(n[i], torch.tensor(idx.shape[0])) ), replacement=False)])
-        ids.append(idx[ p.multinomial( num_samples=int( torch.minimum(n[i], 3*torch.tensor(idx.shape[0])) ), replacement=True)])
+        ids.append(idx[ p.multinomial( num_samples=int( n[i]), replacement=True)])
     mask = torch.cat(ids, dim=0)
     mask, _ = torch.sort(mask)
     # mask = torch.unique(mask, sorted=True, return_inverse=False, return_counts=False)
@@ -124,9 +124,9 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
     sample_lt = lt[mask]
     sample_std = std[mask]
 
-    weight = torch.linspace(np.pi*0.1, np.pi*0.9, steps=ncluster, dtype=torch.float, device=device)
-    weight = torch.sin(weight) + 1.0
-    # weight = torch.ones_like(cw)  
+    # weight = torch.linspace(np.pi*0.1, np.pi*0.9, steps=ncluster, dtype=torch.float, device=device)
+    # weight = torch.sin(weight) + 1.0
+    weight = torch.ones((ncluster), dtype=torch.float, device=device)  
 
     l_nll = loss_fc[0](dis_cmpt_lp, lt, weight)
     sample_l_nll = loss_fc[0](sample_dis_cmpt_lp, sample_lt, weight)
@@ -300,7 +300,7 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                 mu = (dis_gmm.component_distribution.mean)
                 std = (dis_gmm.component_distribution.stddev)
                 # std = (dis_gmm.component_distribution.variance)
-                x = torch.linspace(start=0.1, end=50, steps=150, device=device) # mu.max()*1.5,
+                x = torch.linspace(start=0.1, end=7.0, steps=150, device=device) # mu.max()*1.5,
                 log_pdfs = dis_gmm.component_distribution.log_prob(x.view(-1,1))
                 # log_pdfs = log_pdfs + torch.log(dis_gmm.mixture_distribution.probs).view(1, -1)
                 normal_pdfs = torch.nn.functional.normalize( torch.exp(log_pdfs)*(dis_gmm.mixture_distribution.probs).view(1, -1), p=1, dim=1)
@@ -315,7 +315,7 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                 lognormal_pdfs = torch.empty(normal_pdfs.shape)
                 lognormal_mu = torch.empty(mu.shape)
                 lognormal_mode = torch.empty(mu.shape)
-                x = torch.linspace(start=-2.0, end=35.0, steps=150, device=device) # mu.max()*(1+1e-4)
+                x = torch.linspace(start=0.5, end=60.0, steps=150, device=device) # mu.max()*(1+1e-4)
                 for i in np.arange(len(mu)):
                     A = torch.div( torch.ones(1, device=device), x*std[i]*torch.sqrt(2.0*torch.tensor(np.pi, device=device)))
                     B = (torch.log(x)-mu[i])**2
