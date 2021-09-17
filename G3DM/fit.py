@@ -284,7 +284,7 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                                             int(config['parameter']['graph']['num_clusters']), 
                                             em_networks, ae_networks, device)
 
-                # plot_X(center_X, writer, '1, 3D/center', step=epoch)
+                plot_X(center_X, writer, '1, 3D/center', step=epoch)
                 plot_cluster(pred_distance_mat, writer, 
                             int(config['parameter']['graph']['num_clusters']),
                             '2,1 cluster/prediction distance', step=epoch)
