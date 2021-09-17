@@ -224,8 +224,8 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
         for j, data in enumerate(train_dataset):
             graphs, features, _, cluster_weights, _ = data
             h_f, h_p = features['feat'], features['pos']
-            h_f_n = torch.nn.functional.normalize(torch.tensor(h_f), p=1.0, dim=1)*h_f.shape[1]
-            h_p_n =torch.nn.functional.normalize(torch.tensor(h_p), p=1.0, dim=1)*h_p.shape[1]
+            h_f_n = torch.nn.functional.normalize(torch.tensor(h_f, dtype=torch.half), p=1.0, dim=1)*h_f.shape[1]
+            h_p_n =torch.nn.functional.normalize(torch.tensor(h_p, dtype=torch.half), p=1.0, dim=1)*h_p.shape[1]
             h_feat = torch.stack([h_f_n, h_p_n], dim=1).to(device)
 
             ll, dis_gmm = fit_one_step(True, graphs, h_feat, lr_ranges, em_networks, ae_networks, loss_fc, optimizer, device)
