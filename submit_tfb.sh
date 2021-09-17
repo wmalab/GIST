@@ -3,7 +3,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --mem=1G
-#SBATCH --time=5:00:00
+#SBATCH --time=15:00:00
 #SBATCH -p wmalab
 #SBATCH --job-name=pytorch_tfb
 #SBATCH --output=tfb-%J.log
