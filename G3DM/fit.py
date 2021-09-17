@@ -102,8 +102,8 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
     X = em_bead(h_feat)
     h_center, h_highdim = en_net(top_subgraphs, X, cluster_ranges, top_list, ['bead'])
 
-    l_sim = torch.empty(1) # len(top_list))
-    l_diff = torch.empty(1) # len(top_list))
+    l_sim = torch.empty(2) # len(top_list))
+    l_diff = torch.empty(2) # len(top_list))
     for i, et in enumerate(top_list[0:2]):
         pred_dot, pred_hd_dist = de_DotEuc_net(top_subgraphs, h_highdim, et)
         # true_l = top_subgraphs.edges[et].data['label']
