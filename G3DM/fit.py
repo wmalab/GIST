@@ -125,7 +125,7 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
     for i in torch.arange(ncluster):
         idx = ((lt == i).nonzero(as_tuple=True)[0]).view(-1,)
         if idx.nelement()==0: continue      
-        p = torch.ones_like(idx, dtype=float)/idx.shape[0]
+        p = torch.ones_like(idx)/idx.shape[0]
         # ids.append(idx[p.multinomial(num_samples=int( torch.minimum(n[i], torch.tensor(idx.shape[0])) ), replacement=False)])
         ids.append(idx[ p.multinomial( num_samples=int( n[i]), replacement=True)])
     mask = torch.cat(ids, dim=0)
@@ -136,7 +136,7 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
     sample_lt = lt[mask]
     sample_std = std[mask]
 
-    weight = torch.linspace(np.pi*0.1, np.pi*0.75, steps=ncluster, dtype=torch.float, device=device)
+    weight = torch.linspace(np.pi*0.1, np.pi*0.75, steps=ncluster, device=device)
     weight = torch.sin(weight) + 1.0
     # weight = torch.ones((ncluster), dtype=torch.float, device=device)  
 
@@ -217,15 +217,15 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
     best_nll_loss = 10
     lr_ranges = torch.linspace(1.0, 23.0, 
                             steps=int(config['parameter']['graph']['num_clusters'])-1, 
-                            dtype=torch.float, requires_grad=False).to(device)
+                            requires_grad=False).to(device)
     for epoch in np.arange(iterations):
         print("epoch {:d} ".format(epoch), end=' ')
         t0 = time.time()
         for j, data in enumerate(train_dataset):
             graphs, features, _, cluster_weights, _ = data
             h_f, h_p = features['feat'], features['pos']
-            h_f_n = torch.nn.functional.normalize(torch.tensor(h_f, dtype=torch.float), p=1.0, dim=1)*h_f.shape[1]
-            h_p_n =torch.nn.functional.normalize(torch.tensor(h_p, dtype=torch.float), p=1.0, dim=1)*h_p.shape[1]
+            h_f_n = torch.nn.functional.normalize(torch.tensor(h_f, dtype=torch.half), p=1.0, dim=1)*h_f.shape[1]
+            h_p_n =torch.nn.functional.normalize(torch.tensor(h_p, dtype=torch.half), p=1.0, dim=1)*h_p.shape[1]
             h_feat = torch.stack([h_f_n, h_p_n], dim=1).to(device)
 
             ll, dis_gmm = fit_one_step(True, graphs, h_feat, lr_ranges, em_networks, ae_networks, loss_fc, optimizer, device)
@@ -267,8 +267,8 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
             # cw = torch.tensor(cluster_weights['cw']).to(device)
  
             h_f, h_p = features['feat'], features['pos']
-            h_f_n = torch.nn.functional.normalize(torch.tensor(h_f, dtype=torch.float), p=1.0, dim=1)*h_f.shape[1]
-            h_p_n =torch.nn.functional.normalize(torch.tensor(h_p, dtype=torch.float), p=1.0, dim=1)*h_p.shape[1]
+            h_f_n = torch.nn.functional.normalize(torch.tensor(h_f, dtype=torch.half), p=1.0, dim=1)*h_f.shape[1]
+            h_p_n =torch.nn.functional.normalize(torch.tensor(h_p, dtype=torch.half), p=1.0, dim=1)*h_p.shape[1]
             h_feat = torch.stack( [h_f_n, h_p_n], dim=1).to(device)
 
             ll, _ = fit_one_step(False, graphs, h_feat, lr_ranges, em_networks, ae_networks, loss_fc, optimizer, device)
