@@ -31,25 +31,25 @@ def create_network(configuration, device):
     ind = int(config['feature']['in_dim'])
     outd = int(config['feature']['out_dim'])
 
-    em_bead = embedding(in_dim=ind, out_dim=outd, in_num_channels=2).to(device)
+    em_bead = embedding(in_dim=ind, out_dim=outd, in_num_channels=2).to(device).half()
 
     nh = int(config['G3DM']['num_heads'])
 
     chain = config['G3DM']['graph_dim']
     cin, chidden, cout = int(chain['in_dim']), int( chain['hidden_dim']), int(chain['out_dim'])
     e_list = ['interacts_c{}'.format(i) for i in np.arange( int(config['graph']['cutoff_cluster']))]
-    en_net = encoder_chain( cin, chidden, cout, num_heads=nh, etypes=e_list).to(device)
+    en_net = encoder_chain( cin, chidden, cout, num_heads=nh, etypes=e_list).to(device).half()
 
     nc = int(config['graph']['num_clusters']) - 1
-    de_distance_net = decoder_distance(nh, nc, 'bead', 'interacts').to(device)
-    de_gmm_net = decoder_gmm(nc).to(device)
-    de_doteuc_net = decoder_dotproduct_euclidian().to(device)
+    de_distance_net = decoder_distance(nh, nc, 'bead', 'interacts').to(device).half()
+    de_gmm_net = decoder_gmm(nc).to(device).half()
+    de_doteuc_net = decoder_dotproduct_euclidian().to(device).half()
 
-    nll = nllLoss().to(device)
+    nll = nllLoss().to(device).half()
     # stdl = stdLoss().to(device)
-    cwnl = WassersteinLoss(nc).to(device)
-    cl = ClusterLoss(nc).to(device)
-    rmslel = RMSLELoss().to(device)
+    cwnl = WassersteinLoss(nc).to(device).half()
+    cl = ClusterLoss(nc).to(device).half()
+    rmslel = RMSLELoss().to(device).half()
 
     parameters_list = list(em_bead.parameters()) + \
                 list(en_net.parameters()) + \

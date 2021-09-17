@@ -59,7 +59,7 @@ def create_subgraph_(ID, mat_hic, mat_chic, idx,
     g.nodes['bead'].data['id'] = torch.tensor(idx.flatten(), dtype=torch.long)
 
     g.edges['interacts'].data['label'] = chic[tuple(fid_interacts)].clone().detach().flatten().type(torch.int8)
-    g.edges['interacts_c{}'.format(str(0))].data['value'] = hic[tuple(fid[0])].clone().detach().flatten().type(torch.float)
+    g.edges['interacts_c{}'.format(str(0))].data['value'] = hic[tuple(fid[0])].clone().detach().flatten().type(torch.half)
     # for i in c_list:
     #     # g.edges['interacts_c{}'.format(str(i))].data['label'] = chic[tuple(fid[i])].clone().detach().flatten().type(torch.int8)
     #     g.edges['interacts_c{}'.format(str(i))].data['value'] = hic[tuple(fid[i])].clone().detach().flatten().type(torch.half)
