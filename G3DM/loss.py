@@ -27,6 +27,28 @@ class ClusterWassersteinLoss(nn.Module):
         res = res.sum(dim=-1)
         return res
 
+class ClusterLoss(nn.Module):
+    def __init__(self, num_cluster):
+        super(ClusterLoss, self).__init__()
+        # self.action = torch.nn.LeakyReLU(0.3)
+        self.num_cluster = num_cluster
+        
+
+    def forward(self, pred, target, weight=None):
+        np = torch.nn.functional.normalize(torch.exp(pred), p=1, dim=-1)
+    
+        ncluster = np.shape[-1]
+        diff = torch.abs(pred - target)
+        res = diff.mean(dim=0)
+        res = (res*ncluster)**2
+        if weight is None:
+            w = torch.ones((np.shape[1]), device=np.device)
+        else:
+            w = weight
+        w = torch.nn.functional.normalize(w.view(1,-1), p=1)
+        res = res.view(1,-1)*w.view(1,-1)
+        res = res.sum(dim=-1)
+        return res
 
 class RMSLELoss(nn.Module):
     def __init__(self):

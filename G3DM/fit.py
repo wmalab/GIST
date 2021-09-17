@@ -6,7 +6,7 @@ import torch_optimizer as optim
 import numpy as np
 
 from .model import embedding, encoder_chain, decoder_distance, decoder_gmm, save_model_state_dict
-from .loss import nllLoss, stdLoss, ClusterWassersteinLoss
+from .loss import nllLoss, stdLoss, ClusterWassersteinLoss, ClusterLoss
 from .visualize import plot_feature, plot_X, plot_cluster, plot_confusion_mat, plot_distributions, plot_histogram2d
 from .visualize import plot_scaler
 
@@ -47,6 +47,7 @@ def create_network(configuration, device):
     nll = nllLoss().to(device)
     stdl = stdLoss().to(device)
     cwnl = ClusterWassersteinLoss(nc).to(device)
+    cl = ClusterLoss(nc).to(device)
     # rmslel = RMSLELoss().to(device)
 
     parameters_list = list(em_bead.parameters()) + \
@@ -73,7 +74,7 @@ def create_network(configuration, device):
 
     em_networks = [em_bead]
     ae_networks = [en_net, de_distance_net, de_gmm_net]
-    return em_networks, ae_networks, [nll, stdl, cwnl], [opt], scheduler
+    return em_networks, ae_networks, [nll, stdl, cwnl, cl], [opt], scheduler
 
 
 def setup_train(configuration):
@@ -132,15 +133,16 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
     sample_l_nll = loss_fc[0](sample_dis_cmpt_lp, sample_lt, weight)
     one_hot_lt = torch.nn.functional.one_hot(sample_lt.long(), ncluster)
     l_wnl = loss_fc[2](sample_dis_cmpt_lp, one_hot_lt, weight)
+    l_cl = loss_fc[3](sample_dis_cmpt_lp, one_hot_lt, weight)
     l_stdl = loss_fc[1](std, lt, ncluster)
 
     if require_grad:
-        loss = sample_l_nll*10 + l_wnl #+ l_stdl #  + l_stdl
+        loss = sample_l_nll*10 + l_wnl + l_cl #+ l_stdl #  + l_stdl
         optimizer[0].zero_grad()
         loss.backward()  # retain_graph=False, create_graph = True
         optimizer[0].step()
 
-    return [l_nll.item(), l_stdl.item(), l_wnl.item()], dis_gmm
+    return [l_nll.item(), l_cl.item(), l_wnl.item()], dis_gmm
 
 
 def inference(graphs, features, lr_ranges, num_heads, num_clusters, em_networks, ae_networks, device):
