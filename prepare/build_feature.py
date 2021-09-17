@@ -29,6 +29,9 @@ def create_feature(norm_hic, dim):
     pe = position_hic(features, features.shape[1], idx=n_idx, scale=10)
     positions = np.array(pe)
 
+    features = torch.tensor(features, dtype=torch.half)
+    positions = torch.tensor(positions, dtype=torch.half)
+
     f_dict = {'feat':features, 'pos': positions}
     # save_feature(output_path, output_file, f_dict)
     return f_dict
