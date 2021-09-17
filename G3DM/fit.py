@@ -99,56 +99,57 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
 
     top_list = [e for e in top_subgraphs.etypes if 'interacts_c' in e]
 
-    with torch.cuda.amp.autocast():
-        X = em_bead(h_feat)
-        h_center, h_highdim = en_net(top_subgraphs, X, cluster_ranges, top_list, ['bead'])
+    X = em_bead(h_feat)
+    h_center, h_highdim = en_net(top_subgraphs, X, cluster_ranges, top_list, ['bead'])
 
-        l_sim = torch.empty(1) # len(top_list))
-        l_diff = torch.empty(1) # len(top_list))
-        for i, et in enumerate(top_list[0:2]):
-            pred_dot, pred_hd_dist = de_DotEuc_net(top_subgraphs, h_highdim, et)
-            # true_l = top_subgraphs.edges[et].data['label']
-            true_v = top_subgraphs.edges[et].data['value']
-            l_sim[i] = loss_fc[3](pred_dot, true_v)
-            l_diff[i] = loss_fc[3](pred_hd_dist, cluster_ranges[i])
+    l_sim = torch.empty(1) # len(top_list))
+    l_diff = torch.empty(1) # len(top_list))
+    for i, et in enumerate(top_list[0:2]):
+        pred_dot, pred_hd_dist = de_DotEuc_net(top_subgraphs, h_highdim, et)
+        # true_l = top_subgraphs.edges[et].data['label']
+        true_v = top_subgraphs.edges[et].data['value']
+        l_sim[i] = loss_fc[3](pred_dot, true_v)
+        l_diff[i] = loss_fc[3](pred_hd_dist, cluster_ranges[i])
 
-        xp, std = de_dis_net(top_graph, h_center)
-        lt = top_graph.edges['interacts'].data['label']
-        if xp.shape[0]==0 or xp.shape[0]!= lt.shape[0] : return [None]
+    xp, std = de_dis_net(top_graph, h_center)
+    lt = top_graph.edges['interacts'].data['label']
+    if xp.shape[0]==0 or xp.shape[0]!= lt.shape[0]: 
+        return [None]
 
-        [dis_cmpt_lp], [dis_gmm] = de_gmm_net(xp) 
+    [dis_cmpt_lp], [dis_gmm] = de_gmm_net(xp) 
 
-        tmp = torch.div( torch.ones(ncluster), ncluster) # torch.softmax( 1.0+torch.div(1, cw), dim=0) #
-        ids, n = list(), (lt.shape[0])*0.8*tmp
-        for i in torch.arange(ncluster):
-            idx = ((lt == i).nonzero(as_tuple=True)[0]).view(-1,)
-            if idx.nelement()==0: continue      
-            p = torch.ones_like(idx)/idx.shape[0]
-            # ids.append(idx[p.multinomial(num_samples=int( torch.minimum(n[i], torch.tensor(idx.shape[0])) ), replacement=False)])
-            ids.append(idx[ p.multinomial( num_samples=int( n[i]), replacement=True)])
-        mask = torch.cat(ids, dim=0)
-        mask, _ = torch.sort(mask)
-        # mask = torch.unique(mask, sorted=True, return_inverse=False, return_counts=False)
+    tmp = torch.div( torch.ones(ncluster), ncluster) # torch.softmax( 1.0+torch.div(1, cw), dim=0) #
+    ids, n = list(), (lt.shape[0])*0.8*tmp
+    for i in torch.arange(ncluster):
+        idx = ((lt == i).nonzero(as_tuple=True)[0]).view(-1,)
+        if idx.nelement()==0: 
+            continue      
+        p = torch.ones_like(idx)/idx.shape[0]
+        # ids.append(idx[p.multinomial(num_samples=int( torch.minimum(n[i], torch.tensor(idx.shape[0])) ), replacement=False)])
+        ids.append(idx[ p.multinomial( num_samples=int( n[i]), replacement=True)])
+    mask = torch.cat(ids, dim=0)
+    mask, _ = torch.sort(mask)
+    # mask = torch.unique(mask, sorted=True, return_inverse=False, return_counts=False)
 
-        sample_dis_cmpt_lp = dis_cmpt_lp[mask, :]
-        sample_lt = lt[mask]
-        sample_std = std[mask]
+    sample_dis_cmpt_lp = dis_cmpt_lp[mask, :]
+    sample_lt = lt[mask]
+    sample_std = std[mask]
 
-        weight = torch.linspace(np.pi*0.1, np.pi*0.75, steps=ncluster, device=device)
-        weight = torch.sin(weight) + 1.0
-        # weight = torch.ones((ncluster), dtype=torch.float, device=device)  
+    weight = torch.linspace(np.pi*0.1, np.pi*0.75, steps=ncluster, device=device)
+    weight = torch.sin(weight) + 1.0
+    # weight = torch.ones((ncluster), dtype=torch.float, device=device)  
 
-        l_nll = loss_fc[0](dis_cmpt_lp, lt, weight)
-        sample_l_nll = loss_fc[0](sample_dis_cmpt_lp, sample_lt, weight)
-        one_hot_lt = torch.nn.functional.one_hot(sample_lt.long(), ncluster)
-        l_wnl = loss_fc[1](sample_dis_cmpt_lp, one_hot_lt, weight)
-        l_cl = loss_fc[2](sample_dis_cmpt_lp, one_hot_lt, weight)
+    l_nll = loss_fc[0](dis_cmpt_lp, lt, weight)
+    sample_l_nll = loss_fc[0](sample_dis_cmpt_lp, sample_lt, weight)
+    one_hot_lt = torch.nn.functional.one_hot(sample_lt.long(), ncluster)
+    l_wnl = loss_fc[1](sample_dis_cmpt_lp, one_hot_lt, weight)
+    l_cl = loss_fc[2](sample_dis_cmpt_lp, one_hot_lt, weight)
 
-        if require_grad:
-            loss = sample_l_nll*10 + l_wnl + l_cl + l_sim.sum() + l_diff.sum() #+ l_stdl #  + l_stdl
-            optimizer[0].zero_grad()
-            loss.backward()  # retain_graph=False, create_graph = True
-            optimizer[0].step()
+    if require_grad:
+        loss = sample_l_nll*10 + l_wnl + l_cl + l_sim.sum() + l_diff.sum() #+ l_stdl #  + l_stdl
+        optimizer[0].zero_grad()
+        loss.backward()  # retain_graph=False, create_graph = True
+        optimizer[0].step()
 
     return [l_nll.item(), l_cl.item(), l_wnl.item(), l_sim.sum().item(), l_diff.sum().item()], dis_gmm
 
