@@ -3,9 +3,9 @@ import torch.nn as nn
 # from geomloss import SamplesLoss
 # import torch.nn.functional as F
 
-class ClusterWassersteinLoss(nn.Module):
+class WassersteinLoss(nn.Module):
     def __init__(self, num_cluster):
-        super(ClusterWassersteinLoss, self).__init__()
+        super(WassersteinLoss, self).__init__()
         # self.action = torch.nn.LeakyReLU(0.3)
         self.num_cluster = num_cluster
         

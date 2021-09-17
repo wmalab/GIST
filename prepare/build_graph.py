@@ -7,6 +7,8 @@ from .utils import cluster_hic, log1p_hic
 from .utils import save_graph
 # from embedding.model import embedding, tilt_hic, position_hic
 
+import warnings
+warnings.filterwarnings('ignore')
 
 def create_subgraph_(ID, mat_hic, mat_chic, idx, 
                      num_clusters, cutoff_cluster,
@@ -38,7 +40,7 @@ def create_subgraph_(ID, mat_hic, mat_chic, idx,
     graph_data[('bead', 'interacts', 'bead')] = (u, v)
 
     c_list = [r for r in range(cutoff_cluster)]  # int(n_cluster)-1)
-    # fid = []
+    fid = []
     for i in c_list:
         [src, dst] = np.where(chic == i)
         u = np.concatenate([src])
@@ -46,17 +48,21 @@ def create_subgraph_(ID, mat_hic, mat_chic, idx,
         # masked = np.argwhere(u < v)
         # u = u[masked].flatten()
         # v = v[masked].flatten()
-        if len(u)==0 or len(v)==0:
-            return False
-        # fid.append(np.where(chic == i))
+        if len(u)==0 or len(v)==0 : return Flase 
+
+        fid.append((u, v))
         graph_data[('bead', 'interacts_c{}'.format(str(i)), 'bead')] = (u, v)
+
     num_nodes_dict = {'bead': len(idx)}
     g = dgl.heterograph(graph_data, num_nodes_dict, idtype=torch.long)
 
     g.nodes['bead'].data['id'] = torch.tensor(idx.flatten(), dtype=torch.long)
 
     g.edges['interacts'].data['label'] = chic[tuple(fid_interacts)].clone().detach().flatten().type(torch.int8)
-    # g.edges['interacts'].data['value'] = chic[tuple(fid_interacts)].clone().detach().flatten().type(torch.float)
+    
+    for i in c_list:
+        g.edges['interacts_c{}'.format(str(i))].data['label'] = chic[tuple(fid[i])].clone().detach().flatten().type(torch.int8)
+        g.edges['interacts_c{}'.format(str(i))].data['value'] = hic[tuple(fid[i])].clone().detach().flatten().type(torch.float)
 
     top_list = ['interacts_c{}'.format(i) for i in np.arange(cutoff_cluster)]
     top_subgraphs = g.edge_type_subgraph(top_list)
@@ -96,7 +102,7 @@ def create_graph_1lvl(norm_hic, for_test,
     # 1/density
     cluster_weight = 1.0/(cluster_weight+10e-7).astype(np.double)
     print('# hic: {} clusters, weights: {}'.format(num_clusters, cluster_weight))
-
+    log_hic = torch.tensor(log_hic)
     # -----------------------------------------------------------------------------
     # permutation idx in idex
     print(max_len, 'and', len(idxs))
@@ -121,7 +127,7 @@ def create_graph_1lvl(norm_hic, for_test,
             res = pool.apply_async(create_subgraph_, args=data_args)
             result_objs.append(res)
             # create_subgraph_(i, log_hic, mats_, idx,
-            #              cutoff_percent, cutoff_cluster,
+            #              num_clusters, cutoff_cluster,
             #              output_path, output_prefix_filename)
         pool.close()
         pool.join()
