@@ -62,7 +62,7 @@ def create_subgraph_(ID, mat_hic, mat_chic, idx,
     
     for i in c_list:
         g.edges['interacts_c{}'.format(str(i))].data['label'] = chic[tuple(fid[i])].clone().detach().flatten().type(torch.int8)
-        g.edges['interacts_c{}'.format(str(i))].data['value'] = hic[tuple(fid[i])].clone().detach().flatten().type(torch.float)
+        g.edges['interacts_c{}'.format(str(i))].data['value'] = hic[tuple(fid[i])].clone().detach().flatten().type(torch.half)
 
     top_list = ['interacts_c{}'.format(i) for i in np.arange(cutoff_cluster)]
     top_subgraphs = g.edge_type_subgraph(top_list)
