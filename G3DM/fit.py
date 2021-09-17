@@ -105,14 +105,12 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
 
         l_sim = torch.empty(1) # len(top_list))
         l_diff = torch.empty(1) # len(top_list))
-        for i, et in enumerate(top_list):
+        for i, et in enumerate(top_list[0:2]):
             pred_dot, pred_hd_dist = de_DotEuc_net(top_subgraphs, h_highdim, et)
             # true_l = top_subgraphs.edges[et].data['label']
             true_v = top_subgraphs.edges[et].data['value']
             l_sim[i] = loss_fc[3](pred_dot, true_v)
             l_diff[i] = loss_fc[3](pred_hd_dist, cluster_ranges[i])
-            break
-
 
         xp, std = de_dis_net(top_graph, h_center)
         lt = top_graph.edges['interacts'].data['label']
