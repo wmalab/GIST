@@ -4,6 +4,8 @@ import numpy as np
 from iced import normalization
 from scipy.stats import percentileofscore
 from sklearn import mixture
+import matplotlib.pyplot as plt
+
 
 from matplotlib.ticker import PercentFormatter
 
@@ -66,7 +68,8 @@ def remove_nan_col(hic):
 
 if __name__ == '__main__':
     path = '/rhome/yhu/bigdata/proj/experiment_G3DM/data/raw'
-    name = 'Rao2014-GM12878-MboI-allreps-filtered.10kb.cool'
+    # name = 'Rao2014-GM12878-MboI-allreps-filtered.10kb.cool'
+    name = 'Rao2014-IMR90-MboI-allreps-filtered.10kb.cool'
     chromosome = str(sys.argv[1])
     chro = 'chr{}'.format(chromosome)
     file = os.path.join(path, name)
@@ -78,11 +81,23 @@ if __name__ == '__main__':
     norm_hic = np.array(norm_hic)
 
     log1p_rhic = np.log1p(raw_hic)
-    log1p_nhic = np.log1p(np.log1p(norm_hic))
+    log1p_nhic = np.log1p(norm_hic)
+
+    fig, ax = plt.subplots(1, 2)
+    im = ax[0].imshow(log1p_rhic, cmap='RdBu_r', interpolation='nearest')
+    fig.colorbar(im, ax=ax[0])
+    im = ax[0].imshow(log1p_nhic, cmap='RdBu_r', interpolation='nearest')
+    fig.colorbar(im, ax=ax[1])
+    save_path = os.path.join('/rhome/yhu', 'bigdata', 'proj', 'experiment_G3DM', 'gmm_parameter')
+    os.makedirs(save_path, exist_ok=True)
+    title = 'chr{}'.format(chromosome)
+    plt.savefig(os.path.join(save_path, '{}.pdf'.format(title)), format='pdf')
+    plt.close()
 
     low = float(sys.argv[2]) # 0 5, 10, 15, 20, 25, 30, 35, 40
-    high = float(99.9)
+    high = float(100)
     num_cluster = int(sys.argv[3]) # 3 - 20
     save_path = os.path.join('/rhome/yhu', 'bigdata', 'proj', 'experiment_G3DM', 'gmm_parameter', 'chr{}'.format(chromosome))
+
 
     run(log1p_nhic, low, high, num_cluster, save_path)
