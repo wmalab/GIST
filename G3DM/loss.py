@@ -40,7 +40,6 @@ class ClusterLoss(nn.Module):
         ncluster = np.shape[-1]
         diff = torch.abs(pred - target)
         res = diff.mean(dim=0)
-        res = (res*ncluster)**2
         if weight is None:
             w = torch.ones((np.shape[1]), device=np.device)
         else:
