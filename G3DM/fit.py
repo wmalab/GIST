@@ -31,25 +31,25 @@ def create_network(configuration, device):
     ind = int(config['feature']['in_dim'])
     outd = int(config['feature']['out_dim'])
 
-    em_bead = embedding(in_dim=ind, out_dim=outd, in_num_channels=2).to(device)
+    em_bead = embedding(in_dim=ind, out_dim=outd, in_num_channels=2).to(device).float()
 
     nh = int(config['G3DM']['num_heads'])
 
     chain = config['G3DM']['graph_dim']
     cin, chidden, cout = int(chain['in_dim']), int( chain['hidden_dim']), int(chain['out_dim'])
     e_list = ['interacts_c{}'.format(i) for i in np.arange( int(config['graph']['cutoff_cluster']))]
-    en_net = encoder_chain( cin, chidden, cout, num_heads=nh, etypes=e_list).to(device)
+    en_net = encoder_chain( cin, chidden, cout, num_heads=nh, etypes=e_list).to(device).float()
 
     nc = int(config['graph']['num_clusters']) - 1
-    de_distance_net = decoder_distance(nh, nc, 'bead', 'interacts').to(device)
-    de_gmm_net = decoder_gmm(nc).to(device)
-    de_doteuc_net = decoder_dotproduct_euclidian().to(device)
+    de_distance_net = decoder_distance(nh, nc, 'bead', 'interacts').to(device).float()
+    de_gmm_net = decoder_gmm(nc).to(device).float()
+    de_doteuc_net = decoder_dotproduct_euclidian().to(device).float()
 
-    nll = nllLoss().to(device)
+    nll = nllLoss().to(device).float()
     # stdl = stdLoss().to(device)
-    cwnl = WassersteinLoss(nc).to(device)
-    cl = ClusterLoss(nc).to(device)
-    rmslel = RMSLELoss().to(device)
+    cwnl = WassersteinLoss(nc).to(device).float()
+    cl = ClusterLoss(nc).to(device).float()
+    rmslel = RMSLELoss().to(device).float()
 
     parameters_list = list(em_bead.parameters()) + \
                 list(en_net.parameters()) + \
@@ -108,7 +108,7 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
         pred_dot, pred_hd_dist = de_DotEuc_net(top_subgraphs, h_highdim, et)
         # true_l = top_subgraphs.edges[et].data['label']
         true_v = top_subgraphs.edges[et].data['value']
-        l_sim[i] = loss_fc[3](pred_dot, true_v)
+        l_sim[i] = loss_fc[3](pred_dot, torch.div(true_v, 255.0))
         l_diff[i] = loss_fc[3](pred_hd_dist, cluster_ranges[i])
 
     xp, std = de_dis_net(top_graph, h_center)
