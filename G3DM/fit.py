@@ -104,14 +104,15 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
     X = em_bead(h_feat)
     h_center, h_highdim = en_net(top_subgraphs, X, cluster_ranges, top_list, ['bead'])
 
-    l_similarity = torch.ones(2)
-    for i, et in enumerate(top_list[0:2]):
+    l_similarity = torch.ones(len(top_list))
+    for i, et in enumerate(top_list):
         pred_similarity = de_dot_net(top_subgraphs, h_highdim, et)
-        true_v = top_subgraphs.edges[et].data['value']
-        l_similarity[i] = loss_fc[3](pred_similarity, true_v)
+        # true_v = top_subgraphs.edges[et].data['value']
+        # l_similarity[i] = loss_fc[3](pred_similarity, true_v)
+        l_similarity[i] = loss_fc[3](pred_similarity, cluster_ranges[i])
 
-    l_diff_g = torch.ones(2)
-    for i, et in enumerate(top_list[0:2]):
+    l_diff_g = torch.ones(1)
+    for i, et in enumerate(top_list[0:1]):
         pred_hd_dist = de_euc_net(top_subgraphs, h_highdim, et)
         l_diff_g[i] = loss_fc[3](pred_hd_dist, cluster_ranges[i])
 
@@ -148,7 +149,7 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
     l_cl = loss_fc[2](sample_dis_cmpt_lp, one_hot_lt, weight)
 
     if require_grad:
-        loss = sample_l_nll + 10*l_wnl + 10*l_similarity.nansum() + l_diff_g.nansum() # + l_wnl + l_stdl 
+        loss = sample_l_nll + 10*l_wnl + 10*l_similarity.nansum() # + l_diff_g.nansum() # + l_wnl + l_stdl 
         optimizer[0].zero_grad()
         loss.backward()  # retain_graph=False, create_graph = True
         optimizer[0].step()
