@@ -351,7 +351,7 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
         plot_scaler({'test':np.nanmean(test_ll[:,0]), 'validation': np.nanmean(valid_ll[:,0])}, writer, 'NL Loss' ,step = epoch)
         plot_scaler({'test':np.nanmean(test_ll[:,1]), 'validation': np.nanmean(valid_ll[:,1])}, writer, 'Cluster Loss' ,step = epoch)
         plot_scaler({'test':np.nanmean(test_ll[:,2]), 'validation': np.nanmean(valid_ll[:,2])}, writer, 'WNL Loss' ,step = epoch)
-        plot_scaler({'test':np.nanmean(test_ll[:,3]), 'validation': np.nanmean(valid_ll[:,2])}, writer, 'High dim distance X Loss' ,step = epoch)
+        plot_scaler({'test':np.nanmean(test_ll[:,3]), 'validation': np.nanmean(valid_ll[:,2])}, writer, 'High dim similarity Loss' ,step = epoch)
         plot_scaler({'test':np.nanmean(test_ll[:,4]), 'validation': np.nanmean(valid_ll[:,2])}, writer, 'High dim distance G Loss' ,step = epoch)
 
 
