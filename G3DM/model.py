@@ -40,10 +40,10 @@ class embedding(torch.nn.Module):
         X = torch.nn.functional.leaky_relu(X)
         X = self.pool(X)
         X = self.fc1(X)
-        X = torch.nn.functional.leaky_relu(X)
-        X = self.fc2(X)
+        # X = torch.nn.functional.leaky_relu(X)
+        # X = self.fc2(X)
         X = torch.squeeze(X, dim=1)
-        # X = self.bn(X)
+        X = self.bn(X)
         return X
 
 
@@ -128,8 +128,8 @@ class encoder_chain(torch.nn.Module):
         for i in torch.arange(self.num_heads):
             x = h[ntype[0]][:,i,:]
             x = self.norm_(x)
-            for i, et in enumerate(etypes):
-                x = self.layerConstruct(subg_interacts, x, [lr_ranges[i], lr_ranges[i+2]], et)
+            # for i, et in enumerate(etypes):
+            #     x = self.layerConstruct(subg_interacts, x, [lr_ranges[i], lr_ranges[i+2]], et)
             res.append(x)
         res = torch.stack(res, dim=1)
         return res, h_res
