@@ -47,7 +47,6 @@ def create_network(configuration, device):
     de_cos_net = decoder_cosine().to(device).float()
 
     nll = nllLoss().to(device).float()
-    # stdl = stdLoss().to(device)
     cwnl = WassersteinLoss(nc).to(device).float()
     cl = ClusterLoss(nc).to(device).float()
     msel = RMSLELoss().to(device).float()
