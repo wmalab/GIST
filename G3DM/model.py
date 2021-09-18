@@ -130,9 +130,9 @@ class encoder_chain(torch.nn.Module):
         res = torch.stack(res, dim=1)
         return res, h_res
 
-class decoder_dotproduct_euclidian(torch.nn.Module):
+class decoder_euclidian(torch.nn.Module):
     def __init__(self):
-        super(decoder_dotproduct_euclidian, self).__init__()
+        super(decoder_euclidian, self).__init__()
 
     def edge_distance(self, edges):
         dist = torch.norm((edges.dst['h'] - edges.src['h']), dim=-1, keepdim=True)
@@ -141,9 +141,9 @@ class decoder_dotproduct_euclidian(torch.nn.Module):
     def forward(self, graph, h, etype):
         with graph.local_scope():
             graph.ndata['h'] = h   # assigns 'h' of all node types in one shot
-            graph.apply_edges(dgl.function.u_dot_v('h', 'h', 'dotproduct_score'), etype=etype)
+            # graph.apply_edges(dgl.function.u_dot_v('h', 'h', 'dotproduct_score'), etype=etype)
             graph.apply_edges(self.edge_distance, etype=etype)
-            return graph.edges[etype].data['dotproduct_score'], graph.edges[etype].data['distance_score']
+            return graph.edges[etype].data.pop('distance_score') # graph.edges[etype].data['dotproduct_score'], 
 
 class decoder_distance(torch.nn.Module):
     ''' num_heads, num_clusters, ntype, etype '''

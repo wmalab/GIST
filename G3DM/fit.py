@@ -5,7 +5,7 @@ import torch
 import torch_optimizer as optim
 import numpy as np
 
-from .model import embedding, encoder_chain, decoder_distance, decoder_gmm, decoder_dotproduct_euclidian, save_model_state_dict
+from .model import embedding, encoder_chain, decoder_distance, decoder_gmm, decoder_euclidian, save_model_state_dict
 from .loss import nllLoss, WassersteinLoss, ClusterLoss, RMSLELoss # stdLoss, 
 from .visualize import plot_feature, plot_X, plot_cluster, plot_confusion_mat, plot_distributions, plot_histogram2d
 from .visualize import plot_scaler
@@ -43,7 +43,7 @@ def create_network(configuration, device):
     nc = int(config['graph']['num_clusters']) - 1
     de_distance_net = decoder_distance(nh, nc, 'bead', 'interacts').to(device).float()
     de_gmm_net = decoder_gmm(nc).to(device).float()
-    de_doteuc_net = decoder_dotproduct_euclidian().to(device).float()
+    de_euc_net = decoder_euclidian().to(device).float()
 
     nll = nllLoss().to(device).float()
     # stdl = stdLoss().to(device)
@@ -74,7 +74,7 @@ def create_network(configuration, device):
     scheduler = torch.optim.lr_scheduler.ExponentialLR(opt, gamma=0.9)
 
     em_networks = [em_bead]
-    ae_networks = [en_net, de_distance_net, de_gmm_net, de_doteuc_net]
+    ae_networks = [en_net, de_distance_net, de_gmm_net, de_euc_net]
     return em_networks, ae_networks, [nll, cwnl, cl, rmslel], [opt], scheduler
 
 
@@ -95,26 +95,25 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
     en_net = ae_networks[0]
     de_dis_net = ae_networks[1]
     de_gmm_net = ae_networks[2]
-    de_DotEuc_net = ae_networks[3]
+    de_Euc_net = ae_networks[3]
 
     top_list = [e for e in top_subgraphs.etypes if 'interacts_c' in e]
 
     X = em_bead(h_feat)
     h_center, h_highdim = en_net(top_subgraphs, X, cluster_ranges, top_list, ['bead'])
 
-    l_sim = torch.empty(2) # len(top_list))
-    l_diff = torch.empty(2) # len(top_list))
+    l_diff_em = torch.empty(2) # len(top_list))
+    l_diff_g = torch.empty(2) # len(top_list))
     for i, et in enumerate(top_list[0:2]):
-        pred_dot, pred_hd_dist = de_DotEuc_net(top_subgraphs, h_highdim, et)
-        # true_l = top_subgraphs.edges[et].data['label']
-        true_v = top_subgraphs.edges[et].data['value']
-        l_sim[i] = loss_fc[3](pred_dot, torch.div(true_v, 255.0))
-        l_diff[i] = loss_fc[3](pred_hd_dist, cluster_ranges[i])
+        pred_X_dist = de_Euc_net(top_subgraphs, X, et)
+        l_diff_em[i] = loss_fc[3](pred_X_dist, cluster_ranges[i])
+    for i, et in enumerate(top_list[0:2]):
+        pred_hd_dist = de_Euc_net(top_subgraphs, h_highdim, et)
+        l_diff_g[i] = loss_fc[3](pred_hd_dist, cluster_ranges[i])
 
     xp, std = de_dis_net(top_graph, h_center)
     lt = top_graph.edges['interacts'].data['label']
-    if xp.shape[0]==0 or xp.shape[0]!= lt.shape[0]: 
-        return [None]
+    if xp.shape[0]==0 or xp.shape[0]!= lt.shape[0]: return [None]
 
     [dis_cmpt_lp], [dis_gmm] = de_gmm_net(xp) 
 
@@ -122,8 +121,7 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
     ids, n = list(), (lt.shape[0])*0.8*tmp
     for i in torch.arange(ncluster):
         idx = ((lt == i).nonzero(as_tuple=True)[0]).view(-1,)
-        if idx.nelement()==0: 
-            continue      
+        if idx.nelement()==0: continue      
         p = torch.ones_like(idx)/idx.shape[0]
         # ids.append(idx[p.multinomial(num_samples=int( torch.minimum(n[i], torch.tensor(idx.shape[0])) ), replacement=False)])
         ids.append(idx[ p.multinomial( num_samples=int( n[i]), replacement=True)])
@@ -146,7 +144,7 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
     l_cl = loss_fc[2](sample_dis_cmpt_lp, one_hot_lt, weight)
 
     if require_grad:
-        loss = sample_l_nll*10 + l_wnl + l_cl + l_sim.sum() + l_diff.sum() #+ l_stdl #  + l_stdl
+        loss = sample_l_nll + l_wnl + l_cl + l_diff_em.sum() + l_diff_g.sum() #+ l_stdl #  + l_stdl
         optimizer[0].zero_grad()
         loss.backward()  # retain_graph=False, create_graph = True
         optimizer[0].step()
@@ -348,8 +346,8 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
         plot_scaler({'test':np.nanmean(test_ll[:,0]), 'validation': np.nanmean(valid_ll[:,0])}, writer, 'NL Loss' ,step = epoch)
         plot_scaler({'test':np.nanmean(test_ll[:,1]), 'validation': np.nanmean(valid_ll[:,1])}, writer, 'Cluster Loss' ,step = epoch)
         plot_scaler({'test':np.nanmean(test_ll[:,2]), 'validation': np.nanmean(valid_ll[:,2])}, writer, 'WNL Loss' ,step = epoch)
-        plot_scaler({'test':np.nanmean(test_ll[:,3]), 'validation': np.nanmean(valid_ll[:,2])}, writer, 'High dim similarity Loss' ,step = epoch)
-        plot_scaler({'test':np.nanmean(test_ll[:,4]), 'validation': np.nanmean(valid_ll[:,2])}, writer, 'High dim distance Loss' ,step = epoch)
+        plot_scaler({'test':np.nanmean(test_ll[:,3]), 'validation': np.nanmean(valid_ll[:,2])}, writer, 'High dim distance X Loss' ,step = epoch)
+        plot_scaler({'test':np.nanmean(test_ll[:,4]), 'validation': np.nanmean(valid_ll[:,2])}, writer, 'High dim distance G Loss' ,step = epoch)
 
 
         dur.append(time.time() - t0)
