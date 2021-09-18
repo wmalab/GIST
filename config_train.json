@@ -17,10 +17,10 @@
         "graph":{
             "max_len": 900,
             "iteration": 0,
-            "num_clusters": 20,
+            "num_clusters": 13,
             "cutoff_clusters":{"low": 30.0, "high": 100},
             "cutoff_percent": 0,
-            "cutoff_cluster": 9
+            "cutoff_cluster": 7
         },
         "feature":{
             "in_dim": 300,
@@ -28,7 +28,7 @@
         },
         "G3DM":{
             "iteration": 400,
-            "num_heads": 10,
+            "num_heads": 15,
             "graph_dim":{"in_dim":30, "hidden_dim":10, "out_dim": 3}
         }
     }
