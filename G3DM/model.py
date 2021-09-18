@@ -132,7 +132,7 @@ class decoder_euclidian(torch.nn.Module):
 
 class decoder_cosine(torch.nn.Module):
     def __init__(self):
-        super(decoder_consine, self).__init__()
+        super(decoder_cosine, self).__init__()
     
     def edge_distance(self, edges):
         cos = nn.CosineSimilarity(dim=-1, eps=1e-6)
