@@ -40,8 +40,8 @@ class embedding(torch.nn.Module):
         X = torch.nn.functional.leaky_relu(X)
         X = self.pool(X)
         X = self.fc1(X)
-        # X = torch.nn.functional.leaky_relu(X)
-        # X = self.fc2(X)
+        X = torch.nn.functional.leaky_relu(X)
+        X = self.fc2(X)
         X = torch.squeeze(X, dim=1)
         X = self.bn(X)
         return X
