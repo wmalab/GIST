@@ -149,7 +149,7 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
         loss.backward()  # retain_graph=False, create_graph = True
         optimizer[0].step()
 
-    return [l_nll.item(), l_cl.item(), l_wnl.item(), l_sim.sum().item(), l_diff.sum().item()], dis_gmm
+    return [l_nll.item(), l_cl.item(), l_wnl.item(), l_diff_em.sum().item(), l_diff_g.sum().item()], dis_gmm
 
 
 def inference(graphs, features, lr_ranges, num_heads, num_clusters, em_networks, ae_networks, device):
