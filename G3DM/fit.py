@@ -50,7 +50,7 @@ def create_network(configuration, device):
     # stdl = stdLoss().to(device)
     cwnl = WassersteinLoss(nc).to(device).float()
     cl = ClusterLoss(nc).to(device).float()
-    rmslel = MSELoss().to(device).float()
+    msel = MSELoss().to(device).float()
 
     parameters_list = list(em_bead.parameters()) + \
                 list(en_net.parameters()) + \
@@ -76,7 +76,7 @@ def create_network(configuration, device):
 
     em_networks = [em_bead]
     ae_networks = [en_net, de_distance_net, de_gmm_net, de_euc_net, de_dot_net]
-    return em_networks, ae_networks, [nll, cwnl, cl, rmslel], [opt], scheduler
+    return em_networks, ae_networks, [nll, cwnl, cl, msel], [opt], scheduler
 
 
 def setup_train(configuration):
@@ -148,7 +148,7 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
     l_cl = loss_fc[2](sample_dis_cmpt_lp, one_hot_lt, weight)
 
     if require_grad:
-        loss = sample_l_nll*20  # + 5*l_similarity.nansum() # + 5*l_diff_g.nansum() # + l_wnl + l_stdl 
+        loss = sample_l_nll*20 + l_similarity.nansum() + l_diff_g.nansum() # + l_wnl + l_stdl 
         optimizer[0].zero_grad()
         loss.backward()  # retain_graph=False, create_graph = True
         optimizer[0].step()
