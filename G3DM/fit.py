@@ -5,8 +5,8 @@ import torch
 import torch_optimizer as optim
 import numpy as np
 
-from .model import embedding, encoder_chain, decoder_distance, decoder_gmm, decoder_euclidian, decoder_dotproduct, save_model_state_dict
-from .loss import nllLoss, WassersteinLoss, ClusterLoss, MSELoss # stdLoss, 
+from .model import embedding, encoder_chain, decoder_distance, decoder_gmm, decoder_euclidian, decoder_cosine, save_model_state_dict
+from .loss import nllLoss, WassersteinLoss, ClusterLoss, RMSLELoss #MSELoss # stdLoss, 
 from .visualize import plot_feature, plot_X, plot_cluster, plot_confusion_mat, plot_distributions, plot_histogram2d
 from .visualize import plot_scaler
 
@@ -44,13 +44,13 @@ def create_network(configuration, device):
     de_distance_net = decoder_distance(nh, nc, 'bead', 'interacts').to(device).float()
     de_gmm_net = decoder_gmm(nc).to(device).float()
     de_euc_net = decoder_euclidian().to(device).float()
-    de_dot_net = decoder_dotproduct().to(device).float()
+    de_cos_net = decoder_cosine().to(device).float()
 
     nll = nllLoss().to(device).float()
     # stdl = stdLoss().to(device)
     cwnl = WassersteinLoss(nc).to(device).float()
     cl = ClusterLoss(nc).to(device).float()
-    msel = MSELoss().to(device).float()
+    msel = RMSLELoss().to(device).float()
 
     parameters_list = list(em_bead.parameters()) + \
                 list(en_net.parameters()) + \
@@ -66,7 +66,7 @@ def create_network(configuration, device):
     scheduler = torch.optim.lr_scheduler.ExponentialLR(opt, gamma=0.9)
 
     em_networks = [em_bead]
-    ae_networks = [en_net, de_distance_net, de_gmm_net, de_euc_net, de_dot_net]
+    ae_networks = [en_net, de_distance_net, de_gmm_net, de_euc_net, de_cos_net]
     return em_networks, ae_networks, [nll, cwnl, cl, msel], [opt], scheduler
 
 
@@ -88,7 +88,7 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
     de_dis_net = ae_networks[1]
     de_gmm_net = ae_networks[2]
     de_euc_net = ae_networks[3]
-    de_dot_net = ae_networks[4]
+    de_cos_net = ae_networks[4]
 
     top_list = [e for e in top_subgraphs.etypes if 'interacts_c' in e]
 
@@ -107,7 +107,7 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
     #     pred_hd_dist = de_euc_net(top_subgraphs, h_highdim, et)
     #     l_diff_g[i] = loss_fc[3](pred_hd_dist, cluster_ranges[i])
 
-    pred_similarity = de_dot_net(top_subgraphs, h_highdim, top_list[0])
+    pred_similarity = de_cos_net(top_subgraphs, h_highdim, top_list[0])
     true_v = top_subgraphs.edges[top_list[0]].data['value']
     l_similarity = loss_fc[3](pred_similarity, true_v)
 
@@ -166,12 +166,11 @@ def inference(graphs, features, lr_ranges, num_heads, num_clusters, em_networks,
     de_dis_net = ae_networks[1]
     de_gmm_net = ae_networks[2]
     de_euc_net = ae_networks[3]
-    de_dot_net = ae_networks[4]
+    de_cos_net = ae_networks[4]
 
     top_list = [e for e in top_subgraphs.etypes if 'interacts_c' in e]
 
     loss_list = []
-
     with torch.no_grad():
 
         X = em_bead(h_feat)
@@ -351,7 +350,7 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
         plot_scaler({'test':np.nanmean(test_ll[:,0]), 'validation': np.nanmean(valid_ll[:,0])}, writer, 'NL Loss' ,step = epoch)
         plot_scaler({'test':np.nanmean(test_ll[:,1]), 'validation': np.nanmean(valid_ll[:,1])}, writer, 'Cluster Loss' ,step = epoch)
         plot_scaler({'test':np.nanmean(test_ll[:,2]), 'validation': np.nanmean(valid_ll[:,2])}, writer, 'WNL Loss' ,step = epoch)
-        plot_scaler({'test':np.nanmean(test_ll[:,3]), 'validation': np.nanmean(valid_ll[:,2])}, writer, 'High dim similarity Loss' ,step = epoch)
+        plot_scaler({'test':np.nanmean(test_ll[:,3]), 'validation': np.nanmean(valid_ll[:,2])}, writer, 'High dim cos similarity Loss' ,step = epoch)
         plot_scaler({'test':np.nanmean(test_ll[:,4]), 'validation': np.nanmean(valid_ll[:,2])}, writer, 'High dim distance G Loss' ,step = epoch)
 
 

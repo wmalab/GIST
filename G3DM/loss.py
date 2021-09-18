@@ -48,6 +48,14 @@ class ClusterLoss(nn.Module):
         res = res.sum(dim=-1)
         return res
 
+class RMSLELoss(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.mse = nn.MSELoss()
+
+    def forward(self, pred, target):
+        return torch.sqrt( self.mse(torch.log1p(pred+1), torch.log1p(target+1)) )
+
 class MSELoss(nn.Module):
     def __init__(self):
         super().__init__()

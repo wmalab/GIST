@@ -70,11 +70,10 @@ class encoder_chain(torch.nn.Module):
         self.layerMHs = dgl.nn.HeteroGraphConv( lMH, aggregate=self.agg_funcMH)
 
         self.fc2 = torch.nn.Linear(len(etypes), len(etypes), bias=False)
+        self.fcmh = torch.nn.Linear(len(etypes), len(etypes), bias=False)
+
         gain = torch.nn.init.calculate_gain('leaky_relu', 0.2)
         torch.nn.init.xavier_uniform_(self.fc2.weight, gain=gain)
-
-        self.fcmh = torch.nn.Linear(len(etypes), len(etypes), bias=False)
-        gain = torch.nn.init.calculate_gain('leaky_relu', 0.2)
         torch.nn.init.xavier_uniform_(self.fcmh.weight, gain=gain)
 
     def agg_func2(self, tensors, dsttype):
@@ -131,15 +130,21 @@ class decoder_euclidian(torch.nn.Module):
             graph.apply_edges(self.edge_distance, etype=etype)
             return graph.edges[etype].data.pop('distance_score') # graph.edges[etype].data['dotproduct_score'], 
 
-class decoder_dotproduct(torch.nn.Module):
+class decoder_cosine(torch.nn.Module):
     def __init__(self):
-        super(decoder_dotproduct, self).__init__()
+        super(decoder_consine, self).__init__()
+    
+    def edge_distance(self, edges):
+        cos = nn.CosineSimilarity(dim=-1, eps=1e-6)
+        output = cos(iedges.dst['h'], edges.src['h'])
+        return {'cosine_score': output}
     
     def forward(self, graph, h, etype):
         with graph.local_scope():
             graph.ndata['h'] = h   # assigns 'h' of all node types in one shot
-            graph.apply_edges(dgl.function.u_dot_v('h', 'h', 'dotproduct_score'), etype=etype)
-            return graph.edges[etype].data.pop('dotproduct_score') 
+            graph.apply_edges(self.edge_distance, etype=etype)
+            # graph.apply_edges(dgl.function.u_dot_v('h', 'h', 'dotproduct_score'), etype=etype)
+            return graph.edges[etype].data.pop('cosine_score') 
 
 class decoder_distance(torch.nn.Module):
     ''' num_heads, num_clusters, ntype, etype '''
@@ -181,16 +186,11 @@ class decoder_gmm(torch.nn.Module):
         inter = torch.linspace(start=0, end=1.0, steps=self.num_clusters)
         self.interval = torch.nn.Parameter( inter, requires_grad=False)
 
-        # a = torch.linspace(-0.1, 3.5, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
-        # self.alpha = torch.nn.Parameter( a, requires_grad=True)
-        # self.beta = torch.nn.Parameter( 2*torch.ones((self.num_clusters)), requires_grad=True)
-
         self.cweight = torch.nn.Parameter( torch.zeros((self.num_clusters)), requires_grad=True)
         self.bias =  torch.nn.Parameter( torch.linspace(1e-8, 1e-6, steps=self.num_clusters, dtype=torch.float), requires_grad=False)
 
 
     def forward(self, distance):
-        # cweight = torch.nn.functional.normalize(cweight.view(-1,), p=1, dim=0)
         cweight = torch.nn.functional.softmax(self.cweight.view(-1,), 0)
         mix = D.Categorical(cweight)
 
@@ -200,23 +200,15 @@ class decoder_gmm(torch.nn.Module):
         means = means + self.interval
 
         stds = torch.relu(self.distance_stdevs) + 1e-3
-        # stds = torch.div(stds, (means.clamp(min=1.0))**(0.5))
         mode = torch.exp(means - stds**2)
         _, idx = torch.sort(mode.view(-1,), dim=0, descending=False)
         means = means[idx]
         stds = stds[idx]
+
         dis_cmp = D.Normal(means.view(-1,), stds.view(-1,))
-
-        # mu = torch.exp(torch.relu(self.alpha)) + self.interval
-        # alpha, _ = torch.sort(mu)
-        # beta = torch.relu(self.beta) + 1e-4
-        # # transforms = [ D.AffineTransform( alpha.view(-1,),  beta.view(-1,))]
-        # # based_distribution = D.Normal(torch.ones_like(stds).view(-1,)*0.0, torch.ones_like(stds).view(-1,))
-        # dis_cmp = D.Normal(alpha.view(-1,), beta.view(-1,))# D.TransformedDistribution( based_distribution, transforms)
-
         dis_gmm = D.MixtureSameFamily(mix, dis_cmp)
         data = torch.log(distance).view(-1,1)
-        # data = distance.view(-1,1)
+
         unsafe_dis_cmpt_lp = dis_gmm.component_distribution.log_prob(data)
         dis_cmpt_lp = torch.nan_to_num(unsafe_dis_cmpt_lp, nan=-float('inf'))
 
@@ -224,7 +216,7 @@ class decoder_gmm(torch.nn.Module):
         dis_cmpt_p = torch.nn.functional.normalize(dis_cmpt_p, p=1, dim=1)
         dis_cmpt_lp = torch.log(dis_cmpt_p)
 
-        return [dis_cmpt_lp.float()], [dis_gmm] #+torch.log(cmpt_w*self.num_clusters)
+        return [dis_cmpt_lp.float()], [dis_gmm]
 
 def save_model_state_dict(models, optimizer, path, epoch=None, loss=None):
     state_dict = {
