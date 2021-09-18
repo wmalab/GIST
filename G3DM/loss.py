@@ -74,10 +74,10 @@ class nllLoss(torch.nn.Module):
         super(nllLoss, self).__init__()
     
     def forward(self, pred, target, weight=None):
-        logp = pred # torch.log(pred) # torch.nn.functional.log_softmax(pred, 1)
-        # logp = torch.nn.functional.log_softmax(p, 1)
+        logp = pred 
         if weight is  None:
-            w = torch.ones_like(bw, device=bw.device)
+            w = torch.ones((pred.shape[-1]), device=pred.device)
+        else:
             w = weight 
         w = torch.nn.functional.normalize(w.view(1,-1), p=1)
         loss = torch.nn.functional.nll_loss(logp, target.long(), weight=w.float(), reduce=True, reduction='mean')
