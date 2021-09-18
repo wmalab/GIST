@@ -54,7 +54,7 @@ class MSELoss(nn.Module):
         self.mse = nn.MSELoss()
 
     def forward(self, pred, target):
-        return torch.sqrt( self.mse(pred, target), dtype=torch.float)
+        return torch.sqrt(self.mse(pred, target)).float()
 
 class stdLoss(nn.Module):
     def __init__(self):
