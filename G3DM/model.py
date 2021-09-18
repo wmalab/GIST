@@ -14,7 +14,7 @@ class embedding(torch.nn.Module):
         self.hidden_dim = np.floor((in_dim+2)/3).astype(float)
         self.hidden_dim = np.floor((self.hidden_dim+2)/3).astype(int)
         self.fc1 = torch.nn.Linear(self.hidden_dim, out_dim, bias=True)
-        self.fc2 = torch.nn.Linear(self.out_dim, out_dim, bias=True)
+        self.fc2 = torch.nn.Linear(out_dim, out_dim, bias=True)
         self.pool = torch.nn.MaxPool1d(3, stride=1, padding=1)
         self.bn = torch.nn.BatchNorm1d(num_features=out_dim)
         self.reset()
