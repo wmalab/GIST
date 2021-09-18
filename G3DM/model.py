@@ -136,7 +136,7 @@ class decoder_cosine(torch.nn.Module):
     
     def edge_distance(self, edges):
         cos = torch.nn.CosineSimilarity(dim=-1, eps=1e-6)
-        output = cos(iedges.dst['h'], edges.src['h'])
+        output = cos(edges.dst['h'], edges.src['h'])
         return {'cosine_score': output}
     
     def forward(self, graph, h, etype):
