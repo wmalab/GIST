@@ -9,8 +9,8 @@ class embedding(torch.nn.Module):
         super(embedding, self).__init__()
         self.conv1d_1 = torch.nn.Conv1d(in_num_channels, 8, 3, stride=1, padding=1, padding_mode='replicate')
         self.conv1d_2 = torch.nn.Conv1d(8, 32, 5, stride=1, padding=2, padding_mode='replicate')
-        self.conv1d_3 = torch.nn.Conv1d(32, 4, 7, stride=3, padding=3, padding_mode='replicate')
-        self.conv1d_4 = torch.nn.Conv1d(4, 1, 7, stride=3, padding=3, padding_mode='replicate')
+        self.conv1d_3 = torch.nn.Conv1d(32, 8, 7, stride=3, padding=3, padding_mode='replicate')
+        self.conv1d_4 = torch.nn.Conv1d(8, 1, 7, stride=3, padding=3, padding_mode='replicate')
         self.hidden_dim = np.floor((in_dim+2)/3).astype(float)
         self.hidden_dim = np.floor((self.hidden_dim+2)/3).astype(int)
         self.fc1 = torch.nn.Linear(self.hidden_dim, out_dim, bias=True)
@@ -130,8 +130,8 @@ class encoder_chain(torch.nn.Module):
         for i in torch.arange(self.num_heads):
             x = h[ntype[0]][:,i,:]
             x = self.norm_(x)
-            # for i, et in enumerate(etypes):
-            #     x = self.layerConstruct(subg_interacts, x, [lr_ranges[i], lr_ranges[i+2]], et)
+            for i, et in enumerate(etypes):
+                x = self.layerConstruct(subg_interacts, x, [lr_ranges[i], lr_ranges[i+2]], et)
             res.append(x)
         res = torch.stack(res, dim=1)
         return res, h_res

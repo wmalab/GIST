@@ -109,8 +109,8 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
         pred_similarity = de_dot_net(top_subgraphs, h_highdim, et)
         l_similarity[i] = loss_fc[3](pred_similarity, cluster_ranges[i])
 
-    l_diff_g = torch.ones(2)
-    for i, et in enumerate(top_list[0:2]):
+    l_diff_g = torch.ones(1)
+    for i, et in enumerate(top_list[0:1]):
         pred_hd_dist = de_euc_net(top_subgraphs, h_highdim, et)
         l_diff_g = loss_fc[3](pred_hd_dist, cluster_ranges[i])
 
@@ -147,7 +147,7 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
     l_cl = loss_fc[2](sample_dis_cmpt_lp, one_hot_lt, weight)
 
     if require_grad:
-        loss = sample_l_nll*20 + l_wnl + l_cl + 5*l_similarity.sum() + 5*l_diff_g.sum() #+ l_stdl #  + l_stdl
+        loss = sample_l_nll*20 + l_wnl + 5*l_similarity.sum() + 5*l_diff_g.sum() #+ l_stdl #  + l_stdl
         optimizer[0].zero_grad()
         loss.backward()  # retain_graph=False, create_graph = True
         optimizer[0].step()
@@ -165,6 +165,8 @@ def inference(graphs, features, lr_ranges, num_heads, num_clusters, em_networks,
     en_net = ae_networks[0]
     de_dis_net = ae_networks[1]
     de_gmm_net = ae_networks[2]
+    de_euc_net = ae_networks[3]
+    de_dot_net = ae_networks[4]
 
     top_list = [e for e in top_subgraphs.etypes if 'interacts_c' in e]
 
