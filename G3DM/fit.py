@@ -63,15 +63,6 @@ def create_network(configuration, device):
                         eps=1e-8, weight_decay=0,
                         amsbound=False)
 
-    # - opt = optim.AdamP(parameters_list,
-    #                     lr= 1e-3, betas=(0.9, 0.999),
-    #                     eps=1e-8, weight_decay=0,
-    #                     delta = 0.1, wd_ratio = 0.1 )
-
-    # -  opt = optim.RAdam( parameters_list,
-    #                     lr= 1e-3, betas=(0.9, 0.999),
-    #                     eps=1e-8, weight_decay=0)
-
     scheduler = torch.optim.lr_scheduler.ExponentialLR(opt, gamma=0.9)
 
     em_networks = [em_bead]
@@ -147,8 +138,7 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
     sample_std = std[mask]
 
     weight = torch.linspace(np.pi*0.1, np.pi*0.75, steps=ncluster, device=device)
-    weight = torch.sin(weight) + 1.0
-    # weight = torch.ones((ncluster), dtype=torch.float, device=device)  
+    weight = torch.sin(weight) + 1.0 
 
     l_nll = loss_fc[0](dis_cmpt_lp, lt, weight)
     sample_l_nll = loss_fc[0](sample_dis_cmpt_lp, sample_lt, weight)
@@ -157,7 +147,7 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
     l_cl = loss_fc[2](sample_dis_cmpt_lp, one_hot_lt, weight)
 
     if require_grad:
-        loss = sample_l_nll + 10*l_wnl + 10*l_similarity.nansum() + l_diff_g.nansum() # + l_wnl + l_stdl 
+        loss = 10*sample_l_nll + l_wnl + 5*l_similarity.nansum() + l_diff_g.nansum() # + l_wnl + l_stdl 
         optimizer[0].zero_grad()
         loss.backward()  # retain_graph=False, create_graph = True
         optimizer[0].step()
