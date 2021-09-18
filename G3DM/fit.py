@@ -147,7 +147,7 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
     l_cl = loss_fc[2](sample_dis_cmpt_lp, one_hot_lt, weight)
 
     if require_grad:
-        loss = sample_l_nll*20  # + 5*l_similarity.sum() # + 5*l_diff_g.sum() # + l_wnl + l_stdl 
+        loss = sample_l_nll*20  # + 5*l_similarity.nansum() # + 5*l_diff_g.nansum() # + l_wnl + l_stdl 
         optimizer[0].zero_grad()
         loss.backward()  # retain_graph=False, create_graph = True
         optimizer[0].step()
@@ -356,7 +356,7 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
 
 
         dur.append(time.time() - t0)
-        print("Loss:", np.nanmean(test_ll, axis=0), "| Time(s) {:.4f} ".format( np.mean(dur)), sep =" " )
+        print("Loss:", np.mean(test_ll, axis=0), "| Time(s) {:.4f} ".format( np.mean(dur)), sep =" " )
 
     os.makedirs(model_saved_path, exist_ok=True)
     path = os.path.join(model_saved_path, 'finial_' + model_saved_name)
