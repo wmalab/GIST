@@ -104,14 +104,15 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
     X = em_bead(h_feat)
     h_center, h_highdim = en_net(top_subgraphs, X, cluster_ranges, top_list, ['bead'])
 
+    l_similarity = torch.ones(3)
+    for i, et in enumerate(top_list[0:3]):
+        pred_similarity = de_dot_net(top_subgraphs, h_highdim, et)
+        l_similarity[i] = loss_fc[3](pred_similarity, cluster_ranges[i])
 
-    pred_similarity = de_dot_net(top_subgraphs, h_highdim, top_list[0])
-    l_similarity_0 = loss_fc[3](pred_similarity, cluster_ranges[0])
-    pred_similarity = de_dot_net(top_subgraphs, h_highdim, top_list[1])
-    l_similarity_1 = loss_fc[3](pred_similarity, cluster_ranges[1])
-
-    pred_hd_dist = de_euc_net(top_subgraphs, h_highdim, top_list[0])
-    l_diff_g = loss_fc[3](pred_hd_dist, cluster_ranges[0])
+    l_diff_g = torch.ones(3)
+    for i, et in enumerate(top_list[0:3]):
+        pred_hd_dist = de_euc_net(top_subgraphs, h_highdim, et)
+        l_diff_g = loss_fc[3](pred_hd_dist, cluster_ranges[i])
 
     xp, std = de_dis_net(top_graph, h_center)
     lt = top_graph.edges['interacts'].data['label']
@@ -146,12 +147,12 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
     l_cl = loss_fc[2](sample_dis_cmpt_lp, one_hot_lt, weight)
 
     if require_grad:
-        loss = sample_l_nll*20 + l_wnl + l_cl + 10*l_similarity_0 + 5*l_similarity_1 + 10*l_diff_g #+ l_stdl #  + l_stdl
+        loss = sample_l_nll*20 + l_wnl + l_cl + 5*l_similarity.sum() + 5*l_diff_g.sum() #+ l_stdl #  + l_stdl
         optimizer[0].zero_grad()
         loss.backward()  # retain_graph=False, create_graph = True
         optimizer[0].step()
 
-    return [l_nll.item(), l_cl.item(), l_wnl.item(), l_similarity_0 .item()+ l_similarity_1.item(), l_diff_g.item()], dis_gmm
+    return [l_nll.item(), l_cl.item(), l_wnl.item(), l_similarity.sum().item(), l_diff_g.sum().item()], dis_gmm
 
 
 def inference(graphs, features, lr_ranges, num_heads, num_clusters, em_networks, ae_networks, device):
