@@ -6,7 +6,7 @@ import torch_optimizer as optim
 import numpy as np
 
 from .model import embedding, encoder_chain, decoder_distance, decoder_gmm, decoder_euclidian, decoder_dotproduct, save_model_state_dict
-from .loss import nllLoss, WassersteinLoss, ClusterLoss, RMSLELoss # stdLoss, 
+from .loss import nllLoss, WassersteinLoss, ClusterLoss, MSELoss # stdLoss, 
 from .visualize import plot_feature, plot_X, plot_cluster, plot_confusion_mat, plot_distributions, plot_histogram2d
 from .visualize import plot_scaler
 
@@ -50,7 +50,7 @@ def create_network(configuration, device):
     # stdl = stdLoss().to(device)
     cwnl = WassersteinLoss(nc).to(device).float()
     cl = ClusterLoss(nc).to(device).float()
-    rmslel = RMSLELoss().to(device).float()
+    rmslel = MSELoss().to(device).float()
 
     parameters_list = list(em_bead.parameters()) + \
                 list(en_net.parameters()) + \
