@@ -60,12 +60,12 @@ class encoder_chain(torch.nn.Module):
                                     allow_zero_in_degree=True)
         self.layer1 = dgl.nn.HeteroGraphConv( l1, aggregate = 'mean')
 
-        l2 = dict()
-        for et in etypes:
-            l2[et] = dgl.nn.GATConv( hidden_dim, hidden_dim, 
-                                    num_heads=1, residual=False, 
-                                    allow_zero_in_degree=True)
-        self.layer2 = dgl.nn.HeteroGraphConv( l2, aggregate = self.agg_func2)
+        # l2 = dict()
+        # for et in etypes:
+        #     l2[et] = dgl.nn.GATConv( hidden_dim, hidden_dim, 
+        #                             num_heads=1, residual=False, 
+        #                             allow_zero_in_degree=True)
+        # self.layer2 = dgl.nn.HeteroGraphConv( l2, aggregate = self.agg_func2)
 
         # l3 = dict()
         # for et in etypes:
@@ -81,9 +81,9 @@ class encoder_chain(torch.nn.Module):
                                     allow_zero_in_degree=True)
         self.layerMHs = dgl.nn.HeteroGraphConv( lMH, aggregate=self.agg_func3)
 
-        self.fc2 = torch.nn.Linear(len(etypes), len(etypes), bias=False)
-        gain = torch.nn.init.calculate_gain('leaky_relu', 0.2)
-        torch.nn.init.xavier_uniform_(self.fc2.weight, gain=gain)
+        # self.fc2 = torch.nn.Linear(len(etypes), len(etypes), bias=False)
+        # gain = torch.nn.init.calculate_gain('leaky_relu', 0.2)
+        # torch.nn.init.xavier_uniform_(self.fc2.weight, gain=gain)
 
         self.fc3 = torch.nn.Linear(len(etypes), len(etypes), bias=False)
         gain = torch.nn.init.calculate_gain('leaky_relu', 0.2)
@@ -92,10 +92,10 @@ class encoder_chain(torch.nn.Module):
         self.layerConstruct = ConstructLayer()
 
 
-    def agg_func2(self, tensors, dsttype):
-        stacked = torch.stack(tensors, dim=-1)
-        res = self.fc2(stacked)
-        return torch.mean(res, dim=-1)
+    # def agg_func2(self, tensors, dsttype):
+    #     stacked = torch.stack(tensors, dim=-1)
+    #     res = self.fc2(stacked)
+    #     return torch.mean(res, dim=-1)
 
     def agg_func3(self, tensors, dsttype):
         stacked = torch.stack(tensors, dim=-1)
@@ -118,12 +118,10 @@ class encoder_chain(torch.nn.Module):
 
         h = self.layer1(subg_interacts, {ntype[0]: x })
         h = torch.squeeze(h[ntype[0]], dim=1)
-        h = self.layer2(subg_interacts, {ntype[0]: h })
-        x = torch.squeeze(h[ntype[0]], dim=1)
+        # h = self.layer2(subg_interacts, {ntype[0]: h })
+        # x = torch.squeeze(h[ntype[0]], dim=1)
         # x = self.norm_(x).view(-1,3)
-        h_res = x
-        for i, et in enumerate(etypes):
-            x = self.layerConstruct(subg_interacts, x, [lr_ranges[i], lr_ranges[i+2]], et)
+        h_res = h
         # h = self.layer3(subg_interacts, {ntype[0]: x })
         h = torch.squeeze(h[ntype[0]], dim=1)
         h = self.layerMHs(subg_interacts, {ntype[0]: h })
@@ -131,6 +129,8 @@ class encoder_chain(torch.nn.Module):
         for i in torch.arange(self.num_heads):
             x = h[ntype[0]][:,i,:]
             x = self.norm_(x)
+            for i, et in enumerate(etypes):
+                x = self.layerConstruct(subg_interacts, x, [lr_ranges[i], lr_ranges[i+2]], et)
             res.append(x)
         res = torch.stack(res, dim=1)
         return res, h_res
