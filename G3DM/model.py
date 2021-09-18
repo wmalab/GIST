@@ -88,7 +88,7 @@ class encoder_chain(torch.nn.Module):
         gain = torch.nn.init.calculate_gain('leaky_relu', 0.2)
         torch.nn.init.xavier_uniform_(self.fc3.weight, gain=gain)
 
-        self.layerConstruct = ConstructLayer()
+        # self.layerConstruct = ConstructLayer()
 
 
     def agg_func2(self, tensors, dsttype):
