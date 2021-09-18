@@ -104,17 +104,25 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
     X = em_bead(h_feat)
     h_center, h_highdim = en_net(top_subgraphs, X, cluster_ranges, top_list, ['bead'])
 
-    l_similarity = torch.ones(len(top_list))
-    for i, et in enumerate(top_list):
-        pred_similarity = de_dot_net(top_subgraphs, h_highdim, et)
-        # true_v = top_subgraphs.edges[et].data['value']
-        # l_similarity[i] = loss_fc[3](pred_similarity, true_v)
-        l_similarity[i] = loss_fc[3](pred_similarity, cluster_ranges[i])
+    # l_similarity = torch.ones(1) # len(top_list))
+    # for i, et in enumerate(top_list[0]):
+    #     pred_similarity = de_dot_net(top_subgraphs, h_highdim, et)
+    #     true_v = top_subgraphs.edges[et].data['value']
+    #     l_similarity[i] = loss_fc[3](pred_similarity, true_v)
+    #     # l_similarity[i] = loss_fc[3](pred_similarity, cluster_ranges[i])
 
-    l_diff_g = torch.ones(2)
-    for i, et in enumerate(top_list[0:2]):
-        pred_hd_dist = de_euc_net(top_subgraphs, h_highdim, et)
-        l_diff_g[i] = loss_fc[3](pred_hd_dist, cluster_ranges[i])
+    # l_diff_g = torch.ones(2)
+    # for i, et in enumerate(top_list[0:2]):
+    #     pred_hd_dist = de_euc_net(top_subgraphs, h_highdim, et)
+    #     l_diff_g[i] = loss_fc[3](pred_hd_dist, cluster_ranges[i])
+
+    pred_similarity = de_dot_net(top_subgraphs, h_highdim, top_list[0])
+    true_v = top_subgraphs.edges[top_list[0]].data['value']
+    l_similarity = loss_fc[3](pred_similarity, true_v)
+
+    pred_hd_dist = de_euc_net(top_subgraphs, h_highdim, top_list[0])
+    l_diff_g = loss_fc[3](pred_hd_dist, cluster_ranges[0])
+
 
     xp, std = de_dis_net(top_graph, h_center)
     lt = top_graph.edges['interacts'].data['label']
