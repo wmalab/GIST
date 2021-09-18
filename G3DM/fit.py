@@ -104,8 +104,8 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
     X = em_bead(h_feat)
     h_center, h_highdim = en_net(top_subgraphs, X, cluster_ranges, top_list, ['bead'])
 
-    l_similarity = torch.ones(3)
-    for i, et in enumerate(top_list[0:3]):
+    l_similarity = torch.ones(2)
+    for i, et in enumerate(top_list[0:2]):
         pred_similarity = de_dot_net(top_subgraphs, h_highdim, et)
         true_v = top_subgraphs.edges[et].data['value']
         l_similarity[i] = loss_fc[3](pred_similarity, true_v)
