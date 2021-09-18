@@ -123,7 +123,7 @@ class encoder_chain(torch.nn.Module):
         # x = self.norm_(x).view(-1,3)
         h_res = h
         # h = self.layer3(subg_interacts, {ntype[0]: x })
-        h = torch.squeeze(h[ntype[0]], dim=1)
+        # h = torch.squeeze(h[ntype[0]], dim=1)
         h = self.layerMHs(subg_interacts, {ntype[0]: h })
         res = list()
         for i in torch.arange(self.num_heads):
