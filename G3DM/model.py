@@ -14,6 +14,7 @@ class embedding(torch.nn.Module):
         self.hidden_dim = np.floor((in_dim+2)/3).astype(float)
         self.hidden_dim = np.floor((self.hidden_dim+2)/3).astype(int)
         self.fc1 = torch.nn.Linear(self.hidden_dim, out_dim, bias=True)
+        self.fc2 = torch.nn.Linear(self.out_dim, out_dim, bias=True)
         self.pool = torch.nn.MaxPool1d(3, stride=1, padding=1)
         self.bn = torch.nn.BatchNorm1d(num_features=out_dim)
         self.reset()
@@ -21,6 +22,7 @@ class embedding(torch.nn.Module):
     def reset(self):
         gain = torch.nn.init.calculate_gain('leaky_relu', 0.2)
         torch.nn.init.xavier_uniform_(self.fc1.weight, gain=gain)
+        torch.nn.init.xavier_uniform_(self.fc2.weight, gain=gain)
         torch.nn.init.xavier_uniform_(self.conv1d_1.weight, gain=gain)
         torch.nn.init.xavier_uniform_(self.conv1d_2.weight, gain=gain)
         torch.nn.init.xavier_uniform_(self.conv1d_3.weight, gain=gain)
@@ -38,6 +40,10 @@ class embedding(torch.nn.Module):
         X = torch.nn.functional.leaky_relu(X)
         X = self.pool(X)
         X = self.fc1(X)
+        X = torch.nn.functional.leaky_relu(X)
+        X = self.bn(X)
+        X = self.pool(X)
+        X = self.fc2(X)
         X = torch.squeeze(X, dim=1)
         X = self.bn(X)
         return X
@@ -144,6 +150,16 @@ class decoder_euclidian(torch.nn.Module):
             # graph.apply_edges(dgl.function.u_dot_v('h', 'h', 'dotproduct_score'), etype=etype)
             graph.apply_edges(self.edge_distance, etype=etype)
             return graph.edges[etype].data.pop('distance_score') # graph.edges[etype].data['dotproduct_score'], 
+
+class decoder_dotproduct(torch.nn.Module):
+    def __init__(self):
+        super(decoder_dotproduct, self).__init__()
+    
+    def forward(self, graph, h, etype):
+        with graph.local_scope():
+            graph.ndata['h'] = h   # assigns 'h' of all node types in one shot
+            graph.apply_edges(dgl.function.u_dot_v('h', 'h', 'dotproduct_score'), etype=etype)
+            return graph.edges[etype].data.pop('dotproduct_score') 
 
 class decoder_distance(torch.nn.Module):
     ''' num_heads, num_clusters, ntype, etype '''

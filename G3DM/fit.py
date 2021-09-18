@@ -5,7 +5,7 @@ import torch
 import torch_optimizer as optim
 import numpy as np
 
-from .model import embedding, encoder_chain, decoder_distance, decoder_gmm, decoder_euclidian, save_model_state_dict
+from .model import embedding, encoder_chain, decoder_distance, decoder_gmm, decoder_euclidian, decoder_dotproduct, save_model_state_dict
 from .loss import nllLoss, WassersteinLoss, ClusterLoss, RMSLELoss # stdLoss, 
 from .visualize import plot_feature, plot_X, plot_cluster, plot_confusion_mat, plot_distributions, plot_histogram2d
 from .visualize import plot_scaler
@@ -44,6 +44,7 @@ def create_network(configuration, device):
     de_distance_net = decoder_distance(nh, nc, 'bead', 'interacts').to(device).float()
     de_gmm_net = decoder_gmm(nc).to(device).float()
     de_euc_net = decoder_euclidian().to(device).float()
+    de_dot_net = decoder_dotproduct().to(device).float()
 
     nll = nllLoss().to(device).float()
     # stdl = stdLoss().to(device)
@@ -74,7 +75,7 @@ def create_network(configuration, device):
     scheduler = torch.optim.lr_scheduler.ExponentialLR(opt, gamma=0.9)
 
     em_networks = [em_bead]
-    ae_networks = [en_net, de_distance_net, de_gmm_net, de_euc_net]
+    ae_networks = [en_net, de_distance_net, de_gmm_net, de_euc_net, de_dot_net]
     return em_networks, ae_networks, [nll, cwnl, cl, rmslel], [opt], scheduler
 
 
@@ -95,20 +96,21 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
     en_net = ae_networks[0]
     de_dis_net = ae_networks[1]
     de_gmm_net = ae_networks[2]
-    de_Euc_net = ae_networks[3]
+    de_euc_net = ae_networks[3]
+    de_dot_net = ae_networks[4]
 
     top_list = [e for e in top_subgraphs.etypes if 'interacts_c' in e]
 
     X = em_bead(h_feat)
     h_center, h_highdim = en_net(top_subgraphs, X, cluster_ranges, top_list, ['bead'])
 
-    l_diff_em = torch.empty(2) # len(top_list))
+    l_similarity = torch.empty(1) # len(top_list))
+    pred_similarity = de_dot_net(top_subgraphs, h_highdim, top_list[0])
+    l_similarity[0] = loss_fc[3](pred_similarity, cluster_ranges[i])
+
     l_diff_g = torch.empty(2) # len(top_list))
     for i, et in enumerate(top_list[0:2]):
-        pred_X_dist = de_Euc_net(top_subgraphs, X, et)
-        l_diff_em[i] = loss_fc[3](pred_X_dist, cluster_ranges[i])
-    for i, et in enumerate(top_list[0:2]):
-        pred_hd_dist = de_Euc_net(top_subgraphs, h_highdim, et)
+        pred_hd_dist = de_euc_net(top_subgraphs, h_highdim, et)
         l_diff_g[i] = loss_fc[3](pred_hd_dist, cluster_ranges[i])
 
     xp, std = de_dis_net(top_graph, h_center)
@@ -144,12 +146,12 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
     l_cl = loss_fc[2](sample_dis_cmpt_lp, one_hot_lt, weight)
 
     if require_grad:
-        loss = sample_l_nll + l_wnl + l_cl + l_diff_em.sum() + l_diff_g.sum() #+ l_stdl #  + l_stdl
+        loss = sample_l_nll + l_wnl + l_cl + l_similarity.sum() + l_diff_g.sum() #+ l_stdl #  + l_stdl
         optimizer[0].zero_grad()
         loss.backward()  # retain_graph=False, create_graph = True
         optimizer[0].step()
 
-    return [l_nll.item(), l_cl.item(), l_wnl.item(), l_diff_em.sum().item(), l_diff_g.sum().item()], dis_gmm
+    return [l_nll.item(), l_cl.item(), l_wnl.item(), l_similarity.sum().item(), l_diff_g.sum().item()], dis_gmm
 
 
 def inference(graphs, features, lr_ranges, num_heads, num_clusters, em_networks, ae_networks, device):
