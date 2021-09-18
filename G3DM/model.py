@@ -75,7 +75,7 @@ class encoder_chain(torch.nn.Module):
 
         self.fcmh = torch.nn.Linear(len(etypes), len(etypes), bias=False)
         gain = torch.nn.init.calculate_gain('leaky_relu', 0.2)
-        torch.nn.init.xavier_uniform_(self.fc3.weight, gain=gain)
+        torch.nn.init.xavier_uniform_(self.fcmh.weight, gain=gain)
 
     def agg_func2(self, tensors, dsttype):
         stacked = torch.stack(tensors, dim=-1)
