@@ -16,7 +16,7 @@ class WassersteinLoss(nn.Module):
         target_cdf = torch.cumsum(target, dim=-1)
         ncluster = np.shape[-1]
         diff = torch.abs(pred_cdf - target_cdf)
-        res = diff.mean(dim=0)
+        res = diff[~torch.isnan(diff)].mean(dim=0)
         res = (res*ncluster)**2
         if weight is None:
             w = torch.ones((np.shape[1]), device=np.device)
@@ -36,7 +36,6 @@ class ClusterLoss(nn.Module):
 
     def forward(self, pred, target, weight=None):
         np = torch.nn.functional.normalize(torch.exp(pred), p=1, dim=-1)
-    
         ncluster = np.shape[-1]
         diff = torch.abs(pred - target)
         res = diff.mean(dim=0)

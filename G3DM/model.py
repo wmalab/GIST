@@ -9,8 +9,8 @@ class embedding(torch.nn.Module):
         super(embedding, self).__init__()
         self.conv1d_1 = torch.nn.Conv1d(in_num_channels, 8, 3, stride=1, padding=1, padding_mode='replicate')
         self.conv1d_2 = torch.nn.Conv1d(8, 32, 5, stride=1, padding=2, padding_mode='replicate')
-        self.conv1d_3 = torch.nn.Conv1d(32, 8, 7, stride=3, padding=3, padding_mode='replicate')
-        self.conv1d_4 = torch.nn.Conv1d(8, 1, 7, stride=3, padding=3, padding_mode='replicate')
+        self.conv1d_3 = torch.nn.Conv1d(32, 4, 7, stride=3, padding=3, padding_mode='replicate')
+        self.conv1d_4 = torch.nn.Conv1d(4, 1, 7, stride=3, padding=3, padding_mode='replicate')
         self.hidden_dim = np.floor((in_dim+2)/3).astype(float)
         self.hidden_dim = np.floor((self.hidden_dim+2)/3).astype(int)
         self.fc1 = torch.nn.Linear(self.hidden_dim, out_dim, bias=True)
@@ -21,12 +21,12 @@ class embedding(torch.nn.Module):
 
     def reset(self):
         gain = torch.nn.init.calculate_gain('leaky_relu', 0.2)
-        torch.nn.init.xavier_uniform_(self.fc1.weight, gain=gain)
-        torch.nn.init.xavier_uniform_(self.fc2.weight, gain=gain)
-        torch.nn.init.xavier_uniform_(self.conv1d_1.weight, gain=gain)
-        torch.nn.init.xavier_uniform_(self.conv1d_2.weight, gain=gain)
-        torch.nn.init.xavier_uniform_(self.conv1d_3.weight, gain=gain)
-        torch.nn.init.xavier_uniform_(self.conv1d_4.weight, gain=gain)
+        torch.nn.init.xavier_normal_(self.fc1.weight, gain=gain)
+        torch.nn.init.xavier_normal_(self.fc2.weight, gain=gain)
+        torch.nn.init.xavier_normal_(self.conv1d_1.weight, gain=gain)
+        torch.nn.init.xavier_normal_(self.conv1d_2.weight, gain=gain)
+        torch.nn.init.xavier_normal_(self.conv1d_3.weight, gain=gain)
+        torch.nn.init.xavier_normal_(self.conv1d_4.weight, gain=gain)
 
     def forward(self, h):
         X = self.conv1d_1(h)
@@ -210,7 +210,7 @@ class decoder_gmm(torch.nn.Module):
         # self.beta = torch.nn.Parameter( 2*torch.ones((self.num_clusters)), requires_grad=True)
 
         self.cweight = torch.nn.Parameter( torch.zeros((self.num_clusters)), requires_grad=True)
-        self.bias =  torch.nn.Parameter( torch.linspace(1e-8, 1e-6, steps=self.num_clusters, dtype=torch.float), requires_grad=False)
+        self.bias =  torch.nn.Parameter( torch.linspace(1e-6, 1e-5, steps=self.num_clusters, dtype=torch.float), requires_grad=False)
 
 
     def forward(self, distance):
