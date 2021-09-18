@@ -111,10 +111,10 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
         # l_similarity[i] = loss_fc[3](pred_similarity, true_v)
         l_similarity[i] = loss_fc[3](pred_similarity, cluster_ranges[i])
 
-    l_diff_g = torch.ones(1)
-    for i, et in enumerate(top_list[0:1]):
-        pred_hd_dist = de_euc_net(top_subgraphs, h_highdim, et)
-        l_diff_g[i] = loss_fc[3](pred_hd_dist, cluster_ranges[i])
+    # l_diff_g = torch.ones(1)
+    # for i, et in enumerate(top_list[0:1]):
+    pred_hd_dist = de_euc_net(top_subgraphs, h_highdim, top_list[0])
+    l_diff_g = loss_fc[3](pred_hd_dist, cluster_ranges[0])
 
     xp, std = de_dis_net(top_graph, h_center)
     lt = top_graph.edges['interacts'].data['label']
@@ -149,12 +149,12 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
     l_cl = loss_fc[2](sample_dis_cmpt_lp, one_hot_lt, weight)
 
     if require_grad:
-        loss = sample_l_nll + 10*l_wnl + 10*l_similarity.nansum() # + l_diff_g.nansum() # + l_wnl + l_stdl 
+        loss = sample_l_nll + 10*l_wnl + 10*l_similarity.nansum() + l_diff_g # + l_wnl + l_stdl 
         optimizer[0].zero_grad()
         loss.backward()  # retain_graph=False, create_graph = True
         optimizer[0].step()
 
-    return [l_nll.item(), l_cl.item(), l_wnl.item(), (l_similarity.sum()).item(), (l_diff_g.sum()).item()], dis_gmm
+    return [l_nll.item(), l_cl.item(), l_wnl.item(), (l_similarity.sum()).item(), (l_diff_g).item()], dis_gmm
 
 
 def inference(graphs, features, lr_ranges, num_heads, num_clusters, em_networks, ae_networks, device):
