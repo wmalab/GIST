@@ -112,7 +112,7 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
     l_diff_g = torch.ones(1)
     for i, et in enumerate(top_list[0:1]):
         pred_hd_dist = de_euc_net(top_subgraphs, h_highdim, et)
-        l_diff_g = loss_fc[3](pred_hd_dist, cluster_ranges[i])
+        l_diff_g[i] = loss_fc[3](pred_hd_dist, cluster_ranges[i])
 
     xp, std = de_dis_net(top_graph, h_center)
     lt = top_graph.edges['interacts'].data['label']
