@@ -43,7 +43,7 @@ def create_network(configuration, device):
     nc = int(config['graph']['num_clusters']) - 1
     de_distance_net = decoder_distance(nh, nc, 'bead', 'interacts').to(device).float()
     de_gmm_net = decoder_gmm(nc).to(device).float()
-    de_euc_net = decoder_euclidian().to(device).float()
+    de_euc_net = decoder_euclidean().to(device).float()
     de_sim_net = decoder_similarity().to(device).float()
 
     nll = nllLoss().to(device).float()
