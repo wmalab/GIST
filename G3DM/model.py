@@ -142,9 +142,10 @@ class decoder_cosine(torch.nn.Module):
     def forward(self, graph, h, etype):
         with graph.local_scope():
             graph.ndata['h'] = h   # assigns 'h' of all node types in one shot
-            graph.apply_edges(self.edge_distance, etype=etype)
-            # graph.apply_edges(dgl.function.u_dot_v('h', 'h', 'dotproduct_score'), etype=etype)
-            return graph.edges[etype].data.pop('cosine_score') 
+            # graph.apply_edges(self.edge_distance, etype=etype)
+            graph.apply_edges(dgl.function.u_dot_v('h', 'h', 'cosine_score'), etype=etype)
+            m = torch.nn.ReLU()
+            return m( graph.edges[etype].data.pop('cosine_score') )
 
 class decoder_distance(torch.nn.Module):
     ''' num_heads, num_clusters, ntype, etype '''

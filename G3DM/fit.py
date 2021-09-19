@@ -95,7 +95,7 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
 
     pred_similarity = de_cos_net(top_subgraphs, h_highdim, top_list[0])
     true_v = top_subgraphs.edges[top_list[0]].data['value']
-    l_similarity = loss_fc[2](pred_similarity+1.0, true_v+1.0)
+    l_similarity = loss_fc[2](pred_similarity, true_v)
 
     pred_hd_dist = de_euc_net(top_subgraphs, h_highdim, top_list[0])
     l_diff_g = loss_fc[2](pred_hd_dist, cluster_ranges[0])
@@ -106,7 +106,7 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
     [dis_cmpt_lp], [dis_gmm] = de_gmm_net(xp) 
 
     tmp = torch.div( torch.ones(ncluster), ncluster)
-    ids, n = list(), (lt.shape[0])*0.8*tmp
+    ids, n = list(), (lt.shape[0])*0.6*tmp
     for i in torch.arange(ncluster):
         idx = ((lt == i).nonzero(as_tuple=True)[0]).view(-1,)
         if idx.nelement()==0: continue      
@@ -127,7 +127,7 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
     l_wnl = loss_fc[1](sample_dis_cmpt_lp, one_hot_lt, weight)
 
     if require_grad:
-        loss = 20*sample_l_nll + l_wnl + 5*l_similarity.nansum() + 5*l_diff_g.nansum() # + l_wnl + l_stdl 
+        loss = 5*sample_l_nll + 5*l_wnl + l_similarity.nansum() + l_diff_g.nansum() # + l_wnl + l_stdl 
         optimizer[0].zero_grad()
         loss.backward()  # retain_graph=False, create_graph = True
         optimizer[0].step()
