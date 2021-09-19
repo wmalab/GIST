@@ -71,6 +71,8 @@ if __name__ == '__main__':
         'encoder_model': ae_networks[0],
         'decoder_distance_model': ae_networks[1],
         'decoder_gmm_model': ae_networks[2],
+        'decoder_euclidean_model': ae_networks[3],
+        'decoder_similarity_model': ae_networks[4],
     }
     os.makedirs(saved_model_path, exist_ok=True)
     path = os.path.join(saved_model_path, 'ckpt_state_dict_' + saved_model_name)

@@ -116,9 +116,9 @@ class encoder_chain(torch.nn.Module):
         res = torch.stack(res, dim=1)
         return res, h_res
 
-class decoder_euclidian(torch.nn.Module):
+class decoder_euclidean(torch.nn.Module):
     def __init__(self):
-        super(decoder_euclidian, self).__init__()
+        super(decoder_euclidean, self).__init__()
 
     def edge_distance(self, edges):
         dist = torch.norm((edges.dst['h'] - edges.src['h']), dim=-1, keepdim=True)
@@ -130,21 +130,21 @@ class decoder_euclidian(torch.nn.Module):
             graph.apply_edges(self.edge_distance, etype=etype)
             return graph.edges[etype].data.pop('distance_score') # graph.edges[etype].data['dotproduct_score'], 
 
-class decoder_cosine(torch.nn.Module):
+class decoder_similarity(torch.nn.Module):
     def __init__(self):
-        super(decoder_cosine, self).__init__()
+        super(decoder_similarity, self).__init__()
     
-    def edge_distance(self, edges):
-        cos = torch.nn.CosineSimilarity(dim=-1, eps=1e-6)
-        output = cos(edges.dst['h'], edges.src['h'])
-        return {'cosine_score': output}
+    # def edge_distance(self, edges):
+    #     cos = torch.nn.CosineSimilarity(dim=-1, eps=1e-6)
+    #     output = cos(edges.dst['h'], edges.src['h'])
+    #     return {'cosine_score': output}
     
     def forward(self, graph, h, etype):
         with graph.local_scope():
             graph.ndata['h'] = h   # assigns 'h' of all node types in one shot
             # graph.apply_edges(self.edge_distance, etype=etype)
-            graph.apply_edges(dgl.function.u_dot_v('h', 'h', 'cosine_score'), etype=etype)
-            res = graph.edges[etype].data.pop('cosine_score')
+            graph.apply_edges(dgl.function.u_dot_v('h', 'h', 'similarity_score'), etype=etype)
+            res = graph.edges[etype].data.pop('similarity_score')
             return res.clamp(min=-0.9)
 
 class decoder_distance(torch.nn.Module):
@@ -225,6 +225,8 @@ def save_model_state_dict(models, optimizer, path, epoch=None, loss=None):
         'encoder_model_state_dict': models['encoder_model'].state_dict(),
         'decoder_distance_model_state_dict': models['decoder_distance_model'].state_dict(),
         'decoder_gmm_model_state_dict': models['decoder_gmm_model'].state_dict(),
+        'decoder_euclidean_model_state_dict': models['decoder_euclidean_model'].state_dict(),
+        'decoder_simlarity_model_state_dict': models['decoder_similarity_model'].state_dict(),
         'optimizer_state_dict': optimizer.state_dict()
     }
 

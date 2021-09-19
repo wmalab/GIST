@@ -5,7 +5,7 @@ import torch
 import torch_optimizer as optim
 import numpy as np
 
-from .model import embedding, encoder_chain, decoder_distance, decoder_gmm, decoder_euclidian, decoder_cosine, save_model_state_dict
+from .model import embedding, encoder_chain, decoder_distance, decoder_gmm, decoder_euclidian, decoder_similarity, save_model_state_dict
 from .loss import nllLoss, WassersteinLoss, ClusterLoss, RMSLELoss #MSELoss # stdLoss, 
 from .visualize import plot_feature, plot_X, plot_cluster, plot_confusion_mat, plot_distributions, plot_histogram2d
 from .visualize import plot_scaler
@@ -17,11 +17,10 @@ from .visualize import plot_scaler
 
 def load_dataset(path, name):
     '''graph_dict[chromosome] = {top_graph, top_subgraphs, bottom_graph, inter_graph}
-    feature_dict[chromosome] = {'hic_feat_h0', 'hic_feat_h1'}
+    feature_dict[chromosome] = {'feat', 'pos'} 'feat': hic features; 'pos': position features
     HiCDataset[i]: graph[i], feature[i], label[i](chromosome)'''
     HiCDataset = torch.load(os.path.join(path, name))
     return HiCDataset
-
 
 def create_network(configuration, device):
     config = configuration['parameter']
@@ -44,16 +43,15 @@ def create_network(configuration, device):
     de_distance_net = decoder_distance(nh, nc, 'bead', 'interacts').to(device).float()
     de_gmm_net = decoder_gmm(nc).to(device).float()
     de_euc_net = decoder_euclidian().to(device).float()
-    de_cos_net = decoder_cosine().to(device).float()
+    de_sim_net = decoder_similarity().to(device).float()
 
     nll = nllLoss().to(device).float()
-    cwnl = WassersteinLoss(nc).to(device).float()
+    wnl = WassersteinLoss(nc).to(device).float()
     msel = RMSLELoss().to(device).float()
 
-    parameters_list = list(em_bead.parameters()) + \
-                list(en_net.parameters()) + \
-                list(de_distance_net.parameters()) + \
-                list(de_gmm_net.parameters())
+    parameters_list = list(em_bead.parameters()) + list(en_net.parameters()) + \
+                    list(de_distance_net.parameters()) + list(de_gmm_net.parameters()) + \
+                    list(de_euc_net.parameters()) + list(de_sim_net.parameters())
 
     opt = optim.AdaBound( parameters_list, 
                         lr=1e-3, betas=(0.9, 0.999), 
@@ -64,9 +62,8 @@ def create_network(configuration, device):
     scheduler = torch.optim.lr_scheduler.ExponentialLR(opt, gamma=0.9)
 
     em_networks = [em_bead]
-    ae_networks = [en_net, de_distance_net, de_gmm_net, de_euc_net, de_cos_net]
-    return em_networks, ae_networks, [nll, cwnl, msel], [opt], scheduler
-
+    ae_networks = [en_net, de_distance_net, de_gmm_net, de_euc_net, de_sim_net]
+    return em_networks, ae_networks, [nll, wnl, msel], [opt], scheduler
 
 def setup_train(configuration):
     itn = int(configuration['parameter']['G3DM']['iteration'])
@@ -74,7 +71,6 @@ def setup_train(configuration):
     num_heads = int(configuration['parameter']['G3DM']['num_heads'])
     # batch_size = int(configuration['parameter']['G3DM']['batchsize'])
     return itn, num_clusters, num_heads
-
 
 def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae_networks, loss_fc, optimizer, device):
     top_graph = graphs['top_graph'].to(device)
@@ -88,19 +84,19 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
     de_dis_net = ae_networks[1]
     de_gmm_net = ae_networks[2]
     de_euc_net = ae_networks[3]
-    de_cos_net = ae_networks[4]
+    de_sim_net = ae_networks[4]
 
     top_list = [e for e in top_subgraphs.etypes if 'interacts_c' in e]
 
     X = em_bead(h_feat)
     H, h_highdim = en_net(top_subgraphs, X, cluster_ranges, top_list, ['bead'])
 
-    pred_similarity = de_cos_net(top_subgraphs, h_highdim, top_list[0])
-    true_v = top_subgraphs.edges[top_list[0]].data['value']
-    l_similarity = loss_fc[2](pred_similarity, true_v)
-
     pred_hd_dist = de_euc_net(top_subgraphs, h_highdim, top_list[0])
     l_diff_g = loss_fc[2](pred_hd_dist, cluster_ranges[0])
+
+    pred_similarity = de_sim_net(top_subgraphs, h_highdim, top_list[0])
+    true_v = top_subgraphs.edges[top_list[0]].data['value']
+    l_similarity = loss_fc[2](pred_similarity, true_v)
 
     xp, _ = de_dis_net(top_graph, H)
     lt = top_graph.edges['interacts'].data['label']
@@ -114,7 +110,7 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
         if idx.nelement()==0: continue      
         p = torch.ones_like(idx)/idx.shape[0]
         # ids.append(idx[ p.multinomial( num_samples=int( n[i]), replacement=True)])
-        ids.append(idx[p.multinomial(num_samples=int( torch.minimum(n[i], 4*torch.tensor(idx.shape[0])) ), replacement=True)])
+        ids.append(idx[p.multinomial(num_samples=int( torch.minimum(n[i], 8*torch.tensor(idx.shape[0])) ), replacement=True)])
     mask = torch.cat(ids, dim=0)
     mask, _ = torch.sort(mask)
     # mask = torch.unique(mask, sorted=True, return_inverse=False, return_counts=False)
@@ -150,7 +146,49 @@ def inference(graphs, features, lr_ranges, num_heads, num_clusters, em_networks,
     de_dis_net = ae_networks[1]
     de_gmm_net = ae_networks[2]
     de_euc_net = ae_networks[3]
-    de_cos_net = ae_networks[4]
+    de_sim_net = ae_networks[4]
+
+    top_list = [e for e in top_subgraphs.etypes if 'interacts_c' in e]
+
+    loss_list = []
+    with torch.no_grad():
+
+        X = em_bead(h_feat)
+        h_center, h_highdim = en_net( top_subgraphs, X, lr_ranges, top_list, ['bead'])
+
+        xp1, _ = de_dis_net(top_graph, h_center)
+
+        [dis_cmpt_lp], [dis_gmm] = de_gmm_net(xp1)
+
+        dp1 = torch.exp(dis_cmpt_lp).cpu().detach().numpy()
+        tp1 = top_graph.edges['interacts'].data['label'].cpu().detach().numpy()
+
+        pred_X = h_center.cpu().detach().numpy()
+        xs,ys = graphs['top_graph'].edges(etype='interacts', form='uv')[0], graphs['top_graph'].edges(etype='interacts', form='uv')[1]
+
+        pred_distance_cluster_mat = np.ones((pred_X.shape[0], pred_X.shape[0]))*(num_clusters-1)
+        pred_distance_cluster_mat[xs, ys] = np.argmax(dp1, axis=1)
+
+        true_cluster_mat = np.ones((pred_X.shape[0], pred_X.shape[0]))*(num_clusters-1)
+        true_cluster_mat[xs, ys] = tp1
+
+        distance_mat = np.zeros((pred_X.shape[0], pred_X.shape[0]))
+        distance_mat[xs, ys] = xp1.view(-1,).cpu().detach().numpy()
+
+        return pred_X, pred_distance_cluster_mat, true_cluster_mat, [dis_gmm], distance_mat
+
+def predict(graphs, features, lr_ranges, num_heads, num_clusters, em_networks, ae_networks, device='cpu'):
+        top_graph = graphs['top_graph'].to(device)
+    top_subgraphs = graphs['top_subgraphs'].to(device)
+
+    h_feat = features
+
+    em_bead = em_networks[0]
+    en_net = ae_networks[0]
+    de_dis_net = ae_networks[1]
+    de_gmm_net = ae_networks[2]
+    de_euc_net = ae_networks[3]
+    de_sim_net = ae_networks[4]
 
     top_list = [e for e in top_subgraphs.etypes if 'interacts_c' in e]
 
@@ -193,7 +231,9 @@ def run_epoch(datasets, model, num_clusters, num_heads, loss_fc, optimizer, sche
         'embedding_model': em_networks[0],
         'encoder_model': ae_networks[0],
         'decoder_distance_model': ae_networks[1],
-        'decoder_gmm_model': ae_networks[2]
+        'decoder_gmm_model': ae_networks[2],
+        'decoder_euclidean_model': ae_networks[3],
+        'decoder_similarity_model': ae_networks[4]
     }
 
     test_loss_list, valid_loss_list, dur = [], [], []
@@ -231,6 +271,8 @@ def run_epoch(datasets, model, num_clusters, num_heads, loss_fc, optimizer, sche
                         ae_networks[0].load_state_dict(checkpoint['encoder_model_state_dict'])
                         ae_networks[1].load_state_dict(checkpoint['decoder_distance_model_state_dict'])
                         ae_networks[2].load_state_dict(checkpoint['decoder_gmm_model_state_dict'])
+                        ae_networks[3].load_state_dict(checkpoint['decoder_euclidean_model_state_dict'])
+                        ae_networks[4].load_state_dict(checkpoint['decoder_simlarity_model_state_dict'])
                         optimizer[0].load_state_dict(checkpoint['optimizer_state_dict'])
                         rollback_epoch = checkpoint['epoch']
                         rollback_nll = checkpoint['nll_loss']
@@ -294,8 +336,7 @@ def run_epoch(datasets, model, num_clusters, num_heads, loss_fc, optimizer, sche
                 weights = (dis_gmm.mixture_distribution.probs).to('cpu').detach().numpy()
                 plot_distributions([ mu.to('cpu').detach().numpy(), 
                                     x.to('cpu').detach().numpy(), 
-                                    normal_pdfs,
-                                    weights], 
+                                    normal_pdfs, weights], 
                                     writer, '2,3 hop_dist/Normal ln(x)~N(,)', step=epoch) 
 
                 lognormal_pdfs = torch.empty(normal_pdfs.shape)
