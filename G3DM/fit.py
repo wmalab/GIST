@@ -5,8 +5,9 @@ import torch
 import torch_optimizer as optim
 import numpy as np
 
-from .model import embedding, encoder_chain, decoder_distance, decoder_gmm, decoder_euclidian, decoder_similarity, save_model_state_dict
-from .loss import nllLoss, WassersteinLoss, ClusterLoss, RMSLELoss #MSELoss # stdLoss, 
+from .model import embedding, encoder_chain, decoder_distance, decoder_gmm, decoder_euclidean, decoder_similarity
+from .model import save_model_state_dict
+from .loss import nllLoss, WassersteinLoss, RMSLELoss #MSELoss # stdLoss, ClusterLoss,
 from .visualize import plot_feature, plot_X, plot_cluster, plot_confusion_mat, plot_distributions, plot_histogram2d
 from .visualize import plot_scaler
 
