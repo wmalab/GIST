@@ -262,8 +262,8 @@ def run_epoch(datasets, model, num_clusters, num_heads, loss_fc, optimizer, sche
                 plot_feature([h_f_n, h_p_n], writer, '0, features/h')
                 plot_cluster(m, writer, num_clusters,'0, cluster/bead', step=None)
 
-            if epoch%3==0 and j == 0 and writer is not None and config is not None:
-                num_heads = int(config['parameter']['G3DM']['num_heads'])
+            if epoch%3==0 and j == 0 and writer is not None: # and config is not None:
+                # num_heads = int(config['parameter']['G3DM']['num_heads'])
                 [X, pred_distance_mat, 
                 center_true_mat, [dis_gmm], 
                 distance_mat ] = inference(graphs, h_feat, lr_ranges, num_heads, num_clusters, 
