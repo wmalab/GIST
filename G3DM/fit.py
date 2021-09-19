@@ -48,7 +48,6 @@ def create_network(configuration, device):
 
     nll = nllLoss().to(device).float()
     cwnl = WassersteinLoss(nc).to(device).float()
-    cl = ClusterLoss(nc).to(device).float()
     msel = RMSLELoss().to(device).float()
 
     parameters_list = list(em_bead.parameters()) + \
@@ -66,7 +65,7 @@ def create_network(configuration, device):
 
     em_networks = [em_bead]
     ae_networks = [en_net, de_distance_net, de_gmm_net, de_euc_net, de_cos_net]
-    return em_networks, ae_networks, [nll, cwnl, cl, msel], [opt], scheduler
+    return em_networks, ae_networks, [nll, cwnl, msel], [opt], scheduler
 
 
 def setup_train(configuration):
@@ -92,49 +91,32 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
     top_list = [e for e in top_subgraphs.etypes if 'interacts_c' in e]
 
     X = em_bead(h_feat)
-    h_center, h_highdim = en_net(top_subgraphs, X, cluster_ranges, top_list, ['bead'])
-
-    # l_similarity = torch.ones(1) # len(top_list))
-    # for i, et in enumerate(top_list[0]):
-    #     pred_similarity = de_dot_net(top_subgraphs, h_highdim, et)
-    #     true_v = top_subgraphs.edges[et].data['value']
-    #     l_similarity[i] = loss_fc[3](pred_similarity, true_v)
-    #     # l_similarity[i] = loss_fc[3](pred_similarity, cluster_ranges[i])
-
-    # l_diff_g = torch.ones(2)
-    # for i, et in enumerate(top_list[0:2]):
-    #     pred_hd_dist = de_euc_net(top_subgraphs, h_highdim, et)
-    #     l_diff_g[i] = loss_fc[3](pred_hd_dist, cluster_ranges[i])
+    H, h_highdim = en_net(top_subgraphs, X, cluster_ranges, top_list, ['bead'])
 
     pred_similarity = de_cos_net(top_subgraphs, h_highdim, top_list[0])
     true_v = top_subgraphs.edges[top_list[0]].data['value']
-    l_similarity = loss_fc[3](pred_similarity, true_v)
+    l_similarity = loss_fc[2](pred_similarity+1.0, true_v+1.0)
 
     pred_hd_dist = de_euc_net(top_subgraphs, h_highdim, top_list[0])
-    l_diff_g = loss_fc[3](pred_hd_dist, cluster_ranges[0])
+    l_diff_g = loss_fc[2](pred_hd_dist, cluster_ranges[0])
 
-
-    xp, std = de_dis_net(top_graph, h_center)
+    xp, _ = de_dis_net(top_graph, H)
     lt = top_graph.edges['interacts'].data['label']
     if xp.shape[0]==0 or xp.shape[0]!= lt.shape[0]: return [None]
-
     [dis_cmpt_lp], [dis_gmm] = de_gmm_net(xp) 
 
-    tmp = torch.div( torch.ones(ncluster), ncluster) # torch.softmax( 1.0+torch.div(1, cw), dim=0) #
+    tmp = torch.div( torch.ones(ncluster), ncluster)
     ids, n = list(), (lt.shape[0])*0.8*tmp
     for i in torch.arange(ncluster):
         idx = ((lt == i).nonzero(as_tuple=True)[0]).view(-1,)
         if idx.nelement()==0: continue      
         p = torch.ones_like(idx)/idx.shape[0]
-        # ids.append(idx[p.multinomial(num_samples=int( torch.minimum(n[i], torch.tensor(idx.shape[0])) ), replacement=False)])
         ids.append(idx[ p.multinomial( num_samples=int( n[i]), replacement=True)])
     mask = torch.cat(ids, dim=0)
     mask, _ = torch.sort(mask)
-    # mask = torch.unique(mask, sorted=True, return_inverse=False, return_counts=False)
 
     sample_dis_cmpt_lp = dis_cmpt_lp[mask, :]
     sample_lt = lt[mask]
-    sample_std = std[mask]
 
     weight = torch.linspace(np.pi*0.1, np.pi*0.75, steps=ncluster, device=device)
     weight = torch.sin(weight) + 1.0 
@@ -143,7 +125,6 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
     sample_l_nll = loss_fc[0](sample_dis_cmpt_lp, sample_lt, weight)
     one_hot_lt = torch.nn.functional.one_hot(sample_lt.long(), ncluster)
     l_wnl = loss_fc[1](sample_dis_cmpt_lp, one_hot_lt, weight)
-    l_cl = loss_fc[2](sample_dis_cmpt_lp, one_hot_lt, weight)
 
     if require_grad:
         loss = 10*sample_l_nll + l_wnl + 5*l_similarity.nansum() + l_diff_g.nansum() # + l_wnl + l_stdl 
@@ -151,8 +132,7 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
         loss.backward()  # retain_graph=False, create_graph = True
         optimizer[0].step()
 
-    return [l_nll.item(), l_cl.item(), l_wnl.item(), (l_similarity.sum()).item(), (l_diff_g.sum()).item()], dis_gmm
-
+    return [l_nll.item(), l_wnl.item(), (l_similarity.sum()).item(), (l_diff_g.sum()).item()], dis_gmm
 
 def inference(graphs, features, lr_ranges, num_heads, num_clusters, em_networks, ae_networks, device):
     top_graph = graphs['top_graph'].to(device)
@@ -347,10 +327,9 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
         valid_ll = np.array(valid_loss_list)
 
         plot_scaler({'test':np.nanmean(test_ll[:,0]), 'validation': np.nanmean(valid_ll[:,0])}, writer, 'NL Loss' ,step = epoch)
-        plot_scaler({'test':np.nanmean(test_ll[:,1]), 'validation': np.nanmean(valid_ll[:,1])}, writer, 'Cluster Loss' ,step = epoch)
-        plot_scaler({'test':np.nanmean(test_ll[:,2]), 'validation': np.nanmean(valid_ll[:,2])}, writer, 'WNL Loss' ,step = epoch)
-        plot_scaler({'test':np.nanmean(test_ll[:,3]), 'validation': np.nanmean(valid_ll[:,2])}, writer, 'High dim cos similarity Loss' ,step = epoch)
-        plot_scaler({'test':np.nanmean(test_ll[:,4]), 'validation': np.nanmean(valid_ll[:,2])}, writer, 'High dim distance G Loss' ,step = epoch)
+        plot_scaler({'test':np.nanmean(test_ll[:,1]), 'validation': np.nanmean(valid_ll[:,2])}, writer, 'WNL Loss' ,step = epoch)
+        plot_scaler({'test':np.nanmean(test_ll[:,2]), 'validation': np.nanmean(valid_ll[:,2])}, writer, 'High dim cos similarity Loss' ,step = epoch)
+        plot_scaler({'test':np.nanmean(test_ll[:,3]), 'validation': np.nanmean(valid_ll[:,2])}, writer, 'High dim distance G Loss' ,step = epoch)
 
 
         dur.append(time.time() - t0)
