@@ -178,7 +178,7 @@ def inference(graphs, features, lr_ranges, num_heads, num_clusters, em_networks,
         return pred_X, pred_distance_cluster_mat, true_cluster_mat, [dis_gmm], distance_mat
 
 def predict(graphs, features, lr_ranges, num_heads, num_clusters, em_networks, ae_networks, device='cpu'):
-        top_graph = graphs['top_graph'].to(device)
+    top_graph = graphs['top_graph'].to(device)
     top_subgraphs = graphs['top_subgraphs'].to(device)
 
     h_feat = features
