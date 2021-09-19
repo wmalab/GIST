@@ -62,11 +62,8 @@ if __name__ == '__main__':
     train_dataset, valid_dataset = torch.utils.data.random_split(dataset, [train_size, valid_size])
     test_dataset = torch.utils.data.Subset(HiCDataset, test_indices)
 
-    # train_HiCDataset = torch.utils.data.DataLoader(HiCDataset[train_indices], shuffle=True).dataset
-    # graphs, features, label, _ = HiCDataset[0]
-
     # creat network model
-    em_networks, ae_networks, nll, opt, scheduler = create_network(config_data, device)
+    em_networks, ae_networks, loss_fc, opt, scheduler = create_network(config_data, device)
 
     #save init model
     models_dict = {
@@ -80,12 +77,14 @@ if __name__ == '__main__':
     save_model_state_dict(models_dict, opt[0], path, 0, -1.0)
 
     # setup and call train
-    itn = setup_train(config_data)
+    itn, num_clusters, num_heads = setup_train(config_data)
     log_fie = time.strftime("%Y%m%d-%H%M%S")
     log_dir = config_data['log_dir'] if config_data['log_dir'] else os.path.join( root, 'log', cell, hyper, log_fie)
     os.makedirs(log_dir, exist_ok=True)
     writer = tensorboard.SummaryWriter(log_dir)
     
     run_epoch([train_dataset, valid_dataset], [em_networks, ae_networks],
-              nll, opt, scheduler, itn, device, writer=writer, config=config_data, saved_model=[saved_model_path, saved_model_name])
+            num_clusters=num_clusters, num_heads=num_heads,
+            loss_fc=loss_fc, optimizer=opt, scheduler=scheduler, iterations=itn,
+            device=device, writer=writer, saved_model=[saved_model_path, saved_model_name])
     writer.close()

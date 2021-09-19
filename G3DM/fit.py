@@ -70,8 +70,10 @@ def create_network(configuration, device):
 
 def setup_train(configuration):
     itn = int(configuration['parameter']['G3DM']['iteration'])
+    num_clusters = int(configuration['parameter']['graph']['num_clusters'])
+    num_heads = int(configuration['parameter']['G3DM']['num_heads'])
     # batch_size = int(configuration['parameter']['G3DM']['batchsize'])
-    return itn
+    return itn, num_clusters, num_heads
 
 
 def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae_networks, loss_fc, optimizer, device):
@@ -106,13 +108,13 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
     [dis_cmpt_lp], [dis_gmm] = de_gmm_net(xp) 
 
     tmp = torch.div( torch.ones(ncluster), ncluster)
-    ids, n = list(), (lt.shape[0])*0.6*tmp
+    ids, n = list(), (lt.shape[0])*tmp #0.8*
     for i in torch.arange(ncluster):
         idx = ((lt == i).nonzero(as_tuple=True)[0]).view(-1,)
         if idx.nelement()==0: continue      
         p = torch.ones_like(idx)/idx.shape[0]
         # ids.append(idx[ p.multinomial( num_samples=int( n[i]), replacement=True)])
-        ids.append(idx[p.multinomial(num_samples=int( torch.minimum(n[i], 3*torch.tensor(idx.shape[0])) ), replacement=True)])
+        ids.append(idx[p.multinomial(num_samples=int( torch.minimum(n[i], 4*torch.tensor(idx.shape[0])) ), replacement=True)])
     mask = torch.cat(ids, dim=0)
     mask, _ = torch.sort(mask)
     # mask = torch.unique(mask, sorted=True, return_inverse=False, return_counts=False)
@@ -179,11 +181,9 @@ def inference(graphs, features, lr_ranges, num_heads, num_clusters, em_networks,
 
         return pred_X, pred_distance_cluster_mat, true_cluster_mat, [dis_gmm], distance_mat
 
-
-def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device, writer=None, config=None, saved_model=None):
+def run_epoch(datasets, model, num_clusters, num_heads, loss_fc, optimizer, scheduler, iterations, device, writer=None, saved_model=None):
     train_dataset = datasets[0]
-    valid_dataset = datasets[1] if len(datasets) > 1 else None
-    test_dataset = datasets[2] if len(datasets) > 2 else None
+    valid_dataset = datasets[1] # if len(datasets) > 1 else None
 
     model_saved_path = saved_model[0] if saved_model is not None else None
     model_saved_name = saved_model[1] if saved_model is not None else None
@@ -199,7 +199,7 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
     test_loss_list, valid_loss_list, dur = [], [], []
     best_nll_loss = 10
     lr_ranges = torch.linspace(1.0, 23.0, 
-                            steps=int(config['parameter']['graph']['num_clusters'])-1, 
+                            steps=num_clusters-1, 
                             requires_grad=False).to(device)
     for epoch in np.arange(iterations):
         print("epoch {:d} ".format(epoch), end=' ')
@@ -246,9 +246,6 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
 
         for j, data in enumerate(valid_dataset):
             graphs, features, _, cluster_weights, _ = data
-
-            # 1 over density of cluster
-            # cw = torch.tensor(cluster_weights['cw']).to(device)
  
             h_f, h_p = features['feat'], features['pos']
             h_f_n = torch.nn.functional.normalize(torch.tensor(h_f, dtype=torch.float), p=1.0, dim=1)*h_f.shape[1]
@@ -256,35 +253,35 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
             h_feat = torch.stack( [h_f_n, h_p_n], dim=1).to(device)
 
             ll, _ = fit_one_step(False, graphs, h_feat, lr_ranges, em_networks, ae_networks, loss_fc, optimizer, device)
-            if None in ll:
-                continue
+            if None in ll: continue
             valid_loss_list.append(ll)
 
             if epoch == 0 and j == 0 and writer is not None:
                 # pass
                 m = cluster_weights['mat']
                 plot_feature([h_f_n, h_p_n], writer, '0, features/h')
-                plot_cluster(m, writer, int(config['parameter']['graph']['num_clusters']),'0, cluster/bead', step=None)
+                plot_cluster(m, writer, num_clusters,'0, cluster/bead', step=None)
 
             if epoch%3==0 and j == 0 and writer is not None and config is not None:
                 num_heads = int(config['parameter']['G3DM']['num_heads'])
-                [X, 
-                pred_distance_mat, 
-                center_true_mat, [dis_gmm], distance_mat ] = inference(graphs, h_feat, lr_ranges, num_heads, 
-                                            int(config['parameter']['graph']['num_clusters']), 
+                [X, pred_distance_mat, 
+                center_true_mat, [dis_gmm], 
+                distance_mat ] = inference(graphs, h_feat, lr_ranges, num_heads, num_clusters, 
                                             em_networks, ae_networks, device)
 
                 plot_X(X, writer, '1, 3D/center', step=epoch)
-                plot_cluster(pred_distance_mat, writer, 
-                            int(config['parameter']['graph']['num_clusters']),
+                plot_cluster(pred_distance_mat, writer, num_clusters,
                             '2,1 cluster/prediction distance', step=epoch)
 
-                plot_cluster(center_true_mat, writer, 
-                            int(config['parameter']['graph']['num_clusters']),
+                plot_cluster(center_true_mat, writer, num_clusters,
                             '2,1 cluster/true', step=epoch) if epoch==0 else None
 
-                plot_confusion_mat(pred_distance_mat, center_true_mat,  writer, '2,2 confusion matrix/normalize: ture, predicted distance - true contact', step=epoch, normalize='true')
-                plot_confusion_mat(pred_distance_mat, center_true_mat,  writer, '2,2 confusion matrix/normalize: all, predicted distance - true contact', step=epoch, normalize='all')
+                plot_confusion_mat(pred_distance_mat, center_true_mat,  writer, 
+                                '2,2 confusion matrix/normalize: ture, predicted distance - true contact', 
+                                step=epoch, normalize='true')
+                plot_confusion_mat(pred_distance_mat, center_true_mat,  writer, 
+                                '2,2 confusion matrix/normalize: all, predicted distance - true contact', 
+                                step=epoch, normalize='all')
                 
                 mu = (dis_gmm.component_distribution.mean)
                 std = (dis_gmm.component_distribution.stddev)
@@ -325,6 +322,7 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                 plot_histogram2d(inputs, writer, '2,4 historgram/distance, true', step=epoch)
 
             torch.cuda.empty_cache()
+        
         scheduler.step()
         test_ll = np.array(test_loss_list)
         valid_ll = np.array(valid_loss_list)
@@ -333,7 +331,6 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
         plot_scaler({'test':np.nanmean(test_ll[:,1]), 'validation': np.nanmean(valid_ll[:,2])}, writer, 'WNL Loss' ,step = epoch)
         plot_scaler({'test':np.nanmean(test_ll[:,2]), 'validation': np.nanmean(valid_ll[:,2])}, writer, 'High dim cos similarity Loss' ,step = epoch)
         plot_scaler({'test':np.nanmean(test_ll[:,3]), 'validation': np.nanmean(valid_ll[:,2])}, writer, 'High dim distance G Loss' ,step = epoch)
-
 
         dur.append(time.time() - t0)
         print("Loss:", np.mean(test_ll, axis=0), "| Time(s) {:.4f} ".format( np.mean(dur)), sep =" " )
