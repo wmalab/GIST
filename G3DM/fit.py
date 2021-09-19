@@ -289,7 +289,7 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                 x = torch.linspace(start=0.1, end=7.0, steps=150, device=device) # mu.max()*1.5,
                 log_pdfs = dis_gmm.component_distribution.log_prob(x.view(-1,1))
                 # log_pdfs = log_pdfs + torch.log(dis_gmm.mixture_distribution.probs).view(1, -1)
-                normal_pdfs = torch.nn.functional.normalize( torch.exp(log_pdfs)*(dis_gmm.mixture_distribution.probs).view(1, -1), p=1, dim=1)
+                normal_pdfs = torch.exp(log_pdfs)*(dis_gmm.mixture_distribution.probs).view(1, -1)
                 normal_pdfs = normal_pdfs.to('cpu').detach().numpy()
                 weights = (dis_gmm.mixture_distribution.probs).to('cpu').detach().numpy()
                 plot_distributions([ mu.to('cpu').detach().numpy(), 
@@ -301,7 +301,7 @@ def run_epoch(datasets, model, loss_fc, optimizer, scheduler, iterations, device
                 lognormal_pdfs = torch.empty(normal_pdfs.shape)
                 lognormal_mu = torch.empty(mu.shape)
                 lognormal_mode = torch.empty(mu.shape)
-                x = torch.linspace(start=0.5, end=60.0, steps=150, device=device) # mu.max()*(1+1e-4)
+                x = torch.linspace(start=0.5, end=70.0, steps=150, device=device) # mu.max()*(1+1e-4)
                 for i in np.arange(len(mu)):
                     A = torch.div( torch.ones(1, device=device), x*std[i]*torch.sqrt(2.0*torch.tensor(np.pi, device=device)))
                     B = (torch.log(x)-mu[i])**2

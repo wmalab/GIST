@@ -144,8 +144,8 @@ class decoder_cosine(torch.nn.Module):
             graph.ndata['h'] = h   # assigns 'h' of all node types in one shot
             # graph.apply_edges(self.edge_distance, etype=etype)
             graph.apply_edges(dgl.function.u_dot_v('h', 'h', 'cosine_score'), etype=etype)
-            m = torch.nn.ReLU()
-            return m( graph.edges[etype].data.pop('cosine_score') )
+            res = graph.edges[etype].data.pop('cosine_score')
+            return res.clamp(min=-0.9)
 
 class decoder_distance(torch.nn.Module):
     ''' num_heads, num_clusters, ntype, etype '''
