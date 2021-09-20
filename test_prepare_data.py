@@ -55,7 +55,7 @@ if __name__ == '__main__':
 
     num_clusters = config_data['parameter']['graph']['num_clusters']
     max_len = config_data['parameter']['graph']['max_len']
-    iteration = config_data['parameter']['graph']['iteration']
+    # iteration = config_data['parameter']['graph']['iteration']
     cutoff_clusters_limits = config_data['parameter']['graph']['cutoff_clusters']
     cutoff_cluster = config_data['parameter']['graph']['cutoff_cluster']
 
@@ -66,7 +66,7 @@ if __name__ == '__main__':
                     dim,
                     cutoff_clusters_limits, 
                     cutoff_cluster, 
-                    max_len, iteration,
+                    max_len,
                     cool_data_path, cool_file,
                     [feature_path, graph_path])
 

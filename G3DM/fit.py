@@ -393,7 +393,7 @@ def run_epoch(datasets, model, num_heads, num_clusters, loss_fc, optimizer, sche
     path = os.path.join(model_saved_path, 'finial_' + model_saved_name)
     save_model_state_dict(models_dict, optimizer[0], path)
 
-def run_prediction((dataset, model, saved_parameters_model, num_heads, num_clusters, device='cpu'):
+def run_prediction(dataset, model, saved_parameters_model, num_heads, num_clusters, device='cpu'):
     model_saved_path = saved_parameters_model[0] if saved_parameters_model is not None else None
     model_saved_name = saved_parameters_model[1] if saved_parameters_model is not None else None
 

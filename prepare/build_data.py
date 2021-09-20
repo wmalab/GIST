@@ -32,7 +32,7 @@ def create_data(num_clusters, chromosome,
     print('saved graph in: ', output_g_path)
     output_prefix_file = 'G_chr-{}'.format(chromosome)
     cluster_weight, cw_mat = create_graph_1lvl(norm_hic,
-                                       num_clusters, max_len, iteration,
+                                       num_clusters, max_len,
                                        cutoff_clusters_limits, 
                                        cutoff_cluster,
                                        output_g_path, output_prefix_file)

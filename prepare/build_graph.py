@@ -81,7 +81,7 @@ def create_subgraph_(ID, mat_hic, mat_chic, idx,
 
 
 def create_graph_1lvl(norm_hic,
-                      num_clusters, max_len, itn,
+                      num_clusters, max_len,
                       cutoff_clusters_limits, 
                       cutoff_cluster,
                       output_path, output_prefix_filename):
@@ -114,7 +114,7 @@ def create_graph_1lvl(norm_hic,
                          num_clusters, cutoff_cluster,
                          output_path, output_prefix_filename)
     else:
-        idx_list = permutation_list(idxs, max_len, iteration=itn)
+        idx_list = permutation_list(idxs, max_len)
         print('split len of idx: [', end=' ')
         for i, l in enumerate(idx_list):
             print(len(l), end=' ')
@@ -152,16 +152,16 @@ def permutation_list(idx, max_len, iteration=10):
         idx_list.append(sub)
     idx_list.append(idx[-max_len:])
 
-    # 2 random
-    num = np.ceil(len(idx)/max_len + 1).astype(int)
-    print('spilt num: {}'.format(num))
-    for epoch in np.arange(iteration):
-        rand_idx = np.random.permutation(idx)
-        sub_idx = np.array_split(rand_idx, num)
-        for i in np.arange(0, num):
-            sub = np.array(sub_idx[i])
-            sub = np.unique(sub.flatten())
-            idx_list.append( np.sort(sub) )
+    # # 2 random
+    # num = np.ceil(len(idx)/max_len + 1).astype(int)
+    # print('spilt num: {}'.format(num))
+    # for epoch in np.arange(iteration):
+    #     rand_idx = np.random.permutation(idx)
+    #     sub_idx = np.array_split(rand_idx, num)
+    #     for i in np.arange(0, num):
+    #         sub = np.array(sub_idx[i])
+    #         sub = np.unique(sub.flatten())
+    #         idx_list.append( np.sort(sub) )
     return idx_list
 
 """def create_hierarchical_graph_2lvl(norm_hics, num_clusters, ratios, strides, cutoff_percent={0: 10, 1: 10}, cutoff_cluster={0: 4, 1: 6}):
