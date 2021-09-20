@@ -46,21 +46,17 @@ if __name__ == '__main__':
 
     all_chromosome = config_data['all_chromosomes']
     train_chromosomes = config_data['train_valid_chromosomes']
-    # test_chromosomes = config_data['test_chromosomes']
-
 
     # load dataset
     print('load dataset: {}'.format(os.path.join( dataset_path, dataset_name)))
     HiCDataset = load_dataset(dataset_path, dataset_name)
     train_valid_indices = np.array(HiCDataset.list)
-    # test_indices = np.array(HiCDataset.test_list)
 
     train_size = int(0.7 * len(train_valid_indices))
     valid_size = len(train_valid_indices) - train_size
     dataset = torch.utils.data.Subset(HiCDataset, train_valid_indices)
 
     train_dataset, valid_dataset = torch.utils.data.random_split(dataset, [train_size, valid_size])
-    # test_dataset = torch.utils.data.Subset(HiCDataset, test_indices)
 
     # creat network model
     [em_networks, ae_networks, 

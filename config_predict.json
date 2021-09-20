@@ -1,26 +1,25 @@
-{   "id": "0",
+{   "id": "predict_21",
     "cool_data_path":"",
     "cool_file": "Rao2014-IMR90-MboI-allreps-filtered.10kb.cool", 
     "cell_name": "Rao2014-IMR90-MboI-allreps-filtered",
     "resolution": 10000,
     "all_chromosomes": ["21"],
-    "test_chromosomes": ["22"],
-    "saved_model": {"path": "", "name": ""},
+    "test_chromosomes": ["21"],
+    "saved_model": {
+        "path": "/rhome/yhu/bigdata/proj/experiment_G3DM/data/Rao2014-IMR90-MboI-allreps-filtered/10kb_1/saved_model", 
+        "name": ""},
     "parameter": {
+        "section":{"start":-1, "end":-1},
         "graph":{
-            "max_len": 1000,
-            "iteration": 0,
             "num_clusters": 7,
             "cutoff_clusters":{"low": 30.0, "high": 99.99},
-            "cutoff_percent": 0,
             "cutoff_cluster": 5
         },
         "feature":{
             "in_dim": 300,
-            "out_dim": 40
+            "out_dim": 30
         },
         "G3DM":{
-            "iteration": 400,
             "num_heads": 30,
             "graph_dim":{"in_dim":40, "hidden_dim":10, "out_dim": 3}
         }

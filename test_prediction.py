@@ -41,8 +41,7 @@ if __name__ == '__main__':
     dataset_name = config_data['dataset_path']['name'] if config_data['dataset_path']['name'] else 'dataset.pt'
     output_path = config_data['output_path'] if config_data['output_path'] else os.path.join( root, 'data', cell, hyper, 'output')
 
-    path = config_data['saved_model']['path'] 
-    saved_model_path = os.path.join(path, 'saved_model')
+    saved_model_path = config_data['saved_model']['path'] # os.path.join(path, 'saved_model')
     saved_model_name = config_data['saved_model']['name'] if config_data['saved_model']['name'] else 'model_net'
 
     all_chromosome = config_data['all_chromosomes']
