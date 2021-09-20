@@ -80,7 +80,67 @@ def create_subgraph_(ID, mat_hic, mat_chic, idx,
     return True
 
 
-def create_graph_1lvl(norm_hic,
+def create_fit_graph(norm_hic,
+                      num_clusters, max_len,
+                      cutoff_clusters_limits, 
+                      cutoff_cluster,
+                      output_path, output_prefix_filename):
+
+    n_idx = np.sort(np.argwhere(np.sum(norm_hic, axis=0)!=0)).flatten()
+    idxs = n_idx
+    log_hic = log1p_hic(norm_hic) + 1e-4
+    np.fill_diagonal(log_hic, 0)
+    # log_hic = norm_hic
+    # only 1 log Hi-C
+    cp_low, cp_high = float(cutoff_clusters_limits['low']), float(cutoff_clusters_limits['high'])
+    low = np.nanpercentile(log_hic, cp_low)
+    high = np.nanpercentile(log_hic, cp_high)
+    threshold = ((log_hic>low) & (log_hic<high))
+    fit_log_hic = log_hic[threshold]
+    mats_, matpbs_ = cluster_hic(log_hic, fit_log_hic, n_cluster=num_clusters)
+    cluster_weight, _ = np.histogram(mats_.view(-1, 1),
+                                     bins=np.arange(num_clusters),
+                                     density=True)
+    # cluster_weight = np.append(cluster_weight, [1.0])
+    # 1/density
+    cluster_weight = 1.0/(cluster_weight+10e-7).astype(np.double)
+    print('# hic: {} clusters, weights: {}'.format(num_clusters, cluster_weight))
+    log_hic = torch.tensor(log_hic)
+    # -----------------------------------------------------------------------------
+    # permutation idx in idex
+    print(max_len, 'and', len(idxs))
+    if len(idxs) <= max_len:
+        create_subgraph_(0, log_hic, mats_, idxs,
+                         num_clusters, cutoff_cluster,
+                         output_path, output_prefix_filename)
+    else:
+        idx_list = permutation_list(idxs, max_len)
+        print('split len of idx: [', end=' ')
+        for i, l in enumerate(idx_list):
+            print(len(l), end=' ')
+        print(']')
+        pool_num = np.min([len(idx_list), multiprocessing.cpu_count()])
+        pool = multiprocessing.Pool(pool_num)
+
+        result_objs=[]
+        for i, idx in enumerate(idx_list):
+            data_args = (i, log_hic, mats_, idx,
+                         num_clusters, cutoff_cluster,
+                         output_path, output_prefix_filename)
+            res = pool.apply_async(create_subgraph_, args=data_args)
+            result_objs.append(res)
+            # create_subgraph_(i, log_hic, mats_, idx,
+            #              num_clusters, cutoff_cluster,
+            #              output_path, output_prefix_filename)
+        pool.close()
+        pool.join()
+    # -----------------------------------------------------------------------------
+
+    remove_mats_ = mats_[n_idx, :]
+    remove_mats_ = remove_mats_[:, n_idx]
+    return cluster_weight, remove_mats_
+
+def create_predict_graph(norm_hic,
                       num_clusters, max_len,
                       cutoff_clusters_limits, 
                       cutoff_cluster,

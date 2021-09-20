@@ -33,19 +33,55 @@ if __name__ == '__main__':
     hyper = '_'.join([cool_file.split('.')[1], config_data["id"]])
 
     # '/rhome/yhu/bigdata/proj/experiment_G3DM'
-    root = config_data['root'] if config_data['root'] else root
-    cool_data_path = config_data['cool_data_path'] if config_data['cool_data_path'] else os.path.join( root, 'data', 'raw')
-    graph_path = config_data['graph_path'] if config_data['graph_path'] else os.path.join( root, 'data', cell, hyper, 'graph')
-    feature_path = config_data['feature_path'] if config_data['feature_path'] else os.path.join( root, 'data', cell, hyper, 'feature')
-    dataset_path = config_data['dataset_path']['path'] if config_data['dataset_path']['path'] else os.path.join( root, 'data', cell, hyper)
-    dataset_name = config_data['dataset_path']['name'] if config_data['dataset_path']['name'] else 'dataset.pt'
-    output_path = config_data['output_path'] if config_data['output_path'] else os.path.join( root, 'data', cell, hyper, 'output')
-
-    saved_model_path = config_data['saved_model']['path'] # os.path.join(path, 'saved_model')
-    saved_model_name = config_data['saved_model']['name'] if config_data['saved_model']['name'] else 'model_net'
+    root = root
+    cool_data_path = os.path.join( root, 'data', 'raw')
+    graph_path = os.path.join( root, 'data', cell, hyper, 'graph')
+    feature_path = os.path.join( root, 'data', cell, hyper, 'feature')
+    dataset_path = os.path.join( root, 'data', cell, hyper)
+    dataset_name = 'dataset.pt'
+    output_path = os.path.join( root, 'data', cell, hyper, 'output')
 
     all_chromosome = config_data['all_chromosomes']
     test_chromosomes = config_data['test_chromosomes']
+
+    num_clusters = config_data['parameter']['graph']['num_clusters']
+    max_len = config_data['parameter']['graph']['max_len']
+    cutoff_clusters_limits = config_data['parameter']['graph']['cutoff_clusters']
+    cutoff_cluster = config_data['parameter']['graph']['cutoff_cluster']
+
+    dim = config_data['parameter']['feature']['in_dim']
+
+    saved_model_path = config_data['saved_model']['path']
+    saved_model_name = config_data['saved_model']['name']
+    section_start = int(config_data['parameter']['start'])
+    section_end = int(config_data['parameter']['end'])
+
+    # prepare dataset
+    for chromosome in all_chromosome:
+        create_data(num_clusters, chromosome, dim,
+                    cutoff_clusters_limits, 
+                    cutoff_cluster, 
+                    max_len,
+                    cool_data_path, cool_file,
+                    [feature_path, graph_path])
+
+    graph_dict = dict()
+    feature_dict = dict()
+    cluster_weight_dict = dict()
+    train_list, test_list = list(), list()
+    for chromosome in all_chromosome:
+        feature_dict[str(chromosome)] = load_feature(feature_path, 'F_chr-{}'.format(chromosome))
+        cluster_weight_dict[str(chromosome)] = feature_dict[str(chromosome)]['cluster_weight']
+
+        graph_dict[str(chromosome)]=dict()
+        g_path = os.path.join(graph_path, 'chr{}'.format(chromosome))
+        files = [f for f in os.listdir(g_path) if 'chr-{}'.format(chromosome) in f]
+        for file in files:
+            gid = file.split('.')[0]
+            gid = gid.split('_')[-1]
+            gid = int(gid)
+            g, _ = load_graph(g_path, file)
+            graph_dict[str(chromosome)][gid] = g
 
     # load dataset
     print('load dataset: {}'.format(os.path.join( dataset_path, dataset_name)))
@@ -57,8 +93,9 @@ if __name__ == '__main__':
     # creat network model
     em_networks, ae_networks, num_heads, num_clusters, _, _, _ = create_network(config_data, device)
    
+    # predict
     model = [em_networks, ae_networks]
-    predictions = run_prediction((dataset, model, saved_parameters_model, num_heads, num_clusters, device='cpu')
+    predictions = run_prediction(test_dataset, model, saved_parameters_model, num_heads, num_clusters, device='cpu')
 
     
 

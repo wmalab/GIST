@@ -4,7 +4,7 @@ import numpy as np
 import multiprocessing
 
 from prepare.utils import log1p_hic, save_graph, load_graph, hic_prepare
-from prepare.build_data import create_data
+from prepare.build_data import create_fit_data
 from prepare.build_feature import load_feature
 
 from prepare.build_dataset import HiCDataset
@@ -55,19 +55,18 @@ if __name__ == '__main__':
 
     num_clusters = config_data['parameter']['graph']['num_clusters']
     max_len = config_data['parameter']['graph']['max_len']
-    # iteration = config_data['parameter']['graph']['iteration']
     cutoff_clusters_limits = config_data['parameter']['graph']['cutoff_clusters']
     cutoff_cluster = config_data['parameter']['graph']['cutoff_cluster']
 
     dim = config_data['parameter']['feature']['in_dim']
 
     for chromosome in all_chromosome:
-        create_data(num_clusters, chromosome, dim,
-                    cutoff_clusters_limits, 
-                    cutoff_cluster, 
-                    max_len,
-                    cool_data_path, cool_file,
-                    [feature_path, graph_path])
+        create_fit_data(num_clusters, chromosome, dim,
+                        cutoff_clusters_limits, 
+                        cutoff_cluster, 
+                        max_len,
+                        cool_data_path, cool_file,
+                        [feature_path, graph_path])
 
     graph_dict = dict()
     feature_dict = dict()
