@@ -52,8 +52,8 @@ if __name__ == '__main__':
 
     model_saved_path = config_data['saved_model']['path']
     model_saved_name = config_data['saved_model']['name']
-    section_start = int(config_data['parameter']['start'])
-    section_end = int(config_data['parameter']['end'])
+    section_start = int(config_data['parameter']['section']['start'])
+    section_end = int(config_data['parameter']['section']['end'])
 
     # prepare dataset
     for chromosome in all_chromosome:
