@@ -105,7 +105,7 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
     [dis_cmpt_lp], [dis_gmm] = de_gmm_net(xp) 
 
     tmp = torch.div( torch.ones(ncluster), ncluster)
-    ids, n = list(), (lt.shape[0])*tmp*0.9
+    ids, n = list(), (lt.shape[0])*tmp*0.5
     for i in torch.arange(ncluster):
         idx = ((lt == i).nonzero(as_tuple=True)[0]).view(-1,)
         if idx.nelement()==0: continue      
@@ -114,7 +114,7 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
         # ids.append(idx[p.multinomial(num_samples=int( torch.minimum(n[i], 3*torch.tensor(idx.shape[0])) ), replacement=True)])
     mask = torch.cat(ids, dim=0)
     mask, _ = torch.sort(mask)
-    # mask = torch.unique(mask, sorted=True, return_inverse=False, return_counts=False)
+    mask = torch.unique(mask, sorted=True, return_inverse=False, return_counts=False)
 
     sample_dis_cmpt_lp = dis_cmpt_lp[mask, :]
     sample_lt = lt[mask]
