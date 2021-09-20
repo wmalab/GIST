@@ -11,7 +11,8 @@ from G3DM.fit import load_dataset, create_network, setup_train, run_prediction
 from G3DM.model import save_model_state_dict
 
 from prepare.build_data import create_predict_data
-from prepare.utils import load_graph
+from prepare.build_feature import load_feature
+from prepare.utils import load_graph, load_f
 
 import warnings
 warnings.filterwarnings('ignore')
