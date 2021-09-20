@@ -59,6 +59,10 @@ if __name__ == '__main__':
     section_start = int(config_data['parameter']['section']['start'])
     section_end = int(config_data['parameter']['section']['end'])
 
+    os.makedirs(graph_path, exist_ok=True)
+    os.makedirs(feature_path, exist_ok=True)
+    os.makedirs(output_path, exist_ok=True)
+
     # prepare dataset
     for chromosome in all_chromosome:
         create_predict_data(num_clusters, chromosome, dim,
@@ -82,6 +86,9 @@ if __name__ == '__main__':
         for file in files:
             g, _ = load_graph(g_path, file)
             graph_dict[str(chromosome)] = g
+    # save dataset
+    HD = HiCDataset(graph_dict, feature_dict, cluster_weight_dict, dataset_path, dataset_name)
+    torch.save(HD, os.path.join( dataset_path, dataset_name))
 
     # load dataset
     print('load dataset: {}'.format(os.path.join( dataset_path, dataset_name)))
