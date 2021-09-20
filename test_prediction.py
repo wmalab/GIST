@@ -12,7 +12,7 @@ from G3DM.model import save_model_state_dict
 
 from prepare.build_data import create_predict_data
 from prepare.build_feature import load_feature
-from prepare.utils import load_graph, load_f
+from prepare.utils import load_graph,
 
 import warnings
 warnings.filterwarnings('ignore')
