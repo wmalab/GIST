@@ -5,7 +5,7 @@ import sys
 import numpy as np
 
 from .utils import hic_prepare
-from .build_graph import create_fit_graph, create_prdict_graph
+from .build_graph import create_fit_graph, create_predict_graph
 from .build_feature import create_feature, save_feature
 
 
