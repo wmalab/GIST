@@ -83,7 +83,7 @@ if __name__ == '__main__':
     # setup and call train
     itn, num_clusters, num_heads = setup_train(config_data)
     log_fie = time.strftime("%Y%m%d-%H%M%S")
-    log_dir = config_data['log_dir'] if config_data['log_dir'] else os.path.join( root, 'log', cell, hyper, log_fie)
+    log_dir = os.path.join( root, 'log', cell, hyper, log_fie)
     os.makedirs(log_dir, exist_ok=True)
     writer = tensorboard.SummaryWriter(log_dir)
     

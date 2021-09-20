@@ -62,8 +62,7 @@ if __name__ == '__main__':
     dim = config_data['parameter']['feature']['in_dim']
 
     for chromosome in all_chromosome:
-        create_data(num_clusters, chromosome,
-                    dim,
+        create_data(num_clusters, chromosome, dim,
                     cutoff_clusters_limits, 
                     cutoff_cluster, 
                     max_len,
