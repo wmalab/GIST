@@ -71,6 +71,7 @@ def create_predict_data(num_clusters, chromosome, dim,
     feature_dict['cluster_weight'] = {'cw':cluster_weight, 'mat':cw_mat}
     output_f_path = feature_path
     output_f_file = 'F_chr-{}'.format(chromosome)
+    print('saved feature in: ', output_f_path)
     save_feature(output_f_path, output_f_file, feature_dict)
 
     return
