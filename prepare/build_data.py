@@ -39,13 +39,12 @@ def create_fit_data(num_clusters, chromosome, dim,
     output_f_path = feature_path
     output_f_file = 'F_chr-{}'.format(chromosome)
     save_feature(output_f_path, output_f_file, feature_dict)
-
     return
 
 
 def create_predict_data(num_clusters, chromosome, dim,
                 cutoff_clusters_limits, cutoff_cluster, 
-                max_len,
+                section_range,
                 cool_data_path, cool_file,
                 data_path):
     [feature_path, graph_path] = data_path
@@ -63,8 +62,8 @@ def create_predict_data(num_clusters, chromosome, dim,
     os.makedirs(output_g_path, exist_ok=True)
     print('saved graph in: ', output_g_path)
     output_prefix_file = 'G_chr-{}'.format(chromosome)
-    cluster_weight, cw_mat = create_graph_1lvl(norm_hic,
-                                       num_clusters, max_len,
+    cluster_weight, cw_mat = create_predict_graph_1lvl(norm_hic,
+                                       num_clusters, section_range,
                                        cutoff_clusters_limits, 
                                        cutoff_cluster,
                                        output_g_path, output_prefix_file)

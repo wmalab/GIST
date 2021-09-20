@@ -24,7 +24,7 @@ if __name__ == '__main__':
     # root = os.path.join('.') #
     root = os.path.join('/rhome/yhu/bigdata/proj/experiment_G3DM')
     configuration_src_path = os.path.join(root, 'data')
-    configuration_name = 'config_train.json'
+    configuration_name = 'config_predict.json'
     with open(os.path.join(configuration_src_path, configuration_name)) as f:
         config_data = json.load(f)
 
@@ -45,7 +45,6 @@ if __name__ == '__main__':
     test_chromosomes = config_data['test_chromosomes']
 
     num_clusters = config_data['parameter']['graph']['num_clusters']
-    max_len = config_data['parameter']['graph']['max_len']
     cutoff_clusters_limits = config_data['parameter']['graph']['cutoff_clusters']
     cutoff_cluster = config_data['parameter']['graph']['cutoff_cluster']
 
@@ -58,12 +57,12 @@ if __name__ == '__main__':
 
     # prepare dataset
     for chromosome in all_chromosome:
-        create_data(num_clusters, chromosome, dim,
-                    cutoff_clusters_limits, 
-                    cutoff_cluster, 
-                    max_len,
-                    cool_data_path, cool_file,
-                    [feature_path, graph_path])
+        create_predict_data(num_clusters, chromosome, dim,
+                            cutoff_clusters_limits, 
+                            cutoff_cluster, 
+                            [section_start, section_end],
+                            cool_data_path, cool_file,
+                            [feature_path, graph_path])
 
     graph_dict = dict()
     feature_dict = dict()
@@ -77,11 +76,8 @@ if __name__ == '__main__':
         g_path = os.path.join(graph_path, 'chr{}'.format(chromosome))
         files = [f for f in os.listdir(g_path) if 'chr-{}'.format(chromosome) in f]
         for file in files:
-            gid = file.split('.')[0]
-            gid = gid.split('_')[-1]
-            gid = int(gid)
             g, _ = load_graph(g_path, file)
-            graph_dict[str(chromosome)][gid] = g
+            graph_dict[str(chromosome)] = g
 
     # load dataset
     print('load dataset: {}'.format(os.path.join( dataset_path, dataset_name)))
@@ -95,7 +91,7 @@ if __name__ == '__main__':
    
     # predict
     model = [em_networks, ae_networks]
-    predictions = run_prediction(test_dataset, model, saved_parameters_model, num_heads, num_clusters, device='cpu')
+    # predictions = run_prediction(test_dataset, model, saved_parameters_model, num_heads, num_clusters, device='cpu')
 
     
 

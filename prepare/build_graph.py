@@ -79,7 +79,6 @@ def create_subgraph_(ID, mat_hic, mat_chic, idx,
 
     return True
 
-
 def create_fit_graph(norm_hic,
                       num_clusters, max_len,
                       cutoff_clusters_limits, 
@@ -102,8 +101,8 @@ def create_fit_graph(norm_hic,
                                      bins=np.arange(num_clusters),
                                      density=True)
     # cluster_weight = np.append(cluster_weight, [1.0])
-    # 1/density
-    cluster_weight = 1.0/(cluster_weight+10e-7).astype(np.double)
+    # density
+    cluster_weight = (cluster_weight+10e-7).astype(np.double)
     print('# hic: {} clusters, weights: {}'.format(num_clusters, cluster_weight))
     log_hic = torch.tensor(log_hic)
     # -----------------------------------------------------------------------------
@@ -136,18 +135,23 @@ def create_fit_graph(norm_hic,
         pool.join()
     # -----------------------------------------------------------------------------
 
-    remove_mats_ = mats_[n_idx, :]
-    remove_mats_ = remove_mats_[:, n_idx]
+    remove_mats_ = mats_[idxs, :]
+    remove_mats_ = remove_mats_[:, idxs]
     return cluster_weight, remove_mats_
 
-def create_predict_graph(norm_hic,
-                      num_clusters, max_len,
-                      cutoff_clusters_limits, 
-                      cutoff_cluster,
-                      output_path, output_prefix_filename):
+def create_predict_graph(norm_hic, 
+                        num_clusters, section_range,
+                        cutoff_clusters_limits, 
+                        cutoff_cluster,
+                        output_path, output_prefix_filename):
 
     n_idx = np.sort(np.argwhere(np.sum(norm_hic, axis=0)!=0)).flatten()
-    idxs = n_idx
+
+    start = section_range[0] if section_range[0]!=-1 else n_idx.min()
+    end = section_range[1] if section_range[1]!=-1 else n_idx.max()
+    x = np.where((n_idx>=start)&(n_idx<=end))
+    idxs = n_idx[x]
+
     log_hic = log1p_hic(norm_hic) + 1e-4
     np.fill_diagonal(log_hic, 0)
     # log_hic = norm_hic
@@ -162,42 +166,20 @@ def create_predict_graph(norm_hic,
                                      bins=np.arange(num_clusters),
                                      density=True)
     # cluster_weight = np.append(cluster_weight, [1.0])
-    # 1/density
-    cluster_weight = 1.0/(cluster_weight+10e-7).astype(np.double)
+    # density
+    cluster_weight = (cluster_weight+10e-7).astype(np.double)
     print('# hic: {} clusters, weights: {}'.format(num_clusters, cluster_weight))
     log_hic = torch.tensor(log_hic)
     # -----------------------------------------------------------------------------
     # permutation idx in idex
     print(max_len, 'and', len(idxs))
-    if len(idxs) <= max_len:
-        create_subgraph_(0, log_hic, mats_, idxs,
-                         num_clusters, cutoff_cluster,
-                         output_path, output_prefix_filename)
-    else:
-        idx_list = permutation_list(idxs, max_len)
-        print('split len of idx: [', end=' ')
-        for i, l in enumerate(idx_list):
-            print(len(l), end=' ')
-        print(']')
-        pool_num = np.min([len(idx_list), multiprocessing.cpu_count()])
-        pool = multiprocessing.Pool(pool_num)
-
-        result_objs=[]
-        for i, idx in enumerate(idx_list):
-            data_args = (i, log_hic, mats_, idx,
-                         num_clusters, cutoff_cluster,
-                         output_path, output_prefix_filename)
-            res = pool.apply_async(create_subgraph_, args=data_args)
-            result_objs.append(res)
-            # create_subgraph_(i, log_hic, mats_, idx,
-            #              num_clusters, cutoff_cluster,
-            #              output_path, output_prefix_filename)
-        pool.close()
-        pool.join()
+    create_subgraph_(0, log_hic, mats_, idxs,
+                        num_clusters, cutoff_cluster,
+                        output_path, output_prefix_filename)
     # -----------------------------------------------------------------------------
 
-    remove_mats_ = mats_[n_idx, :]
-    remove_mats_ = remove_mats_[:, n_idx]
+    remove_mats_ = mats_[idxs, :]
+    remove_mats_ = remove_mats_[:, idxs]
     return cluster_weight, remove_mats_
 
 def permutation_list(idx, max_len, iteration=10):
