@@ -81,7 +81,7 @@ if __name__ == '__main__':
     save_model_state_dict(models_dict, opt[0], path, 0, -1.0)
 
     # setup and call train
-    itn, num_clusters, num_heads = setup_train(config_data)
+    itn, num_heads, num_clusters = setup_train(config_data)
     log_fie = time.strftime("%Y%m%d-%H%M%S")
     log_dir = os.path.join( root, 'log', cell, hyper, log_fie)
     os.makedirs(log_dir, exist_ok=True)
