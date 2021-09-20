@@ -33,20 +33,20 @@ if __name__ == '__main__':
     hyper = '_'.join([cool_file.split('.')[1], config_data["id"]])
 
     # '/rhome/yhu/bigdata/proj/experiment_G3DM'
-    root = config_data['root'] if config_data['root'] else root
-    cool_data_path = config_data['cool_data_path'] if config_data['cool_data_path'] else os.path.join( root, 'data', 'raw')
-    graph_path = config_data['graph_path'] if config_data['graph_path'] else os.path.join( root, 'data', cell, hyper, 'graph')
-    feature_path = config_data['feature_path'] if config_data['feature_path'] else os.path.join( root, 'data', cell, hyper, 'feature')
-    dataset_path = config_data['dataset_path']['path'] if config_data['dataset_path']['path'] else os.path.join( root, 'data', cell, hyper)
-    dataset_name = config_data['dataset_path']['name'] if config_data['dataset_path']['name'] else 'dataset.pt'
-    output_path = config_data['output_path'] if config_data['output_path'] else os.path.join( root, 'data', cell, hyper, 'output')
+    root = root
+    cool_data_path = os.path.join( root, 'data', 'raw')
+    graph_path = os.path.join( root, 'data', cell, hyper, 'graph')
+    feature_path = os.path.join( root, 'data', cell, hyper, 'feature')
+    dataset_path = os.path.join( root, 'data', cell, hyper)
+    dataset_name = 'dataset.pt'
+    output_path = os.path.join( root, 'data', cell, hyper, 'output')
 
-    saved_model_path = config_data['saved_model']['path'] if config_data['saved_model']['path'] else os.path.join( root, 'data', cell, hyper, 'saved_model')
-    saved_model_name = config_data['saved_model']['name'] if config_data['saved_model']['name'] else 'model_net'
+    saved_model_path = os.path.join( root, 'data', cell, hyper, 'saved_model')
+    saved_model_name = 'model_net'
 
     all_chromosome = config_data['all_chromosomes']
     train_chromosomes = config_data['train_valid_chromosomes']
-    test_chromosomes = config_data['test_chromosomes']
+    # test_chromosomes = config_data['test_chromosomes']
 
 
     # load dataset
