@@ -34,7 +34,7 @@ if __name__ == '__main__':
                              configuration_name), configuration_dst_path)
 
     # '/rhome/yhu/bigdata/proj/experiment_G3DM'
-    root = config_data['root'] if config_data['root'] else root
+    root = root
     cool_data_path = os.path.join( root, 'data', 'raw')
     graph_path = os.path.join( root, 'data', cell, hyper, 'graph')
     feature_path = os.path.join( root, 'data', cell, hyper, 'feature')
