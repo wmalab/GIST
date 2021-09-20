@@ -172,7 +172,7 @@ def create_predict_graph(norm_hic,
     log_hic = torch.tensor(log_hic)
     # -----------------------------------------------------------------------------
     # permutation idx in idex
-    print(max_len, 'and', len(idxs))
+    print('structure length', len(idxs))
     create_subgraph_(0, log_hic, mats_, idxs,
                         num_clusters, cutoff_cluster,
                         output_path, output_prefix_filename)
