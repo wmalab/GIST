@@ -22,8 +22,7 @@ class HiCDataset(dgl.data.DGLDataset):
         self.cw = []
         self.index = []
         # self.label = []
-        # self.train_list = []
-        # self.test_list = []
+        self.list = []
         count = 0
         for i, (key, gs_list) in enumerate(self.g_dict.items()):
             feature = self.f_dict[key]
@@ -35,9 +34,7 @@ class HiCDataset(dgl.data.DGLDataset):
                 self.graphs.append(gs)
                 self.index.append('{}_{}'.format(key, idx))
                 self.cw.append(self.cw_dict[key])
-                # if(key in self.train):
-                #     self.train_list.append(count)
-                #     self.label.append('train')
+                self.list.append(count)
                 # if(key in self.test):
                 #     self.test_list.append(count)
                 #     self.label.append('test')
