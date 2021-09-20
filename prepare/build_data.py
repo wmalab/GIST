@@ -29,7 +29,7 @@ def create_fit_data(num_clusters, chromosome, dim,
     os.makedirs(output_g_path, exist_ok=True)
     print('saved graph in: ', output_g_path)
     output_prefix_file = 'G_chr-{}'.format(chromosome)
-    cluster_weight, cw_mat = create_graph_1lvl(norm_hic,
+    cluster_weight, cw_mat = create_fit_graph(norm_hic,
                                        num_clusters, max_len,
                                        cutoff_clusters_limits, 
                                        cutoff_cluster,
@@ -62,7 +62,7 @@ def create_predict_data(num_clusters, chromosome, dim,
     os.makedirs(output_g_path, exist_ok=True)
     print('saved graph in: ', output_g_path)
     output_prefix_file = 'G_chr-{}'.format(chromosome)
-    cluster_weight, cw_mat = create_predict_graph_1lvl(norm_hic,
+    cluster_weight, cw_mat = create_predict_graph(norm_hic,
                                        num_clusters, section_range,
                                        cutoff_clusters_limits, 
                                        cutoff_cluster,
