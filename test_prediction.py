@@ -50,8 +50,8 @@ if __name__ == '__main__':
 
     dim = config_data['parameter']['feature']['in_dim']
 
-    saved_model_path = config_data['saved_model']['path']
-    saved_model_name = config_data['saved_model']['name']
+    model_saved_path = config_data['saved_model']['path']
+    model_saved_name = config_data['saved_model']['name']
     section_start = int(config_data['parameter']['start'])
     section_end = int(config_data['parameter']['end'])
 
@@ -88,7 +88,18 @@ if __name__ == '__main__':
 
     # creat network model
     em_networks, ae_networks, num_heads, num_clusters, _, _, _ = create_network(config_data, device)
-   
+    
+    # load parameters
+    path = os.path.join(model_saved_path, model_saved_name)
+    checkpoint = torch.load(path, map_location=device)
+    em_networks[0].load_state_dict(checkpoint['embedding_model_state_dict'])
+    ae_networks[0].load_state_dict(checkpoint['encoder_model_state_dict'])
+    ae_networks[1].load_state_dict(checkpoint['decoder_distance_model_state_dict'])
+    ae_networks[2].load_state_dict(checkpoint['decoder_gmm_model_state_dict'])
+    ae_networks[3].load_state_dict(checkpoint['decoder_euclidean_model_state_dict'])
+    ae_networks[4].load_state_dict(checkpoint['decoder_simlarity_model_state_dict'])
+    optimizer[0].load_state_dict(checkpoint['optimizer_state_dict'])
+
     # predict
     model = [em_networks, ae_networks]
     # predictions = run_prediction(test_dataset, model, saved_parameters_model, num_heads, num_clusters, device='cpu')

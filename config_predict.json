@@ -7,7 +7,7 @@
     "test_chromosomes": ["21"],
     "saved_model": {
         "path": "/rhome/yhu/bigdata/proj/experiment_G3DM/data/Rao2014-IMR90-MboI-allreps-filtered/10kb_1/saved_model", 
-        "name": "model_net"},
+        "name": "ckpt_state_dict_model_net"},
     "parameter": {
         "section":{"start":-1, "end":-1},
         "graph":{
