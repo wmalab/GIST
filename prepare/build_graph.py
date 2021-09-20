@@ -80,7 +80,7 @@ def create_subgraph_(ID, mat_hic, mat_chic, idx,
     return True
 
 
-def create_graph_1lvl(norm_hic, for_test,
+def create_graph_1lvl(norm_hic,
                       num_clusters, max_len, itn,
                       cutoff_clusters_limits, 
                       cutoff_cluster,
@@ -109,7 +109,7 @@ def create_graph_1lvl(norm_hic, for_test,
     # -----------------------------------------------------------------------------
     # permutation idx in idex
     print(max_len, 'and', len(idxs))
-    if len(idxs) <= max_len or for_test:
+    if len(idxs) <= max_len:
         create_subgraph_(0, log_hic, mats_, idxs,
                          num_clusters, cutoff_cluster,
                          output_path, output_prefix_filename)

@@ -23,15 +23,15 @@ import warnings
 warnings.filterwarnings('ignore')
 
 def save_graph(g_list, output_path, output_file):
-    ''' g_list = [ top_graph, top_subgraphs, bottom_graph, inter_graph ] '''
+    ''' g_list = [ top_graph, top_subgraphs] '''
     output_file = output_file + '.bin'
     dgl.data.utils.save_graphs(os.path.join(output_path, output_file), g_list )
 
-def load_graph(output_path, output_file) -> dict() :
-    ''' g_list = [ top_graph, top_subgraphs, bottom_graph, inter_graph ] '''
-    if '.bin' not in output_file :
-        output_file = output_file + '.bin'
-    g_list, labels = dgl.data.utils.load_graphs(os.path.join(output_path, output_file))
+def load_graph(path, file) -> dict() :
+    ''' g_list = [ top_graph, top_subgraphs] '''
+    if '.bin' not in file :
+        file = file + '.bin'
+    g_list, labels = dgl.data.utils.load_graphs(os.path.join(path, file))
     res = {'top_graph':g_list[0], 
             'top_subgraphs': g_list[1]
             }

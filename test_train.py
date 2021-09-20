@@ -30,7 +30,7 @@ if __name__ == '__main__':
 
     cool_file = config_data['cool_file']
     cell = cool_file.split('.')[0]
-    hyper = '_'.join([cool_file.split('.')[1], 'id', config_data["id"]])
+    hyper = '_'.join([cool_file.split('.')[1], config_data["id"]])
 
     # '/rhome/yhu/bigdata/proj/experiment_G3DM'
     root = config_data['root'] if config_data['root'] else root
@@ -63,7 +63,9 @@ if __name__ == '__main__':
     test_dataset = torch.utils.data.Subset(HiCDataset, test_indices)
 
     # creat network model
-    em_networks, ae_networks, loss_fc, opt, scheduler = create_network(config_data, device)
+    [em_networks, ae_networks, 
+    num_heads, num_clusters, 
+    loss_fc, opt, scheduler] = create_network(config_data, device)
 
     #save init model
     models_dict = {
@@ -86,7 +88,7 @@ if __name__ == '__main__':
     writer = tensorboard.SummaryWriter(log_dir)
     
     run_epoch([train_dataset, valid_dataset], [em_networks, ae_networks],
-            num_clusters=num_clusters, num_heads=num_heads,
+            num_heads=num_heads, num_clusters=num_clusters, 
             loss_fc=loss_fc, optimizer=opt, scheduler=scheduler, iterations=itn,
             device=device, writer=writer, saved_model=[saved_model_path, saved_model_name])
     writer.close()

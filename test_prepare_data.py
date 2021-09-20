@@ -26,7 +26,7 @@ if __name__ == '__main__':
 
     cool_file = config_data['cool_file']
     cell = cool_file.split('.')[0]
-    hyper = '_'.join([cool_file.split('.')[1], 'id', config_data["id"]])
+    hyper = '_'.join([cool_file.split('.')[1], config_data["id"]])
 
     configuration_dst_path = os.path.join(root, 'data', cell, hyper)
     os.makedirs(configuration_dst_path, exist_ok=True)
@@ -35,15 +35,15 @@ if __name__ == '__main__':
 
     # '/rhome/yhu/bigdata/proj/experiment_G3DM'
     root = config_data['root'] if config_data['root'] else root
-    cool_data_path = config_data['cool_data_path'] if config_data['cool_data_path'] else os.path.join( root, 'data', 'raw')
-    graph_path = config_data['graph_path'] if config_data['graph_path'] else os.path.join( root, 'data', cell, hyper, 'graph')
-    feature_path = config_data['feature_path'] if config_data['feature_path'] else os.path.join( root, 'data', cell, hyper, 'feature')
-    dataset_path = config_data['dataset_path']['path'] if config_data['dataset_path']['path'] else os.path.join( root, 'data', cell, hyper)
-    dataset_name = config_data['dataset_path']['name'] if config_data['dataset_path']['name'] else 'dataset.pt'
-    output_path = config_data['output_path'] if config_data['output_path'] else os.path.join( root, 'data', cell, hyper, 'output')
+    cool_data_path = os.path.join( root, 'data', 'raw')
+    graph_path = os.path.join( root, 'data', cell, hyper, 'graph')
+    feature_path = os.path.join( root, 'data', cell, hyper, 'feature')
+    dataset_path = os.path.join( root, 'data', cell, hyper)
+    dataset_name = 'dataset.pt'
+    output_path = os.path.join( root, 'data', cell, hyper, 'output')
 
-    saved_model_path = config_data['saved_model']['path'] if config_data['saved_model']['path'] else os.path.join( root, 'data', cell, hyper, 'saved_model')
-    saved_model_name = config_data['saved_model']['name'] if config_data['saved_model']['name'] else 'model_net'
+    saved_model_path = os.path.join( root, 'data', cell, hyper, 'saved_model')
+    saved_model_name = 'model_net'
 
     os.makedirs(graph_path, exist_ok=True)
     os.makedirs(feature_path, exist_ok=True)
@@ -52,21 +52,17 @@ if __name__ == '__main__':
 
     all_chromosome = config_data['all_chromosomes']
     train_chromosomes = config_data['train_valid_chromosomes']
-    test_chromosomes = config_data['test_chromosomes']
 
     num_clusters = config_data['parameter']['graph']['num_clusters']
     max_len = config_data['parameter']['graph']['max_len']
     iteration = config_data['parameter']['graph']['iteration']
-    # offset = config_data['parameter']['graph']['offset']
-    # cutoff_percents = config_data['parameter']['graph']['cutoff_percent']
     cutoff_clusters_limits = config_data['parameter']['graph']['cutoff_clusters']
     cutoff_cluster = config_data['parameter']['graph']['cutoff_cluster']
 
     dim = config_data['parameter']['feature']['in_dim']
 
     for chromosome in all_chromosome:
-        for_test = True if chromosome in test_chromosomes else False
-        create_data(num_clusters, chromosome, for_test,
+        create_data(num_clusters, chromosome,
                     dim,
                     cutoff_clusters_limits, 
                     cutoff_cluster, 
@@ -92,13 +88,14 @@ if __name__ == '__main__':
             g, _ = load_graph(g_path, file)
             graph_dict[str(chromosome)][gid] = g
 
-        if str(chromosome) in train_chromosomes:
-            train_list.append(str(chromosome))
-        if str(chromosome) in test_chromosomes:
-            test_list.append(str(chromosome))
+        # if str(chromosome) in train_chromosomes:
+        #     train_list.append(str(chromosome))
+        # if str(chromosome) in test_chromosomes:
+        #     test_list.append(str(chromosome))
     
     # create HiCDataset and save
-    HD = HiCDataset(graph_dict, feature_dict, cluster_weight_dict, train_list, test_list, dataset_path, dataset_name)
+    # HD = HiCDataset(graph_dict, feature_dict, cluster_weight_dict, train_list, test_list, dataset_path, dataset_name)
+    HD = HiCDataset(graph_dict, feature_dict, cluster_weight_dict, dataset_path, dataset_name)
     torch.save(HD, os.path.join( dataset_path, dataset_name))
 
     '''load_HD = torch.load(os.path.join( dataset_path, dataset_name))
