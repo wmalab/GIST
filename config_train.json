@@ -8,9 +8,9 @@
     "parameter": {
         "graph":{
             "max_len": 1000,
-            "num_clusters": 6,
+            "num_clusters": 9,
             "cutoff_clusters":{"low": 5.0, "high": 100},
-            "cutoff_cluster": 4
+            "cutoff_cluster": 5
         },
         "feature":{
             "in_dim": 300,
