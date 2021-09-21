@@ -1,12 +1,19 @@
  name: env_viz
  channels:
+   - defaults
    - anaconda
    - plotly
-   - anaconda
+   - conda-forge
+   - bioconda
  dependencies:
+   - numpy
+   - scipy
+   - scikit-learn
+   - matplotlib
    - ipykernel
    - seaborn
    - plotly
    - pip
    - pip:
       - cooler
+      - iced
