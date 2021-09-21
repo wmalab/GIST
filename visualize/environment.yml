@@ -10,14 +10,15 @@
    - scipy
    - scikit-learn
    - matplotlib
-   - ipympl
+  #  - ipympl
+   - jupyterlab
    - ipykernel
    - seaborn
    - plotly
    - nbformat
    - pandas
    - nodejs=16
-   - ipywidgets
+  #  - ipywidgets
    - pip
    - pip:
       - cooler

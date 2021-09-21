@@ -1,4 +1,4 @@
-{   "id": "1",
+{   "id": "train_21",
     "cool_data_path":"",
     "cool_file": "Rao2014-IMR90-MboI-allreps-filtered.10kb.cool", 
     "cell_name": "Rao2014-IMR90-MboI-allreps-filtered",
@@ -18,7 +18,7 @@
         },
         "G3DM":{
             "iteration": 63,
-            "num_heads": 50,
+            "num_heads": 80,
             "graph_dim":{"in_dim":30, "hidden_dim":10, "out_dim": 3}
         }
     }
