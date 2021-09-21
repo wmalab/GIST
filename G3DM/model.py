@@ -157,9 +157,9 @@ class decoder_distance(torch.nn.Module):
         self.ntype = ntype
         self.etype = etype
 
-        self.w = torch.nn.Parameter(torch.empty( (self.num_heads)), requires_grad=True)
+        self.w = torch.nn.Parameter(torch.ones( (self.num_heads)), requires_grad=True)
         self.register_parameter('w', self.w)
-        torch.nn.init.uniform_(self.w, a=-10.0, b=10.0)
+        # torch.nn.init.uniform_(self.w, a=-10.0, b=10.0)
 
     def edge_distance(self, edges):
         n2 = torch.norm((edges.dst['z'] - edges.src['z']), dim=-1, keepdim=False)
