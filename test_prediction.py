@@ -97,7 +97,7 @@ if __name__ == '__main__':
     print('load dataset: {}'.format(os.path.join( dataset_path, dataset_name)))
     HiCDataset = load_dataset(dataset_path, dataset_name)
 
-    test_indices = np.array(HiCDataset.test_list)
+    test_indices = np.array(HiCDataset.list)
     test_dataset = torch.utils.data.Subset(HiCDataset, test_indices)
 
     # creat network model
