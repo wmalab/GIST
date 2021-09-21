@@ -43,6 +43,7 @@ if __name__ == '__main__':
     dataset_path = os.path.join( root, 'data', cell, hyper)
     dataset_name = 'dataset.pt'
     output_path = os.path.join( root, 'data', cell, hyper, 'output')
+    output_name = 'prediction.pkl'
 
     all_chromosome = config_data['all_chromosomes']
     test_chromosomes = config_data['test_chromosomes']
@@ -123,8 +124,10 @@ if __name__ == '__main__':
     predictions = run_prediction(test_dataset, model, [model_saved_path, model_saved_name], num_heads, num_clusters, device=device)
     print(predictions)
 
-    # with open('file.pkl', 'wb') as handle:
-    #     pickle.dump(a, handle)
+    # os.makedirs(output_path, exist_ok=True)
+    # file = os.path.join(output_path, output_name)
+    # with open(file, 'wb') as handle:
+    #     pickle.dump(predictions, handle)
 
     # with open('file.txt', 'rb') as handle:
     #     b = pickle.loads(handle.read())

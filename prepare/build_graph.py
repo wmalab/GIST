@@ -48,7 +48,7 @@ def create_subgraph_(ID, mat_hic, mat_chic, idx,
         # masked = np.argwhere(u < v)
         # u = u[masked].flatten()
         # v = v[masked].flatten()
-        if len(u)==0 or len(v)==0 : return Flase 
+        if len(u)==0 or len(v)==0 : return False 
 
         fid.append((u, v))
         graph_data[('bead', 'interacts_c{}'.format(str(i)), 'bead')] = (u, v)
@@ -147,6 +147,7 @@ def create_predict_graph(norm_hic,
 
     n_idx = np.sort(np.argwhere(np.sum(norm_hic, axis=0)!=0)).flatten()
 
+    print('section range {} and n_idx range {} {}'.format(section_range, n_idx.min(), n_idx.max()) )
     start = section_range[0] if section_range[0]!=-1 else n_idx.min()
     end = section_range[1] if section_range[1]!=-1 else n_idx.max()
     x = np.where((n_idx>=start)&(n_idx<=end))
@@ -172,7 +173,7 @@ def create_predict_graph(norm_hic,
     log_hic = torch.tensor(log_hic)
     # -----------------------------------------------------------------------------
     # permutation idx in idex
-    print('structure length', len(idxs))
+    print('structure length {}, from {} to {}'.format(len(idxs), start, end) )
     create_subgraph_(0, log_hic, mats_, idxs,
                         num_clusters, cutoff_cluster,
                         output_path, output_prefix_filename)
