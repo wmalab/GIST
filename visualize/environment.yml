@@ -17,6 +17,7 @@
    - nbformat
    - pandas
    - nodejs=16
+   - ipywidgets
    - pip
    - pip:
       - cooler
