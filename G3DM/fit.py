@@ -111,7 +111,7 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
         if idx.nelement()==0: continue      
         p = torch.ones_like(idx)/idx.shape[0]
         # nidx = p.multinomial( num_samples=int( n[i]), replacement=True)
-        nidx = p.multinomial(num_samples=int( torch.minimum(n[i], 16*torch.tensor(idx.shape[0])) ), replacement=True)
+        nidx = p.multinomial(num_samples=int( torch.minimum(n[i], 6*torch.tensor(idx.shape[0])) ), replacement=True)
         # if n[i] > torch.tensor(idx.shape[0]):
         #     idx = (idx.repeat(2)).long()
         # else:
@@ -448,7 +448,7 @@ def run_prediction(dataset, model, saved_parameters_model, num_heads, num_cluste
         for name, param in models_dict['decoder_distance_model'].named_parameters():
             if name=='w':
                 weights = torch.nn.functional.softmax(param, dim=0).cpu().detach().numpy()
-                print(weights)
+                print(weights*100)
         prediction[index] = {'structures': pred_X, 
                             'structures_weights':weights,
                             'predict_cluster': [pred_dist_cluster_mat, pdcm_list], 
