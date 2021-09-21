@@ -117,7 +117,7 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
         else:
             nidx = p.multinomial( num_samples=int(n[i]), replacement=False)
             idx = idx[nidx]
-        idx = idx[nidx]
+        # idx = idx[nidx]
         ids.append(idx.view(-1,))
     mask = torch.cat(ids, dim=0)
     mask, _ = torch.sort(mask)
