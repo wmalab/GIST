@@ -1,8 +1,5 @@
-import time
-import os
-import json
-import dgl
-import torch
+import time, os, json
+import dgl, torch
 from torch.utils import tensorboard
 import GPUtil
 
@@ -12,6 +9,8 @@ from G3DM.model import save_model_state_dict
 
 from prepare.build_data import create_predict_data
 from prepare.build_feature import load_feature
+from prepare.build_dataset import HiCDataset
+
 from prepare.utils import load_graph
 
 import warnings
