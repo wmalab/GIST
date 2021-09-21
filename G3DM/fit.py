@@ -224,7 +224,7 @@ def predict(graphs, features, num_heads, num_clusters, em_networks, ae_networks,
 
         pdcm_list, pdm_list = list(), list()
         for i in np.arange(num_heads):
-            xp, _ = de_euc_net(top_graph, h_center[:,i,:], 'interacts')
+            xp = de_euc_net(top_graph, h_center[:,i,:], 'interacts')
             [dis_cmpt_lp], _ = de_gmm_net(xp)
             dp = torch.exp(dis_cmpt_lp).cpu().detach().numpy()
 
