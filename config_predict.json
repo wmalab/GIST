@@ -12,7 +12,7 @@
         "section":{"start":-1, "end":4000000},
         "graph":{
             "num_clusters": 7,
-            "cutoff_clusters":{"low": 30.0, "high": 99.99},
+            "cutoff_clusters":{"low": 5.0, "high": 99.99},
             "cutoff_cluster": 4
         },
         "feature":{

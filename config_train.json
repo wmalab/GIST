@@ -9,7 +9,7 @@
         "graph":{
             "max_len": 1000,
             "num_clusters": 7,
-            "cutoff_clusters":{"low": 30.0, "high": 100},
+            "cutoff_clusters":{"low": 5.0, "high": 100},
             "cutoff_cluster": 4
         },
         "feature":{
