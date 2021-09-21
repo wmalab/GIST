@@ -437,7 +437,7 @@ def run_prediction(dataset, model, saved_parameters_model, num_heads, num_cluste
         [pred_X, 
         pred_dist_cluster_mat, pdcm_list, 
         pred_dist_mat, pdm_list, 
-        [true_cluster_mat, dis_gmm]] = predict(graphs, h_feat, em_networks, ae_networks, device)
+        [true_cluster_mat, dis_gmm]] = predict(graphs, h_feat, num_heads, num_clusters, em_networks, ae_networks, device)
         prediction[index] = {'structures': pred_X, 
                             'predict_cluster': [pred_dist_cluster_mat, pdcm_list], 
                             'predict_distance': [pred_dit_mat, pdm_list],
