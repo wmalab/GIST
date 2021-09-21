@@ -113,10 +113,11 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
         # nidx = p.multinomial( num_samples=int( n[i]), replacement=True)
         # nidx = p.multinomial(num_samples=int( torch.minimum(n[i], 6*torch.tensor(idx.shape[0])) ), replacement=True)
         if n[i] > torch.tensor(idx.shape[0]):
-            nidx = torch.cat([n]*6, dim=0).long()
+            idx = torch.cat([idx]*6, dim=0).long()
+            ids.append(idx)
         else:
             nidx = p.multinomial( num_samples=int(n[i]), replacement=False)
-        ids.append(idx[nidx])
+            ids.append(idx[nidx])
     mask = torch.cat(ids, dim=0)
     mask, _ = torch.sort(mask)
     # mask = torch.unique(mask, sorted=True, return_inverse=False, return_counts=False)
@@ -223,7 +224,7 @@ def predict(graphs, features, num_heads, num_clusters, em_networks, ae_networks,
 
         pdcm_list, pdm_list = list(), list()
         for i in np.arange(num_heads):
-            xp, _ = de_euc_net(top_graph, h_center[:,i,:])
+            xp, _ = de_euc_net(top_graph, h_center[:,i,:], 'interacts')
             [dis_cmpt_lp], _ = de_gmm_net(xp)
             dp = torch.exp(dis_cmpt_lp).cpu().detach().numpy()
 
