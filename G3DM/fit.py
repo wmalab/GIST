@@ -110,8 +110,8 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
         idx = ((lt == i).nonzero(as_tuple=True)[0]).view(-1,)
         if idx.nelement()==0: continue      
         p = torch.ones_like(idx)/idx.shape[0]
-        nidx = p.multinomial( num_samples=int( n[i]), replacement=True)
-        # nidx = p.multinomial(num_samples=int( torch.minimum(n[i], 6*torch.tensor(idx.shape[0])) ), replacement=True)
+        # nidx = p.multinomial( num_samples=int( n[i]), replacement=True)
+        nidx = p.multinomial(num_samples=int( torch.minimum(n[i], 16*torch.tensor(idx.shape[0])) ), replacement=True)
         # if n[i] > torch.tensor(idx.shape[0]):
         #     idx = (idx.repeat(2)).long()
         # else:
