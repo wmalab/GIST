@@ -83,8 +83,12 @@ if __name__ == '__main__':
         g_path = os.path.join(graph_path, 'chr{}'.format(chromosome))
         files = [f for f in os.listdir(g_path) if 'chr-{}'.format(chromosome) in f]
         for file in files:
+            gid = file.split('.')[0]
+            gid = gid.split('_')[-1]
+            gid = int(gid)
             g, _ = load_graph(g_path, file)
-            graph_dict[str(chromosome)] = g
+            graph_dict[str(chromosome)][gid] = g
+
     # save dataset
     HD = HiCDataset(graph_dict, feature_dict, cluster_weight_dict, dataset_path, dataset_name)
     torch.save(HD, os.path.join( dataset_path, dataset_name))
