@@ -203,7 +203,7 @@ def predict(graphs, features, num_heads, num_clusters, em_networks, ae_networks,
 
     with torch.no_grad():
 
-        _, [dis_gmm] = de_gmm_net( torch.ones(1) )
+        _, [dis_gmm] = de_gmm_net( torch.ones(1, device=device) )
         mu = dis_gmm.component_distribution.mean.detach()
         stddev = dis_gmm.component_distribution.stddev.detach()
         lr_ranges = torch.exp(mu - stddev**2)
