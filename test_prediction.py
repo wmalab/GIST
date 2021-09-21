@@ -55,8 +55,12 @@ if __name__ == '__main__':
 
     model_saved_path = config_data['saved_model']['path']
     model_saved_name = config_data['saved_model']['name']
+    resolution = int(config_data['resolution'])
     section_start = int(config_data['parameter']['section']['start'])
     section_end = int(config_data['parameter']['section']['end'])
+
+    section_start = np.floor(section_start/resolution)
+    section_end = np.floor(section_end/resolution)
 
     os.makedirs(graph_path, exist_ok=True)
     os.makedirs(feature_path, exist_ok=True)
@@ -116,7 +120,7 @@ if __name__ == '__main__':
 
     # predict
     model = [em_networks, ae_networks]
-    # predictions = run_prediction(test_dataset, model, saved_parameters_model, num_heads, num_clusters, device='cpu')
+    predictions = run_prediction(test_dataset, model, saved_parameters_model, num_heads, num_clusters, device='cpu')
 
     
 
