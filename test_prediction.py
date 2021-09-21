@@ -1,5 +1,5 @@
-import time, os, json
-import dgl, torch
+import time, os, json, pickle
+import dgl, torch 
 from torch.utils import tensorboard
 import GPUtil
 
@@ -122,5 +122,9 @@ if __name__ == '__main__':
     model = [em_networks, ae_networks]
     predictions = run_prediction(test_dataset, model, [model_saved_path, model_saved_name], num_heads, num_clusters, device=device)
     print(predictions)
-    
 
+    # with open('file.pkl', 'wb') as handle:
+    #     pickle.dump(a, handle)
+
+    # with open('file.txt', 'rb') as handle:
+    #     b = pickle.loads(handle.read())
