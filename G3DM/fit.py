@@ -189,6 +189,8 @@ def predict(graphs, features, num_heads, num_clusters, em_networks, ae_networks,
 
     tp = top_graph.edges['interacts'].data['label'].cpu().detach().numpy()
     true_cluster_mat = np.ones((features.shape[0], features.shape[0]))*(num_clusters-1)
+    
+    xs,ys = graphs['top_graph'].edges(etype='interacts', form='uv')[0], graphs['top_graph'].edges(etype='interacts', form='uv')[1]
     true_cluster_mat[xs, ys] = tp
 
     h_feat = features
@@ -209,7 +211,6 @@ def predict(graphs, features, num_heads, num_clusters, em_networks, ae_networks,
         Xf = em_bead(h_feat)
         h_center, h_highdim = en_net( top_subgraphs, Xf, lr_ranges, top_list, ['bead'])
         pred_X = h_center.cpu().detach().numpy()
-        xs,ys = graphs['top_graph'].edges(etype='interacts', form='uv')[0], graphs['top_graph'].edges(etype='interacts', form='uv')[1]
 
         xp, _ = de_dis_net(top_graph, h_center)
         [dis_cmpt_lp], _ = de_gmm_net(xp)
