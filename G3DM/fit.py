@@ -415,7 +415,7 @@ def run_prediction(dataset, model, saved_parameters_model, num_heads, num_cluste
     ae_networks[2].load_state_dict(checkpoint['decoder_gmm_model_state_dict'])
     ae_networks[3].load_state_dict(checkpoint['decoder_euclidean_model_state_dict'])
     ae_networks[4].load_state_dict(checkpoint['decoder_simlarity_model_state_dict'])
-    optimizer[0].load_state_dict(checkpoint['optimizer_state_dict'])
+    # optimizer[0].load_state_dict(checkpoint['optimizer_state_dict'])
 
     for key, m in models_dict.items():
         for param in list(m.parameters()):

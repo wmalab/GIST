@@ -13,7 +13,7 @@
         "graph":{
             "num_clusters": 7,
             "cutoff_clusters":{"low": 30.0, "high": 99.99},
-            "cutoff_cluster": 5
+            "cutoff_cluster": 4
         },
         "feature":{
             "in_dim": 300,

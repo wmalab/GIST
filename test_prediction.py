@@ -112,7 +112,7 @@ if __name__ == '__main__':
     ae_networks[2].load_state_dict(checkpoint['decoder_gmm_model_state_dict'])
     ae_networks[3].load_state_dict(checkpoint['decoder_euclidean_model_state_dict'])
     ae_networks[4].load_state_dict(checkpoint['decoder_simlarity_model_state_dict'])
-    optimizer[0].load_state_dict(checkpoint['optimizer_state_dict'])
+    # optimizer[0].load_state_dict(checkpoint['optimizer_state_dict'])
 
     # predict
     model = [em_networks, ae_networks]
