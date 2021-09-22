@@ -99,6 +99,15 @@ def create_fit_graph(norm_hic,
     print('low {}, high {}, low {}, high {}, threshold {}'.format(cp_low, cp_high, low, high, threshold) )
     print('({},{}), ({}, {})'.format(log_hic.min(), log_hic.max(), fit_log_hic.min(), fit_log_hic.max()))
     print(log_hic[15000:15050, 15100:15150])
+    cluster_weight, _ = np.histogram(fit_log_hic.view(-1, 1),
+                                    bins=np.arange(num_clusters),
+                                    density=False)
+    print('fit_log_hic', cluster_weight)
+    cluster_weight, _ = np.histogram(log_hic.view(-1, 1),
+                                    bins=np.arange(num_clusters),
+                                    density=False)
+    print('log_hic', cluster_weight)
+
     mats_, matpbs_ = cluster_hic(log_hic, fit_log_hic, n_cluster=num_clusters)
     cluster_weight, _ = np.histogram(mats_.view(-1, 1),
                                      bins=np.arange(num_clusters),
