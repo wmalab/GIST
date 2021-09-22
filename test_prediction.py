@@ -131,8 +131,9 @@ if __name__ == '__main__':
 
     os.makedirs(output_path, exist_ok=True)
     file = os.path.join(output_path, output_name)
-    with open(file, 'wb') as handle:
-        pickle.dump(predictions, handle)
+    torch.save(predictions, file)
+    # with open(file, 'wb') as handle:
+    #     pickle.dump(predictions, handle)
 
     # with open('file.txt', 'rb') as handle:
     #     b = pickle.loads(handle.read())
