@@ -219,10 +219,11 @@ def predict(graphs, features, num_heads, num_clusters, em_networks, ae_networks,
         [dis_cmpt_lp], _ = de_gmm_net(xp)
         dp = torch.exp(dis_cmpt_lp).cpu().detach().numpy()
 
-        pred_dist_cluster_mat = np.ones((pred_X.shape[0], pred_X.shape[0]))*(num_clusters-1)
+        pred_dist_cluster_mat = np.ones((pred_X.shape[0], pred_X.shape[0]), dtype=np.uint8)*(num_clusters-1)
         pred_dist_cluster_mat[xs, ys] = np.argmax(dp, axis=1)
-        pred_dist_mat = np.zeros((pred_X.shape[0], pred_X.shape[0]))
-        pred_dist_mat[xs, ys] = xp.view(-1,).cpu().detach().numpy()
+        pred_dist_cluster_mat = pred_dist_cluster_mat.astype(np.uint8)
+        # pred_dist_mat = np.zeros((pred_X.shape[0], pred_X.shape[0]))
+        # pred_dist_mat[xs, ys] = xp.view(-1,).cpu().detach().numpy()
 
         pdcm_list, pdm_list = list(), list()
         for i in np.arange(num_heads):
@@ -230,15 +231,15 @@ def predict(graphs, features, num_heads, num_clusters, em_networks, ae_networks,
             [dis_cmpt_lp], _ = de_gmm_net(xp)
             dp = torch.exp(dis_cmpt_lp).cpu().detach().numpy()
 
-            pdcm = np.ones((pred_X.shape[0], pred_X.shape[0]))*(num_clusters-1)
+            pdcm = np.ones((pred_X.shape[0], pred_X.shape[0]), dtype=np.uint8)*(num_clusters-1)
             pdcm[xs, ys] = np.argmax(dp, axis=1)
-            pdm = np.zeros((pred_X.shape[0], pred_X.shape[0]))
-            pdm[xs, ys] = xp.view(-1,).cpu().detach().numpy()
+            # pdm = np.zeros((pred_X.shape[0], pred_X.shape[0]))
+            # pdm[xs, ys] = xp.view(-1,).cpu().detach().numpy()
 
-            pdcm_list.append(pdcm)
-            pdm_list.append(pdm)
+            pdcm_list.append(pdcm.astype(np.uint8))
+            # pdm_list.append(pdm)
 
-        return pred_X, pred_dist_cluster_mat, pdcm_list, pred_dist_mat, pdm_list, [true_cluster_mat, dis_gmm]
+        return pred_X, pred_dist_cluster_mat, pdcm_list, [true_cluster_mat, dis_gmm] # , pred_dist_mat, pdm_list
 
 def run_epoch(datasets, model, num_heads, num_clusters, loss_fc, optimizer, scheduler, iterations, device, writer=None, saved_model=None):
     train_dataset = datasets[0]
@@ -444,7 +445,7 @@ def run_prediction(dataset, model, saved_parameters_model, num_heads, num_cluste
 
         [pred_X, 
         pred_dist_cluster_mat, pdcm_list, 
-        pred_dist_mat, pdm_list, 
+        # pred_dist_mat, pdm_list, 
         [true_cluster_mat, dis_gmm]] = predict(graphs, h_feat, num_heads, num_clusters, em_networks, ae_networks, device)
         for name, param in models_dict['decoder_distance_model'].named_parameters():
             if name=='w':
@@ -453,7 +454,7 @@ def run_prediction(dataset, model, saved_parameters_model, num_heads, num_cluste
         prediction[index] = {'structures': pred_X, 
                             'structures_weights':weights,
                             'predict_cluster': [pred_dist_cluster_mat, pdcm_list], 
-                            'predict_distance': [pred_dist_mat, pdm_list],
+                            # 'predict_distance': [pred_dist_mat, pdm_list],
                             'true_cluster': true_cluster_mat}
         prediction['mixture model'] = dis_gmm
         dur = time.time() - t0
