@@ -1,4 +1,4 @@
-import time, os, json, pickle
+import time, os, json, pickle, shutil
 import dgl, torch 
 from torch.utils import tensorboard
 import GPUtil
@@ -39,7 +39,7 @@ if __name__ == '__main__':
     os.makedirs(configuration_dst_path, exist_ok=True)
     shutil.copy(os.path.join(configuration_src_path,
                              configuration_name), configuration_dst_path)
-                             
+
     # '/rhome/yhu/bigdata/proj/experiment_G3DM'
     root = root
     cool_data_path = os.path.join( root, 'data', 'raw')
