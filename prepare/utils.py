@@ -73,8 +73,6 @@ def cluster_hic(data, fitdata, n_cluster=30):
     return mat_, matpb_
 
 def _gmm(fitX, X, n_cluster=20, idx_nonzeros=None, order='I'):  # 'I': increasing; 'D': descreasing
-    X = X.reshape((-1, 1))
-    fitX = fitX.reshape((-1, 1))
     if idx_nonzeros is None:
         idx_nonzeros = torch.nonzero(X.flatten(), as_tuple=False).flatten()
         X = X[idx_nonzeros]
@@ -82,11 +80,19 @@ def _gmm(fitX, X, n_cluster=20, idx_nonzeros=None, order='I'):  # 'I': increasin
         fitX = fitX[fitidx_nonzeros]
 
     # cl, c = KMeans(X, n_cluster)
-    gmm = mixture.GaussianMixture(
-        n_components=n_cluster, covariance_type='full', init_params='kmeans')
+    gmm = mixture.GaussianMixture(n_components=n_cluster, 
+                                covariance_type='full', 
+                                init_params='kmeans')
     gmm.fit(fitX)
     cluster_ids_x = gmm.predict(X)
     cluster_centers = torch.tensor(gmm.means_)
+
+    tmp, _ = np.histogram(cluster_ids_x.flatten(),
+                                    bins=np.arange(num_clusters),
+                                    density=True)
+    print(tmp)
+    print('cluster_centers: ', cluster_centers)
+    
     pb = gmm.predict_proba(X)
     # cluster_ids_x, cluster_centers = kmeans(X=X, num_clusters=n_cluster, distance='euclidean')
     if order == 'I':
