@@ -51,7 +51,7 @@ def log1p_hic(mat):
     HiC = np.log1p(mat)
     HiC = (HiC/np.max(HiC))
     # print('shape of HiC: {}'.format(HiC.shape))
-    return HiC
+    return np.array(HiC)
 
 def remove_nan_col(hic):
     hic = np.nan_to_num(hic)
