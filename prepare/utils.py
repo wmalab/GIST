@@ -13,11 +13,11 @@ from iced import normalization
 
 from scipy.stats import percentileofscore
 from sklearn import mixture
-from skimage import measure
+# from skimage import measure
 
 import dgl
 from dgl import save_graphs, load_graphs
-from dgl.data.utils import makedirs, save_info, load_info
+# from dgl.data.utils import makedirs, save_info, load_info
 
 import warnings
 warnings.filterwarnings('ignore')
@@ -122,15 +122,15 @@ def _gmm_matrix(labels, probability, idx, n_cluster, matrix_size):
     return khop_m, khop_pba
 
 
-def block_reduce(raw_hic, wl, reduce_fun):
+"""def block_reduce(raw_hic, wl, reduce_fun):
     hic = measure.block_reduce(raw_hic, (wl, wl), reduce_fun)
-    return hic
+    return hic"""
 
 def iced_normalization(raw_hic):
     hic = normalization.ICE_normalization(raw_hic)
     return hic
 
-def hic_prepare_block_reduce(rawfile, chromosome, ratios, reduce_fun=np.mean, remove_zero_col = True):
+"""def hic_prepare_block_reduce(rawfile, chromosome, ratios, reduce_fun=np.mean, remove_zero_col = True):
     raw_hic, resolution, cooler = load_hic(rawfile, chromosome = chromosome)
     hics, norm_hics = [], []
     win_len = [1]
@@ -167,7 +167,7 @@ def hic_prepare_pooling(rawfile, chromosome, ratios, strides, remove_zero_col = 
     for h in hics:
         m = iced_normalization(h)
         norm_hics.append(m)
-    return norm_hics
+    return norm_hics"""
 
 def hic_prepare(rawfile, chromosome):
     raw_hic, resolution, cooler = load_hic(rawfile, chromosome = chromosome)

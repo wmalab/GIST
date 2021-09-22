@@ -96,6 +96,7 @@ def create_fit_graph(norm_hic,
     high = np.nanpercentile(log_hic, cp_high)
     threshold = ((log_hic>low) & (log_hic<high))
     fit_log_hic = log_hic[threshold]
+    print('low {}, high {}, low {}, high {}, threshold {}'.format(cp_low, cp_high, low, high, threshold) )
     mats_, matpbs_ = cluster_hic(log_hic, fit_log_hic, n_cluster=num_clusters)
     cluster_weight, _ = np.histogram(mats_.view(-1, 1),
                                      bins=np.arange(num_clusters),
