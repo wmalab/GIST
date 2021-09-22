@@ -5,7 +5,7 @@ currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfram
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir) 
 
-from prepare.utils import load_hic, hic_prepare
+from prepare.utils import load_hic, load_hic, iced_normalization
 from prepare.build_dataset import HiCDataset, load_dataset
 
 """
@@ -34,7 +34,7 @@ def load_configuration(path, name):
         f.close()
     # predict one chromosome per prediction
     cfile = config_data['cool_file']
-    cell = cool_file.split('.')[0]
+    cell = cfile.split('.')[0]
     chromosome = config_data['test_chromosomes']
     section_start = int(config_data['parameter']['section']['start'])
     section_end = int(config_data['parameter']['section']['end'])
@@ -63,7 +63,8 @@ def load_prediction(path, name):
 
 
 if __name__ == '__main__':
-    root = os.path.join('/rhome/yhu/bigdata/proj/experiment_G3DM')
+    root = '../'
+    # root = os.path.join('/rhome/yhu/bigdata/proj/experiment_G3DM')
 
     # load config .json
     configuration_path = '/Users/huyangyang/Desktop/chromosome_3D/'
@@ -83,10 +84,10 @@ if __name__ == '__main__':
     prediction_name = 'prediction.pkl'
 
     prediction = load_prediction(prediction_path, prediction_name)
-    print(prediction.items())
     
     # load .cool
     cool_file = info['cool_file']
-    cool_data_path = []
-    cool = os.path.join(cool_data_path, cool_file)
-    norm_hic = hic_prepare( rawfile=cool, chromosome='chr{}'.format(str(info['chromosome'])))
+    cool_data_path = os.path.join(root, 'data', 'raw')
+    file = os.path.join(cool_data_path, cool_file)
+    raw_hic, _, cooler = load_hic( rawfile=file, chromosome='chr{}'.format(str(info['chromosome'])))
+    norm_hic = iced_normalization(raw_hic)
