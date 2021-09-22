@@ -59,13 +59,7 @@ def create_subgraph_(ID, mat_hic, mat_chic, idx,
     g.nodes['bead'].data['id'] = torch.tensor(idx.flatten(), dtype=torch.long)
 
     g.edges['interacts'].data['label'] = chic[tuple(fid_interacts)].clone().detach().flatten().type(torch.uint8)
-    # ehic = hic.type(torch.float)
     g.edges['interacts_c{}'.format(str(0))].data['value'] = hic[tuple(fid[0])].clone().detach().flatten()
-    g.edges['interacts_c{}'.format(str(1))].data['value'] = hic[tuple(fid[1])].clone().detach().flatten()
-    # g.edges['interacts_c{}'.format(str(2))].data['value'] = hic[tuple(fid[2])].clone().detach().flatten()
-    # for i in c_list:
-    #     # g.edges['interacts_c{}'.format(str(i))].data['label'] = chic[tuple(fid[i])].clone().detach().flatten().type(torch.int8)
-    #     g.edges['interacts_c{}'.format(str(i))].data['value'] = hic[tuple(fid[i])].clone().detach().flatten().type(torch.float)
 
     top_list = ['interacts_c{}'.format(i) for i in np.arange(cutoff_cluster)]
     top_subgraphs = g.edge_type_subgraph(top_list)
@@ -97,12 +91,10 @@ def create_fit_graph(norm_hic,
     threshold = ((log_hic>low) & (log_hic<high))
     fit_log_hic = log_hic[threshold]
 
-    # mats_, matpbs_ = cluster_hic(log_hic, fit_log_hic, n_cluster=num_clusters)
     mats_ = cluster_hic(log_hic, fit_log_hic, n_cluster=num_clusters)
     cluster_weight, _ = np.histogram(mats_.view(-1, 1),
                                      bins=np.arange(num_clusters),
                                      density=True)
-    # cluster_weight = np.append(cluster_weight, [1.0])
     # density
     cluster_weight = (cluster_weight+10e-7).astype(np.double)
     print('# hic: {} clusters, weights: {}'.format(num_clusters, cluster_weight))
@@ -164,7 +156,6 @@ def create_predict_graph(norm_hic,
     high = np.nanpercentile(log_hic, cp_high)
     threshold = ((log_hic>low) & (log_hic<high))
     fit_log_hic = log_hic[threshold]
-    # mats_, matpbs_ = cluster_hic(log_hic, fit_log_hic, n_cluster=num_clusters)
     mats_ = cluster_hic(log_hic, fit_log_hic, n_cluster=num_clusters)
 
     cluster_weight, _ = np.histogram(mats_.view(-1, 1),

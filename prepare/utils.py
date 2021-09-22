@@ -38,14 +38,12 @@ def load_graph(path, file) -> dict() :
             }
     return res, labels
 
-def load_hic(name='Dixon2012-H1hESC-HindIII-allreps-filtered.500kb.cool', chromosome='chr21'):
+def load_hic(name, chromosome):
     # data from ftp://cooler.csail.mit.edu/coolers/hg19/
     #name = 'Rao2014-K562-MboI-allreps-filtered.500kb.cool'
-
     c = cooler.Cooler(name)
     resolution = c.binsize
-    chro = chromosome
-    mat = c.matrix(balance=True).fetch(chro)
+    mat = c.matrix(balance=True).fetch(chromosome)
     return mat, resolution, c
 
 def log1p_hic(mat):
@@ -71,10 +69,9 @@ def cluster_hic(data, fitdata, n_cluster=30):
     # y_, ypb_, idx_nonzeros = _gmm(fitdata, H, n_cluster=n_cluster-1, order='D')
     y_, idx_nonzeros = _gmm(fitdata, H, n_cluster=n_cluster-1, order='D')
     np.set_printoptions(precision=2, suppress=True)
-    # mat_, matpb_ = _gmm_matrix(y_.int(), ypb_, idx_nonzeros, n_cluster, (mat_len, mat_len))
-    # return mat_, matpb_
+
     # mat_ = _gmm_matrix(y_.int(), ypb_, idx_nonzeros, n_cluster, (mat_len, mat_len))
-    mat_ = _gmm_matrix(y_.int(), None, idx_nonzeros, n_cluster, (mat_len, mat_len))
+    mat_ = _gmm_matrix(y_.int(), idx_nonzeros, n_cluster, (mat_len, mat_len))
     return mat_
 
 def _gmm(fitX, X, n_cluster=20, idx_nonzeros=None, order='I'):  # 'I': increasing; 'D': descreasing
@@ -84,58 +81,50 @@ def _gmm(fitX, X, n_cluster=20, idx_nonzeros=None, order='I'):  # 'I': increasin
         fitidx_nonzeros = torch.nonzero(fitX.flatten(), as_tuple=False).flatten()
         fitX = fitX[fitidx_nonzeros]
 
-    gmm = KMeans(n_clusters=n_cluster)
-    # gmm = mixture.GaussianMixture(n_components=n_cluster, 
-    #                             covariance_type='full', 
-    #                             init_params='kmeans')
-    gmm.fit(fitX.view(-1,1))
-    cluster_ids_x = gmm.predict(X.view(-1,1))
-    # cluster_centers = torch.tensor(gmm.means_)
-    cluster_centers = torch.tensor(gmm.cluster_centers_)
+    # mm = KMeans(n_clusters=n_cluster)
+    mm = mixture.GaussianMixture(n_components=n_cluster, 
+                                covariance_type='full', 
+                                init_params='kmeans')
+    mm.fit(fitX.view(-1,1))
+    cluster_ids_x = mm.predict(X.clamp(min=fitX.min(), max=fitX.max()).view(-1,1))
+    # cluster_centers = torch.tensor(mm.means_)
+    cluster_centers = torch.tensor(mm.cluster_centers_)
 
-    # pb = gmm.predict_proba(X.view(-1,1))
-    # cluster_ids_x, cluster_centers = kmeans(X=X, num_clusters=n_cluster, distance='euclidean')
     if order == 'I':
         idx = torch.squeeze(torch.argsort(
             cluster_centers.flatten(), descending=False))
     else:
         idx = torch.squeeze(torch.argsort(
             cluster_centers.flatten(), descending=True))
-    # print(cluster_centers.flatten())
-    # print(idx)
-    # print(cluster_centers[idx].flatten())
+
     lut = torch.zeros_like(idx)
     lut[idx[:]] = torch.arange(n_cluster)
     Y = lut[cluster_ids_x]
-    # Ypb = pb[:, idx[:]]
-    # return Y, Ypb, idx_nonzeros.flatten()
     return Y, idx_nonzeros.flatten()
 
-
-def _gmm_matrix(labels, probability, idx, n_cluster, matrix_size):
+def _gmm_matrix(labels, idx, n_cluster, matrix_size):
     khop_m = torch.ones(matrix_size, dtype=torch.int)*(n_cluster-1)
     khop_m = torch.flatten(khop_m)
     khop_m[idx] = labels
     khop_m = torch.reshape(khop_m, matrix_size)
     return khop_m
-    # khop_pba = np.zeros((matrix_size[0]*matrix_size[0], n_cluster))
-    # pba = np.hstack((probability, np.zeros((probability.shape[0], 1))))
 
-    # khop_pba[idx, :] = pba
-    # khop_pba[:, -1] = 1 - np.sum(khop_pba[:, 0:-1], axis=1)
-    # khop_pba = torch.tensor(khop_pba, dtype=torch.float)
-    # khop_pba = torch.reshape(
-    #     khop_pba, (matrix_size[0], matrix_size[0], n_cluster))
-    # return khop_m, khop_pba
-
-
-"""def block_reduce(raw_hic, wl, reduce_fun):
-    hic = measure.block_reduce(raw_hic, (wl, wl), reduce_fun)
-    return hic"""
 
 def iced_normalization(raw_hic):
     hic = normalization.ICE_normalization(raw_hic)
     return hic
+
+def hic_prepare(rawfile, chromosome):
+    raw_hic, resolution, cooler = load_hic(rawfile, chromosome=chromosome)
+    np.fill_diagonal(raw_hic, 0)
+    hic = raw_hic
+
+    norm_hic = iced_normalization(hic)
+    return norm_hic
+
+"""def block_reduce(raw_hic, wl, reduce_fun):
+    hic = measure.block_reduce(raw_hic, (wl, wl), reduce_fun)
+    return hic"""
 
 """def hic_prepare_block_reduce(rawfile, chromosome, ratios, reduce_fun=np.mean, remove_zero_col = True):
     raw_hic, resolution, cooler = load_hic(rawfile, chromosome = chromosome)
@@ -175,21 +164,3 @@ def hic_prepare_pooling(rawfile, chromosome, ratios, strides, remove_zero_col = 
         m = iced_normalization(h)
         norm_hics.append(m)
     return norm_hics"""
-
-def hic_prepare(rawfile, chromosome):
-    raw_hic, resolution, cooler = load_hic(rawfile, chromosome = chromosome)
-    # raw_hic = np.nan_to_num(raw_hic)
-    # raw_hic = torch.tensor(raw_hic).float()
-    # n = raw_hic.shape[0]
-
-    # #smoothing
-    # wl = 3
-    # pool1d = torch.nn.AvgPool2d(kernel_size=(wl,wl), stride=1, padding=int(wl/2), count_include_pad=False)
-    # m = pool1d(raw_hic.view(1,1,n,n))
-    # m = np.array(torch.squeeze(m))
-    # m = (m+np.transpose(m))/2
-    np.fill_diagonal(raw_hic, 0)
-    hic = raw_hic
-
-    norm_hic = iced_normalization(hic)
-    return norm_hic
