@@ -35,6 +35,11 @@ if __name__ == '__main__':
     cell = cool_file.split('.')[0]
     hyper = '_'.join([cool_file.split('.')[1], config_data["id"]])
 
+    configuration_dst_path = os.path.join(root, 'data', cell, hyper)
+    os.makedirs(configuration_dst_path, exist_ok=True)
+    shutil.copy(os.path.join(configuration_src_path,
+                             configuration_name), configuration_dst_path)
+                             
     # '/rhome/yhu/bigdata/proj/experiment_G3DM'
     root = root
     cool_data_path = os.path.join( root, 'data', 'raw')

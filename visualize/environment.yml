@@ -5,12 +5,13 @@
    - plotly
    - conda-forge
    - bioconda
+   - dglteam
+   - pytorch
  dependencies:
    - numpy
    - scipy
    - scikit-learn
    - matplotlib
-  #  - ipympl
    - jupyterlab
    - ipykernel
    - seaborn
@@ -18,9 +19,16 @@
    - nbformat
    - pandas
    - nodejs=16
-  #  - ipywidgets
+   - pytorch
+   - torchvision
+   - torchaudio
+   # - cudatoolkit =10.2
+   - dgl #-cuda10.2
    - pip
    - pip:
       - cooler
       - iced
       - chart_studio
+    
+#  - ipywidgets
+#  - ipympl

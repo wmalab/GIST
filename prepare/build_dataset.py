@@ -2,6 +2,13 @@ import dgl
 import torch
 import os
 
+def load_dataset(path, name):
+    '''graph_dict[chromosome] = {top_graph, top_subgraphs, bottom_graph, inter_graph}
+    feature_dict[chromosome] = {'feat', 'pos'} 'feat': hic features; 'pos': position features
+    HiCDataset[i]: graph[i], feature[i], cluster_weight[i], index[i]'''
+    HiCDataset = torch.load(os.path.join(path, name))
+    return HiCDataset
+
 class HiCDataset(dgl.data.DGLDataset):
     def __init__(self, graphs_dict, features_dict, cluster_weight_dict, path=None, name=None):
         self.g_dict = graphs_dict
