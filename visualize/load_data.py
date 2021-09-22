@@ -39,7 +39,9 @@ def load_prediction(path, name):
     file = os.path.join(path, name)
     with open(file, 'rb') as handle:
         # b = pickle.loads(handle.read())
-        torch.load(handle.read(), map_location=torch.device('cpu'))
+        res = torch.load(file, map_location=torch.device('cpu'))
+        return res
+
 
 if __name__ == '__main__':
     # load dataset
