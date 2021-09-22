@@ -84,7 +84,7 @@ def _gmm(fitX, X, n_cluster=20, idx_nonzeros=None, order='I'):  # 'I': increasin
                                 covariance_type='full', 
                                 init_params='kmeans')
     gmm.fit(fitX)
-    cluster_ids_x = gmm.predict(X)
+    cluster_ids_x = gmm.predict(X.view(-1,1))
     cluster_centers = torch.tensor(gmm.means_)
 
     tmp, _ = np.histogram(cluster_ids_x.flatten(),
@@ -92,8 +92,8 @@ def _gmm(fitX, X, n_cluster=20, idx_nonzeros=None, order='I'):  # 'I': increasin
                                     density=True)
     print(tmp)
     print('cluster_centers: ', cluster_centers)
-    
-    pb = gmm.predict_proba(X)
+
+    pb = gmm.predict_proba(X.view(-1,1))
     # cluster_ids_x, cluster_centers = kmeans(X=X, num_clusters=n_cluster, distance='euclidean')
     if order == 'I':
         idx = torch.squeeze(torch.argsort(
