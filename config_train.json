@@ -4,7 +4,7 @@
     "cell_name": "Rao2014-IMR90-MboI-allreps-filtered",
     "resolution": 10000,
     "all_chromosomes": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "X", "16", "17", "18", "19", "20", "21", "22"],
-    "train_valid_chromosomes": ["20", "21", "22", "X"],
+    "train_valid_chromosomes": ["X"],
     "parameter": {
         "graph":{
             "max_len": 1000,
