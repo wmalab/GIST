@@ -83,7 +83,7 @@ def _gmm(fitX, X, n_cluster=20, idx_nonzeros=None, order='I'):  # 'I': increasin
     gmm = mixture.GaussianMixture(n_components=n_cluster, 
                                 covariance_type='full', 
                                 init_params='kmeans')
-    gmm.fit(fitX)
+    gmm.fit(fitX.view(-1,1))
     cluster_ids_x = gmm.predict(X.view(-1,1))
     cluster_centers = torch.tensor(gmm.means_)
 
