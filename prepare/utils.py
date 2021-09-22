@@ -13,6 +13,7 @@ from iced import normalization
 
 from scipy.stats import percentileofscore
 from sklearn import mixture
+from sklearn.cluster import KMeans
 # from skimage import measure
 
 import dgl
@@ -67,11 +68,13 @@ def cluster_hic(data, fitdata, n_cluster=30):
     mat_len = data.shape[0]
     H = torch.tensor(data).flatten()
     fitdata = torch.tensor(fitdata).flatten()
-    y_, ypb_, idx_nonzeros = _gmm(fitdata, H, n_cluster=n_cluster-1, order='D')
+    # y_, ypb_, idx_nonzeros = _gmm(fitdata, H, n_cluster=n_cluster-1, order='D')
+    y_, idx_nonzeros = _gmm(fitdata, H, n_cluster=n_cluster-1, order='D')
     np.set_printoptions(precision=2, suppress=True)
     # mat_, matpb_ = _gmm_matrix(y_.int(), ypb_, idx_nonzeros, n_cluster, (mat_len, mat_len))
     # return mat_, matpb_
-    mat_ = _gmm_matrix(y_.int(), ypb_, idx_nonzeros, n_cluster, (mat_len, mat_len))
+    # mat_ = _gmm_matrix(y_.int(), ypb_, idx_nonzeros, n_cluster, (mat_len, mat_len))
+    mat_ = _gmm_matrix(y_.int(), None, idx_nonzeros, n_cluster, (mat_len, mat_len))
     return mat_
 
 def _gmm(fitX, X, n_cluster=20, idx_nonzeros=None, order='I'):  # 'I': increasing; 'D': descreasing
@@ -81,21 +84,22 @@ def _gmm(fitX, X, n_cluster=20, idx_nonzeros=None, order='I'):  # 'I': increasin
         fitidx_nonzeros = torch.nonzero(fitX.flatten(), as_tuple=False).flatten()
         fitX = fitX[fitidx_nonzeros]
 
-    # cl, c = KMeans(X, n_cluster)
-    gmm = mixture.GaussianMixture(n_components=n_cluster, 
-                                covariance_type='full', 
-                                init_params='kmeans')
+    gmm = KMeans(n_clusters=n_cluster)
+    # gmm = mixture.GaussianMixture(n_components=n_cluster, 
+    #                             covariance_type='full', 
+    #                             init_params='kmeans')
     gmm.fit(fitX.view(-1,1))
     cluster_ids_x = gmm.predict(X.view(-1,1))
-    cluster_centers = torch.tensor(gmm.means_)
+    # cluster_centers = torch.tensor(gmm.means_)
+    cluster_centers = torch.tensor(gmm.cluster_centers_)
 
     tmp, _ = np.histogram(cluster_ids_x.flatten(),
-                                    bins=np.arange(n_cluster),
-                                    density=True)
+                        bins=np.arange(n_cluster+1),
+                        density=True)
     print(tmp)
     print('cluster_centers: ', cluster_centers)
 
-    pb = gmm.predict_proba(X.view(-1,1))
+    # pb = gmm.predict_proba(X.view(-1,1))
     # cluster_ids_x, cluster_centers = kmeans(X=X, num_clusters=n_cluster, distance='euclidean')
     if order == 'I':
         idx = torch.squeeze(torch.argsort(
@@ -109,8 +113,9 @@ def _gmm(fitX, X, n_cluster=20, idx_nonzeros=None, order='I'):  # 'I': increasin
     lut = torch.zeros_like(idx)
     lut[idx[:]] = torch.arange(n_cluster)
     Y = lut[cluster_ids_x]
-    Ypb = pb[:, idx[:]]
-    return Y, Ypb, idx_nonzeros.flatten()
+    # Ypb = pb[:, idx[:]]
+    # return Y, Ypb, idx_nonzeros.flatten()
+    return Y, idx_nonzeros.flatten()
 
 
 def _gmm_matrix(labels, probability, idx, n_cluster, matrix_size):
