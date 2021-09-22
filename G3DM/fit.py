@@ -236,7 +236,7 @@ def predict(graphs, features, num_heads, num_clusters, em_networks, ae_networks,
             # pdm = np.zeros((pred_X.shape[0], pred_X.shape[0]))
             # pdm[xs, ys] = xp.view(-1,).cpu().detach().numpy()
 
-            pdcm_list.append(pdcm.astype(np.uint8).cpu().detach().numpy())
+            pdcm_list.append(pdcm.astype(np.uint8))
             # pdm_list.append(pdm)
 
         return pred_X, pred_dist_cluster_mat, pdcm_list, [true_cluster_mat, dis_gmm.cpu().detach()] # , pred_dist_mat, pdm_list
