@@ -3,7 +3,7 @@ import json, pickle
 import numpy as np
 import multiprocessing
 
-from prepare.utils import log1p_hic, save_graph, load_graph, hic_prepare
+from prepare.utils import load_graph
 from prepare.build_data import create_fit_data
 from prepare.build_feature import load_feature
 

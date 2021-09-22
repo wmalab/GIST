@@ -37,7 +37,7 @@ def load_graph(path, file) -> dict() :
             }
     return res, labels
 
-def load_hic(name='Dixon2012-H1hESC-HindIII-allreps-filtered.500kb.cool', chromosome='chr1'):
+def load_hic(name='Dixon2012-H1hESC-HindIII-allreps-filtered.500kb.cool', chromosome='chr21'):
     # data from ftp://cooler.csail.mit.edu/coolers/hg19/
     #name = 'Rao2014-K562-MboI-allreps-filtered.500kb.cool'
 
