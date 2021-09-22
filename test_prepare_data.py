@@ -60,7 +60,7 @@ if __name__ == '__main__':
 
     dim = config_data['parameter']['feature']['in_dim']
 
-    for chromosome in all_chromosome:
+    for chromosome in train_chromosomes:
         create_fit_data(num_clusters, chromosome, dim,
                         cutoff_clusters_limits, 
                         cutoff_cluster, 
@@ -72,7 +72,7 @@ if __name__ == '__main__':
     feature_dict = dict()
     cluster_weight_dict = dict()
     train_list, test_list = list(), list()
-    for chromosome in all_chromosome:
+    for chromosome in train_chromosomes:
         feature_dict[str(chromosome)] = load_feature(feature_path, 'F_chr-{}'.format(chromosome))
         cluster_weight_dict[str(chromosome)] = feature_dict[str(chromosome)]['cluster_weight']
 

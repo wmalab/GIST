@@ -5,7 +5,8 @@ import os
 def load_dataset(path, name):
     '''graph_dict[chromosome] = {top_graph, top_subgraphs, bottom_graph, inter_graph}
     feature_dict[chromosome] = {'feat', 'pos'} 'feat': hic features; 'pos': position features
-    HiCDataset[i]: graph[i], feature[i], cluster_weight[i], index[i]'''
+    HiCDataset[i]: graph[i], feature[i], cluster_weight[i], index[i]
+    cluster_weight[i]: the partition of ith cluster in entire chromosome hic matrix'''
     HiCDataset = torch.load(os.path.join(path, name))
     return HiCDataset
 
