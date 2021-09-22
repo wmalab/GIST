@@ -69,8 +69,10 @@ def cluster_hic(data, fitdata, n_cluster=30):
     fitdata = torch.tensor(fitdata).flatten()
     y_, ypb_, idx_nonzeros = _gmm(fitdata, H, n_cluster=n_cluster-1, order='D')
     np.set_printoptions(precision=2, suppress=True)
-    mat_, matpb_ = _gmm_matrix(y_.int(), ypb_, idx_nonzeros, n_cluster, (mat_len, mat_len))
-    return mat_, matpb_
+    # mat_, matpb_ = _gmm_matrix(y_.int(), ypb_, idx_nonzeros, n_cluster, (mat_len, mat_len))
+    # return mat_, matpb_
+    mat_ = _gmm_matrix(y_.int(), ypb_, idx_nonzeros, n_cluster, (mat_len, mat_len))
+    return mat_
 
 def _gmm(fitX, X, n_cluster=20, idx_nonzeros=None, order='I'):  # 'I': increasing; 'D': descreasing
     if idx_nonzeros is None:
@@ -88,7 +90,7 @@ def _gmm(fitX, X, n_cluster=20, idx_nonzeros=None, order='I'):  # 'I': increasin
     cluster_centers = torch.tensor(gmm.means_)
 
     tmp, _ = np.histogram(cluster_ids_x.flatten(),
-                                    bins=np.arange(num_clusters),
+                                    bins=np.arange(n_cluster),
                                     density=True)
     print(tmp)
     print('cluster_centers: ', cluster_centers)
@@ -116,16 +118,16 @@ def _gmm_matrix(labels, probability, idx, n_cluster, matrix_size):
     khop_m = torch.flatten(khop_m)
     khop_m[idx] = labels
     khop_m = torch.reshape(khop_m, matrix_size)
+    return khop_m
+    # khop_pba = np.zeros((matrix_size[0]*matrix_size[0], n_cluster))
+    # pba = np.hstack((probability, np.zeros((probability.shape[0], 1))))
 
-    khop_pba = np.zeros((matrix_size[0]*matrix_size[0], n_cluster))
-    pba = np.hstack((probability, np.zeros((probability.shape[0], 1))))
-
-    khop_pba[idx, :] = pba
-    khop_pba[:, -1] = 1 - np.sum(khop_pba[:, 0:-1], axis=1)
-    khop_pba = torch.tensor(khop_pba, dtype=torch.float)
-    khop_pba = torch.reshape(
-        khop_pba, (matrix_size[0], matrix_size[0], n_cluster))
-    return khop_m, khop_pba
+    # khop_pba[idx, :] = pba
+    # khop_pba[:, -1] = 1 - np.sum(khop_pba[:, 0:-1], axis=1)
+    # khop_pba = torch.tensor(khop_pba, dtype=torch.float)
+    # khop_pba = torch.reshape(
+    #     khop_pba, (matrix_size[0], matrix_size[0], n_cluster))
+    # return khop_m, khop_pba
 
 
 """def block_reduce(raw_hic, wl, reduce_fun):
