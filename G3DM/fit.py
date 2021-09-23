@@ -135,7 +135,7 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
     one_hot_lt = torch.nn.functional.one_hot(sample_lt.long(), ncluster)
     l_wnl = loss_fc[1](sample_dis_cmpt_lp, one_hot_lt, weight)
 
-    l_lf = losses.focal_loss(dis_cmpt_lp, lt.long(), alpha=0.5, gamma=5.0, reduction='mean')
+    # l_lf = losses.focal_loss(dis_cmpt_lp, lt.long(), alpha=0.5, gamma=5.0, reduction='mean')
 
     if require_grad:
         loss = 5*sample_l_nll + 5*l_wnl + l_similarity.nansum() + l_diff_g.nansum() # + l_wnl + l_stdl 5*l_wnl +
