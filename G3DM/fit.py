@@ -114,7 +114,7 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
         # nidx = p.multinomial( num_samples=int( n[i]), replacement=True)
         # nidx = p.multinomial(num_samples=int( torch.minimum(n[i], 2*torch.tensor(idx.shape[0])) ), replacement=True)
         if n[i] > torch.tensor(idx.shape[0]):
-            t = 1 # int(n[i]/idx.shape[0])
+            t = int(n[i]/idx.shape[0])
             idx = (idx.repeat(t)).long()
         else:
             nidx = p.multinomial( num_samples=int(n[i]), replacement=False)
@@ -130,11 +130,12 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
 
     weight = torch.linspace(np.pi*0.1, np.pi*0.75, steps=ncluster, device=device)
     weight = torch.sin(weight) + 1.0 
-    l_lf = losses.focal_loss(dis_cmpt_lp, lt.long(), alpha=0.5, gamma=5.0, reduction='mean')
     l_nll = loss_fc[0](dis_cmpt_lp, lt, weight)
     sample_l_nll = loss_fc[0](sample_dis_cmpt_lp, sample_lt, weight)
     one_hot_lt = torch.nn.functional.one_hot(sample_lt.long(), ncluster)
     l_wnl = loss_fc[1](sample_dis_cmpt_lp, one_hot_lt, weight)
+
+    l_lf = losses.focal_loss(dis_cmpt_lp, lt.long(), alpha=0.5, gamma=5.0, reduction='mean')
 
     if require_grad:
         loss = 5*sample_l_nll + 5*l_wnl + l_lf + l_similarity.nansum() + l_diff_g.nansum() # + l_wnl + l_stdl 
