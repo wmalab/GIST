@@ -74,14 +74,14 @@ class encoder_chain(torch.nn.Module):
         self.fcmh = torch.nn.Linear(len(etypes), len(etypes), bias=False)
 
         gain = torch.nn.init.calculate_gain('leaky_relu', 0.2)
-        torch.nn.init.xavier_uniform_(self.fc1.weight, gain=gain)
+        # torch.nn.init.xavier_uniform_(self.fc1.weight, gain=gain)
         torch.nn.init.xavier_uniform_(self.fc2.weight, gain=gain)
         torch.nn.init.xavier_uniform_(self.fcmh.weight, gain=gain)
 
-    def agg_func1(self, tensors, dsttype):
-        stacked = torch.stack(tensors, dim=-1)
-        res = self.fc1(stacked)
-        return torch.mean(res, dim=-1)
+    # def agg_func1(self, tensors, dsttype):
+    #     stacked = torch.stack(tensors, dim=-1)
+    #     res = self.fc1(stacked)
+    #     return torch.mean(res, dim=-1)
 
     def agg_func2(self, tensors, dsttype):
         stacked = torch.stack(tensors, dim=-1)
@@ -186,6 +186,8 @@ class decoder_gmm(torch.nn.Module):
         super(decoder_gmm, self).__init__()
         self.num_clusters = num_clusters
 
+        self.k = torch.nn.Parameter( torch.ones(self.num_clusters), requires_grad=True)
+
         ms = torch.linspace(0, 4.0, steps=self.num_clusters, dtype=torch.float, requires_grad=True)
         self.means = torch.nn.Parameter( ms, requires_grad=True)
 
@@ -197,17 +199,33 @@ class decoder_gmm(torch.nn.Module):
         self.cweight = torch.nn.Parameter( torch.zeros((self.num_clusters)), requires_grad=True)
         self.bias =  torch.nn.Parameter( torch.linspace(1e-8, 1e-6, steps=self.num_clusters, dtype=torch.float), requires_grad=False)
 
+    # gmm
+    def fc(self, stds_l, stds_r, k):
+        k = torch.sigmoid(k.clamp(min=-9.0, max=9.0))
+        k = k.clamp(min=0.1)
+        rate = torch.div(stds_l, stds_r)
+        kr = (k*rate).clamp(max=0.99 ) # must < 1
+        return stds_l * torch.sqrt( -2.0 * torch.log(kr) )
 
     def forward(self, distance):
         cweight = torch.nn.functional.softmax(self.cweight.view(-1,), 0)
         mix = D.Categorical(cweight)
 
-        activate = torch.nn.LeakyReLU(0.01)
-        means = activate(self.means).clamp(max=4.5)
-        means = torch.nan_to_num(means, nan=4.5)
-        means = means + self.interval
-
         stds = torch.relu(self.distance_stdevs) + 1e-3
+
+        d_left = self.fc(stds, stds, self.k) #.clamp(min=0.0)
+        d_left = torch.relu(torch.cumsum(d_left, dim=0)) #.clamp(min=0.0)
+
+        d_right = self.fc(stds[0:-1], stds[1:], self.k[1:])
+        d_right = torch.cat( (torch.zeros(1, device=d_right.device), d_right), dim=0)
+        means = ((d_left + d_right) + self.interval).clamp(max=5.0)
+
+        # activate = torch.nn.LeakyReLU(0.01)
+        # means = activate(self.means).clamp(max=4.5)
+        # means = torch.nan_to_num(means, nan=4.5)
+        # means = means + self.interval
+        # stds = torch.relu(self.distance_stdevs) + 1e-3
+
         mode = torch.exp(means - stds**2)
         _, idx = torch.sort(mode.view(-1,), dim=0, descending=False)
         means = means[idx]
