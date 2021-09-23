@@ -47,7 +47,7 @@ def create_network(configuration, device):
     de_euc_net = decoder_euclidean().to(device).float()
     de_sim_net = decoder_similarity().to(device).float()
 
-    nll = losses.focal_loss # nllLoss().to(device).float()
+    nll = nllLoss().to(device).float()
     wnl = WassersteinLoss(nc).to(device).float()
     msel = RMSLELoss().to(device).float()
 
@@ -130,14 +130,14 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
 
     weight = torch.linspace(np.pi*0.1, np.pi*0.75, steps=ncluster, device=device)
     weight = torch.sin(weight) + 1.0 
-
-    l_nll = loss_fc[0](dis_cmpt_lp, lt.long(), alpha=0.5, gamma=2.0, reduction='mean') # loss_fc[0](dis_cmpt_lp, lt, weight)
-    sample_l_nll = loss_fc[0](sample_dis_cmpt_lp, sample_lt.long(), alpha=0.5, gamma=2.0, reduction='mean') # loss_fc[0](sample_dis_cmpt_lp, sample_lt, weight)
+    l_lf = losses.focal_loss(dis_cmpt_lp, lt.long(), alpha=0.5, gamma=5.0, reduction='mean')
+    l_nll = loss_fc[0](dis_cmpt_lp, lt, weight)
+    sample_l_nll = loss_fc[0](sample_dis_cmpt_lp, sample_lt, weight)
     one_hot_lt = torch.nn.functional.one_hot(sample_lt.long(), ncluster)
     l_wnl = loss_fc[1](sample_dis_cmpt_lp, one_hot_lt, weight)
 
     if require_grad:
-        loss = 5*sample_l_nll + 5*l_wnl + l_similarity.nansum() + l_diff_g.nansum() # + l_wnl + l_stdl 
+        loss = 5*sample_l_nll + 5*l_wnl + l_lf + l_similarity.nansum() + l_diff_g.nansum() # + l_wnl + l_stdl 
         optimizer[0].zero_grad()
         loss.backward()  # retain_graph=False, create_graph = True
         optimizer[0].step()
