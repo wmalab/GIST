@@ -4,6 +4,7 @@ import dgl
 import torch
 import torch_optimizer as optim
 import numpy as np
+from kornia import losses
 
 from .model import embedding, encoder_chain, decoder_distance, decoder_gmm, decoder_euclidean, decoder_similarity
 from .model import save_model_state_dict
@@ -46,7 +47,7 @@ def create_network(configuration, device):
     de_euc_net = decoder_euclidean().to(device).float()
     de_sim_net = decoder_similarity().to(device).float()
 
-    nll = nllLoss().to(device).float()
+    nll = losses.focal_loss # nllLoss().to(device).float()
     wnl = WassersteinLoss(nc).to(device).float()
     msel = RMSLELoss().to(device).float()
 
@@ -130,7 +131,7 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
     weight = torch.linspace(np.pi*0.1, np.pi*0.75, steps=ncluster, device=device)
     weight = torch.sin(weight) + 1.0 
 
-    l_nll = loss_fc[0](dis_cmpt_lp, lt, weight)
+    l_nll = loss_fc(dis_cmpt_lp, lt, alpha=0.5, gamma=2.0, reduction='mean') # loss_fc[0](dis_cmpt_lp, lt, weight)
     sample_l_nll = loss_fc[0](sample_dis_cmpt_lp, sample_lt, weight)
     one_hot_lt = torch.nn.functional.one_hot(sample_lt.long(), ncluster)
     l_wnl = loss_fc[1](sample_dis_cmpt_lp, one_hot_lt, weight)
