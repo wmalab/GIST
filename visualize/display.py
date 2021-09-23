@@ -67,9 +67,10 @@ def plot_confusion_mat(pred, true, figsize=(10,10)):
 
 
 if __name__ == '__main__':
-    matu = np.arange(25).reshape(5,5)
-    matl = -1*np.arange(25).reshape(5,5)
-    plot_mat_diag(matu, matl)
+    pass
+    # matu = np.arange(25).reshape(5,5)
+    # matl = -1*np.arange(25).reshape(5,5)
+    # plot_mat_diag(matu, matl)
 
     # v1 = np.random.normal(0, 1.0, 300)
     # v2 = np.random.normal(2, 0.3, 100)
