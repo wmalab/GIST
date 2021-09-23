@@ -138,7 +138,7 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
     l_lf = losses.focal_loss(dis_cmpt_lp, lt.long(), alpha=0.5, gamma=5.0, reduction='mean')
 
     if require_grad:
-        loss = 5*sample_l_nll + 5*l_lf + l_similarity.nansum() + l_diff_g.nansum() # + l_wnl + l_stdl 5*l_wnl +
+        loss = 5*sample_l_nll + 5*l_wnl + l_similarity.nansum() + l_diff_g.nansum() # + l_wnl + l_stdl 5*l_wnl +
         optimizer[0].zero_grad()
         loss.backward()  # retain_graph=False, create_graph = True
         optimizer[0].step()
