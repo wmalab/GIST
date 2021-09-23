@@ -53,7 +53,7 @@ class encoder_chain(torch.nn.Module):
             l1[et] = dgl.nn.GATConv( in_dim, hidden_dim, 
                                     num_heads=1, residual=False, 
                                     allow_zero_in_degree=True)
-        self.layer1 = dgl.nn.HeteroGraphConv( l1, aggregate = self.agg_func1)
+        self.layer1 = dgl.nn.HeteroGraphConv( l1, aggregate = 'mean')
 
         l2 = dict()
         for et in etypes:
