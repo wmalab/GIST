@@ -86,7 +86,7 @@ def _gmm(fitX, X, n_cluster=20, idx_nonzeros=None, order='I'):  # 'I': increasin
                                 init_params='kmeans')
     # mm = KMeans(n_clusters=n_cluster)
     mm.fit(fitX.view(-1,1))
-    cluster_ids_x = mm.predict(X.clamp(min=fitX.min(), max=fitX.max()).view(-1,1))
+    cluster_ids_x = mm.predict(X.clamp(min=fitX.min()*0.8, max=fitX.max()*1.2).view(-1,1))
     
     cluster_centers = torch.tensor(mm.means_)
     # cluster_centers = torch.tensor(mm.cluster_centers_)

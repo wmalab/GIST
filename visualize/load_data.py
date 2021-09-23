@@ -52,9 +52,6 @@ def load_configuration(path, name):
     info['cell'] = cell
     return info, config_data
 
-    
-
-
 def load_prediction(path, name):
     file = os.path.join(path, name)
     with open(file, 'rb') as handle:
