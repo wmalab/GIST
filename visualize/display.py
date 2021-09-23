@@ -67,9 +67,9 @@ def plot_confusion_mat(pred, true, figsize=(10,10)):
 
 
 if __name__ == '__main__':
-    # matu = np.arange(25).reshape(5,5)
-    # matl = -1*np.arange(25).reshape(5,5)
-    # plot_mat_diag(matu, matl)
+    matu = np.arange(25).reshape(5,5)
+    matl = -1*np.arange(25).reshape(5,5)
+    plot_mat_diag(matu, matl)
 
     # v1 = np.random.normal(0, 1.0, 300)
     # v2 = np.random.normal(2, 0.3, 100)
@@ -79,8 +79,8 @@ if __name__ == '__main__':
     # l = np.concatenate([l1, l2], axis=0).astype(int)
     # plot_label_value_distribution(v, l)
 
-    v1 = (np.random.normal(0, 1.0, 500)*2).astype(int)
-    v2 = (np.random.normal(0, 1.0, 500)*2).astype(int)
-    v1 = np.sort(v1)
-    v2 = np.sort(v2)
-    plot_confusion_mat(v1, v2)
+    # v1 = (np.random.normal(0, 1.0, 500)*2).astype(int)
+    # v2 = (np.random.normal(0, 1.0, 500)*2).astype(int)
+    # v1 = np.sort(v1)
+    # v2 = np.sort(v2)
+    # plot_confusion_mat(v1, v2)
