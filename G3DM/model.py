@@ -67,7 +67,7 @@ class encoder_chain(torch.nn.Module):
             l3[et] = dgl.nn.GATConv( hidden_dim, hidden_dim, 
                                     num_heads=1, residual=False, 
                                     allow_zero_in_degree=True)
-        self.layer3 = dgl.nn.HeteroGraphConv( l2, aggregate = 'mean')
+        self.layer3 = dgl.nn.HeteroGraphConv( l3, aggregate = self.agg_func3)
 
         lMH = dict()
         for et in etypes:
@@ -77,6 +77,7 @@ class encoder_chain(torch.nn.Module):
         self.layerMHs = dgl.nn.HeteroGraphConv( lMH, aggregate=self.agg_funcMH)
 
         self.fc2 = torch.nn.Linear(len(etypes), len(etypes), bias=False)
+        self.fc3 = torch.nn.Linear(len(etypes), len(etypes), bias=False)
         self.fcmh = torch.nn.Linear(len(etypes), len(etypes), bias=False)
 
         gain = torch.nn.init.calculate_gain('leaky_relu', 0.2)
@@ -86,6 +87,11 @@ class encoder_chain(torch.nn.Module):
     def agg_func2(self, tensors, dsttype):
         stacked = torch.stack(tensors, dim=-1)
         res = self.fc2(stacked)
+        return torch.mean(res, dim=-1)
+
+    def agg_func3(self, tensors, dsttype):
+        stacked = torch.stack(tensors, dim=-1)
+        res = self.fc3(stacked)
         return torch.mean(res, dim=-1)
 
     def agg_funcMH(self, tensors, dsttype):
