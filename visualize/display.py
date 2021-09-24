@@ -22,7 +22,7 @@ def plot_mat_diag(matu, matl):
     mskl[np.tril_indices_from(mskl)] = True
 
     fig = plt.figure()
-    sns.heatmap(mat, annot=False, mask=msku, cmap='RdBu_r', square=True)
+    sns.heatmap(mat, annot=False, mask=msku, cmap='RdBu', square=True)
     sns.heatmap(mat, annot=False, mask=mskl, cmap='RdBu_r', square=True)
     plt.show()
 
