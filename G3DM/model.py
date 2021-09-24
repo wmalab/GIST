@@ -105,6 +105,7 @@ class encoder_chain(torch.nn.Module):
 
     def forward(self, g, x, lr_ranges, etypes, ntype):
         subg_interacts = g.edge_type_subgraph(etypes)
+        sub_0 = g.edge_type_subgraph(etypes[0])
         lr_ranges = torch.cat( ( torch.zeros((1), device=lr_ranges.device), 
                                 lr_ranges.view(-1,), 
                                 torch.tensor(float('inf'), device=lr_ranges.device).view(-1,) ), 
@@ -114,14 +115,14 @@ class encoder_chain(torch.nn.Module):
         h = torch.squeeze(h[ntype[0]], dim=1)
         h = self.layer2(subg_interacts, {ntype[0]: h })
         x = torch.squeeze(h[ntype[0]], dim=1)
-        x = self.layerConstruct(subg_interacts, x, [lr_ranges[0], lr_ranges[2]], etypes[0])
+        # x = self.layerConstruct(subg_interacts, x, [lr_ranges[0], lr_ranges[2]], etypes[0])
         h_res = x
         h = self.layerMHs(subg_interacts, {ntype[0]: x })
         res = list()
         for i in torch.arange(self.num_heads):
             x = h[ntype[0]][:,i,:]
             # x = self.norm_(x)
-            x = self.layerConstruct(subg_interacts, x, [lr_ranges[0], lr_ranges[2]], etypes[0])
+            x = self.layerConstruct(sub_0, x, [lr_ranges[0], lr_ranges[2]], etypes[0])
             res.append(x)
         res = torch.stack(res, dim=1)
         return res, h_res
