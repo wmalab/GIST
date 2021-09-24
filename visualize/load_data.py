@@ -35,7 +35,7 @@ def load_configuration(path, name):
     # predict one chromosome per prediction
     cfile = config_data['cool_file']
     cell = cfile.split('.')[0]
-    hyper = '_'.join([cool_file.split('.')[1], config_data["id"]])
+    hyper = '_'.join([cfile.split('.')[1], config_data["id"]])
     chromosome = config_data['test_chromosomes'][0]
     section_start = int(config_data['parameter']['section']['start'])
     section_end = int(config_data['parameter']['section']['end'])
