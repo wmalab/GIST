@@ -107,7 +107,7 @@ class encoder_chain(torch.nn.Module):
     def forward(self, g, x, lr_ranges, etypes, ntype):
         subg_interacts = g.edge_type_subgraph(etypes)
         sub_0 = g.edge_type_subgraph([etypes[0]])
-        lr_ranges = torch.cat( ( 0.8*torch.oens((1), device=lr_ranges.device), 
+        lr_ranges = torch.cat( ( 0.8*torch.ones((1), device=lr_ranges.device), 
                                 lr_ranges.view(-1,), 
                                 torch.tensor(float('inf'), device=lr_ranges.device).view(-1,) ), 
                                 dim=0).float().to(lr_ranges.device)
