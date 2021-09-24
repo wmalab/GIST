@@ -89,7 +89,7 @@ class encoder_chain(torch.nn.Module):
         # stacked = torch.stack(tensors, dim=-1)
         stacked = torch.cat(tensors, dim=-1)
         res = self.fc2(stacked)
-        return torch.mean(res, dim=-1)
+        return res #torch.mean(res, dim=-1)
 
     def agg_funcMH(self, tensors, dsttype):
         stacked = torch.stack(tensors, dim=-1)
