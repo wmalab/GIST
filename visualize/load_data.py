@@ -35,7 +35,8 @@ def load_configuration(path, name):
     # predict one chromosome per prediction
     cfile = config_data['cool_file']
     cell = cfile.split('.')[0]
-    chromosome = config_data['test_chromosomes']
+    hyper = '_'.join([cool_file.split('.')[1], config_data["id"]])
+    chromosome = config_data['test_chromosomes'][0]
     section_start = int(config_data['parameter']['section']['start'])
     section_end = int(config_data['parameter']['section']['end'])
     resolution = int(config_data['resolution'])
@@ -50,6 +51,7 @@ def load_configuration(path, name):
     info['nhead'] = num_heads
     info['cool_file'] = cfile
     info['cell'] = cell
+    info['hyper'] = hyper
     return info, config_data
 
 def load_prediction(path, name):
