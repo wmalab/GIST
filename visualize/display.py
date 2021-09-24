@@ -76,7 +76,11 @@ def plot_3D(X, idx, opacity=0.7):
     fig = px.scatter_3d(df, x='x', y='y', z='z',
               color='id', size_max=8, opacity=opacity)
     # tight layout
-    fig.update_layout(margin=dict(l=0, r=0, b=0, t=0))
+    #this string can be 'data', 'cube', 'auto', 'manual'
+    #a custom aspectratio is defined as follows:
+    fig.update_layout(margin=dict(l=0, r=0, b=0, t=0), 
+                    aspectmode='manual', 
+                    aspectratio=dict(x=1, y=1, z=1))
     # fig.show()
     return fig
 
