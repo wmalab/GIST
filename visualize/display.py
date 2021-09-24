@@ -65,6 +65,7 @@ def plot_confusion_mat(pred, true, figsize=(10,10)):
     sns.heatmap(cm, cmap= 'YlGnBu', annot=annot, fmt='', ax=ax) #"YlGnBu"
     plt.show()
 
+
 def plot_3D(X, idx, opacity=0.7):
     x = X[:,0].flatten()
     y = X[:,1].flatten()
@@ -73,15 +74,19 @@ def plot_3D(X, idx, opacity=0.7):
 
     data = {'x': x, 'y': y, 'z': z, 'id': idx}
     df = pd.DataFrame(data=data)
-    fig = px.scatter_3d(df, x='x', y='y', z='z',
-              color='id', size_max=8, opacity=opacity)
+    fig_scatter = px.scatter_3d(df, x='x', y='y', z='z', color='id', size_max=8, opacity=opacity)
     # tight layout
     #this string can be 'data', 'cube', 'auto', 'manual'
     #a custom aspectratio is defined as follows:
-    fig.update_layout(margin=dict(l=0, r=0, b=0, t=0), 
-                    aspectratio=dict(x=1, y=1, z=1))
+    fig_scatter.update_layout(margin=dict(l=0, r=0, b=0, t=0))
+    scene=dict(camera=dict(eye=dict(x=1.15, y=1.15, z=0.8)),
+               xaxis=dict(), yaxis=dict(), zaxis=dict(),
+               aspectmode='manual', #this string can be 'data', 'cube', 'auto', 'manual'
+               aspectratio=dict(x=1, y=1, z=1) )
+    fig_scatter.update_layout(scene=scene)
+    
     # fig.show()
-    return fig
+    return fig_scatter
 
 if __name__ == '__main__':
     pass
