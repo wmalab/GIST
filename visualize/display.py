@@ -5,6 +5,7 @@ import seaborn as sns
 import pandas as pd
 import matplotlib.pyplot as plt
 import plotly
+import plotly.express as px
 from sklearn.metrics import confusion_matrix
 
 
@@ -64,7 +65,18 @@ def plot_confusion_mat(pred, true, figsize=(10,10)):
     sns.heatmap(cm, cmap= 'YlGnBu', annot=annot, fmt='', ax=ax) #"YlGnBu"
     plt.show()
 
+def plot_3D(X, idx):
+    x = X[:,0].flatten()
+    y = X[:,1].flatten()
+    z = X[:,2].flatten()
+    idx = idx.flatten()
 
+    data = {'x': x, 'y': y, 'z': z, 'id': idx}
+    df = pd.DataFrame(data=data)
+    fig = px.scatter_3d(df, x='x', y='y', z='z',
+              color='id', size_max=18, opacity=0.7)
+    # tight layout
+    fig.update_layout(margin=dict(l=0, r=0, b=0, t=0))
 
 if __name__ == '__main__':
     pass
