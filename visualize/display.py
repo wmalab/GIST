@@ -65,7 +65,7 @@ def plot_confusion_mat(pred, true, figsize=(10,10)):
     sns.heatmap(cm, cmap= 'YlGnBu', annot=annot, fmt='', ax=ax) #"YlGnBu"
     plt.show()
 
-def plot_3D(X, idx):
+def plot_3D(X, idx, opacity=0.7):
     x = X[:,0].flatten()
     y = X[:,1].flatten()
     z = X[:,2].flatten()
@@ -74,10 +74,10 @@ def plot_3D(X, idx):
     data = {'x': x, 'y': y, 'z': z, 'id': idx}
     df = pd.DataFrame(data=data)
     fig = px.scatter_3d(df, x='x', y='y', z='z',
-              color='id', size_max=18, opacity=0.7)
+              color='id', size_max=8, opacity=opacity)
     # tight layout
     fig.update_layout(margin=dict(l=0, r=0, b=0, t=0))
-    fig.show()
+    # fig.show()
     return fig
 
 if __name__ == '__main__':
