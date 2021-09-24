@@ -1,5 +1,5 @@
 import time
-import os
+import os, sys
 import json
 import dgl
 import torch
@@ -24,7 +24,7 @@ if __name__ == '__main__':
     # root = os.path.join('.') #
     root = os.path.join('/rhome/yhu/bigdata/proj/experiment_G3DM')
     configuration_src_path = os.path.join(root, 'data')
-    configuration_name = 'config_train.json'
+    configuration_name = sys.argv[1]# 'config_train.json'
     with open(os.path.join(configuration_src_path, configuration_name)) as f:
         config_data = json.load(f)
 

@@ -1,0 +1,25 @@
+{   "id": "train_gmm_22",
+    "cool_data_path":"",
+    "cool_file": "Rao2014-IMR90-MboI-allreps-filtered.10kb.cool", 
+    "cell_name": "Rao2014-IMR90-MboI-allreps-filtered",
+    "resolution": 10000,
+    "all_chromosomes": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "X", "16", "17", "18", "19", "20", "21", "22"],
+    "train_valid_chromosomes": ["22"],
+    "parameter": {
+        "graph":{
+            "max_len": 1000,
+            "num_clusters": 7,
+            "cutoff_clusters":{"low": 5.0, "high": 100},
+            "cutoff_cluster": 4
+        },
+        "feature":{
+            "in_dim": 300,
+            "out_dim": 30
+        },
+        "G3DM":{
+            "iteration": 60,
+            "num_heads": 40,
+            "graph_dim":{"in_dim":30, "hidden_dim":10, "out_dim": 3}
+        }
+    }
+}

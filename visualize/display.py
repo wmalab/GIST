@@ -62,7 +62,7 @@ def plot_confusion_mat(pred, true, figsize=(10,10)):
     cm.index.name = 'Actual'
     cm.columns.name = 'Predicted'
     fig, ax = plt.subplots(figsize=figsize)
-    sns.heatmap(cm, cmap= 'YlGnBu', annot=annot, fmt='', ax=ax) #"YlGnBu"
+    sns.heatmap(cm, cmap= 'YlGnBu', annot=annot, fmt='', ax=ax, square=True) #"YlGnBu"
     plt.show()
 
 

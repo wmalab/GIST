@@ -1,4 +1,4 @@
-import time, os, json, pickle, shutil
+import time, os, json, pickle, shutil, sys
 import dgl, torch 
 from torch.utils import tensorboard
 import GPUtil
@@ -27,7 +27,7 @@ if __name__ == '__main__':
     # root = os.path.join('.') #
     root = os.path.join('/rhome/yhu/bigdata/proj/experiment_G3DM')
     configuration_src_path = os.path.join(root, 'data')
-    configuration_name = 'config_predict.json'
+    configuration_name = sys.argv[1]#'config_predict.json'
     with open(os.path.join(configuration_src_path, configuration_name)) as f:
         config_data = json.load(f)
 
