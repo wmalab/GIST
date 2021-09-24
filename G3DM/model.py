@@ -78,6 +78,8 @@ class encoder_chain(torch.nn.Module):
         torch.nn.init.xavier_uniform_(self.fc2.weight, gain=gain)
         torch.nn.init.xavier_uniform_(self.fcmh.weight, gain=gain)
 
+        self.layerConstruct = ConstructLayer()
+
     # def agg_func1(self, tensors, dsttype):
     #     stacked = torch.stack(tensors, dim=-1)
     #     res = self.fc1(stacked)
@@ -112,13 +114,14 @@ class encoder_chain(torch.nn.Module):
         h = torch.squeeze(h[ntype[0]], dim=1)
         h = self.layer2(subg_interacts, {ntype[0]: h })
         x = torch.squeeze(h[ntype[0]], dim=1)
-       
+        x = self.layerConstruct(subg_interacts, x, [lr_ranges[0], lr_ranges[2]], etypes[0])
         h_res = x
         h = self.layerMHs(subg_interacts, {ntype[0]: x })
         res = list()
         for i in torch.arange(self.num_heads):
             x = h[ntype[0]][:,i,:]
-            x = self.norm_(x)
+            # x = self.norm_(x)
+            x = self.layerConstruct(subg_interacts, x, [lr_ranges[0], lr_ranges[2]], etypes[0])
             res.append(x)
         res = torch.stack(res, dim=1)
         return res, h_res
@@ -267,9 +270,9 @@ def save_model_entire():
     pass
 
 
-"""
-for i, et in enumerate(etypes):
-    x = self.layerConstruct(subg_interacts, x, [lr_ranges[i], lr_ranges[i+2]], et)
+
+# for i, et in enumerate(etypes):
+#     x = self.layerConstruct(subg_interacts, x, [lr_ranges[i], lr_ranges[i+2]], et)
 class ConstructLayer(torch.nn.Module):
     def __init__(self):
         super(ConstructLayer, self).__init__()
@@ -295,7 +298,7 @@ class ConstructLayer(torch.nn.Module):
             graph.apply_edges(self.edge_scale, etype=etype)
             graph.update_all(self.message_func, self.reduce_func, etype=etype)
             res = graph.ndata.pop('ah')
-            return res"""
+            return res
 
 """class constrainLayer(torch.nn.Module):
     def __init__(self, in_dim):
