@@ -116,13 +116,13 @@ class encoder_chain(torch.nn.Module):
         h = torch.squeeze(h[ntype[0]], dim=1)
         h = self.layer2(subg_interacts, {ntype[0]: h })
         x = torch.squeeze(h[ntype[0]], dim=1)
-        # x = self.layerConstruct(subg_interacts, x, [lr_ranges[0], lr_ranges[2]], etypes[0])
+        x = self.layerConstruct(sub_0, x, [lr_ranges[0], lr_ranges[2]], etypes[0])
         h_res = x
         h = self.layerMHs(subg_interacts, {ntype[0]: x })
         res = list()
         for i in torch.arange(self.num_heads):
             x = h[ntype[0]][:,i,:]
-            x = self.norm_(x)
+            # x = self.norm_(x)
             # x = self.layerConstruct(sub_0, x, [lr_ranges[0], lr_ranges[2]], etypes[0])
             res.append(x)
         res = torch.stack(res, dim=1)
@@ -266,7 +266,6 @@ def save_model_state_dict(models, optimizer, path, epoch=None, loss=None):
         state_dict['nll_loss'] = loss
 
     torch.save(state_dict, path)
-
 
 def save_model_entire():
     pass
