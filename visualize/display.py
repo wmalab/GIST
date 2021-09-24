@@ -77,6 +77,8 @@ def plot_3D(X, idx):
               color='id', size_max=18, opacity=0.7)
     # tight layout
     fig.update_layout(margin=dict(l=0, r=0, b=0, t=0))
+    fig.show()
+    return fig
 
 if __name__ == '__main__':
     pass
