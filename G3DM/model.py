@@ -53,7 +53,7 @@ class encoder_chain(torch.nn.Module):
             l1[et] = dgl.nn.GATConv( in_dim, hidden_dim, 
                                     num_heads=1, residual=False, 
                                     allow_zero_in_degree=True)
-        self.layer1 = dgl.nn.HeteroGraphConv( l1, aggregate = 'mean')
+        self.layer1 = dgl.nn.HeteroGraphConv( l1, aggregate = self.agg_func1)
 
         l2 = dict()
         for et in etypes:
@@ -69,21 +69,21 @@ class encoder_chain(torch.nn.Module):
                                     allow_zero_in_degree=True)
         self.layerMHs = dgl.nn.HeteroGraphConv( lMH, aggregate=self.agg_funcMH)
 
+        self.fc1 = torch.nn.Linear(len(etypes)*hidden_dim, hidden_dim, bias=False)
         self.fc2 = torch.nn.Linear(len(etypes)*hidden_dim, hidden_dim, bias=False)
         # self.fc2 = torch.nn.Linear(len(etypes), len(etypes), bias=False)
         self.fcmh = torch.nn.Linear(len(etypes), len(etypes), bias=False)
 
         gain = torch.nn.init.calculate_gain('leaky_relu', 0.2)
-        # torch.nn.init.xavier_uniform_(self.fc1.weight, gain=gain)
+        torch.nn.init.xavier_uniform_(self.fc1.weight, gain=gain)
         torch.nn.init.xavier_uniform_(self.fc2.weight, gain=gain)
         torch.nn.init.xavier_uniform_(self.fcmh.weight, gain=gain)
 
-        self.layerConstruct = ConstructLayer()
 
-    # def agg_func1(self, tensors, dsttype):
-    #     stacked = torch.stack(tensors, dim=-1)
-    #     res = self.fc1(stacked)
-    #     return torch.mean(res, dim=-1)
+    def agg_func1(self, tensors, dsttype):
+        concated = torch.cat(tensors, dim=-1)
+        res = self.fc1(concated)
+        return res
 
     def agg_func2(self, tensors, dsttype):
         # stacked = torch.stack(tensors, dim=-1)
@@ -107,23 +107,20 @@ class encoder_chain(torch.nn.Module):
     def forward(self, g, x, lr_ranges, etypes, ntype):
         subg_interacts = g.edge_type_subgraph(etypes)
         sub_0 = g.edge_type_subgraph([etypes[0]])
-        lr_ranges = torch.cat( ( 0.8*torch.ones((1), device=lr_ranges.device), 
-                                lr_ranges.view(-1,), 
-                                torch.tensor(float('inf'), device=lr_ranges.device).view(-1,) ), 
-                                dim=0).float().to(lr_ranges.device)
+        # lr_ranges = torch.cat( ( 0.8*torch.ones((1), device=lr_ranges.device), lr_ranges.view(-1,), 
+        #                         torch.tensor(float('inf'), device=lr_ranges.device).view(-1,) ), 
+        #                         dim=0).float().to(lr_ranges.device)
 
         h = self.layer1(subg_interacts, {ntype[0]: x })
         h = torch.squeeze(h[ntype[0]], dim=1)
         h = self.layer2(subg_interacts, {ntype[0]: h })
         x = torch.squeeze(h[ntype[0]], dim=1)
-        x = self.layerConstruct(sub_0, x, [lr_ranges[0], lr_ranges[2]], etypes[0])
         h_res = x
         h = self.layerMHs(subg_interacts, {ntype[0]: x })
         res = list()
         for i in torch.arange(self.num_heads):
             x = h[ntype[0]][:,i,:]
-            # x = self.norm_(x)
-            # x = self.layerConstruct(sub_0, x, [lr_ranges[0], lr_ranges[2]], etypes[0])
+            x = self.norm_(x)
             res.append(x)
         res = torch.stack(res, dim=1)
         return res, h_res
@@ -271,7 +268,7 @@ def save_model_entire():
     pass
 
 
-
+"""
 # for i, et in enumerate(etypes):
 #     x = self.layerConstruct(subg_interacts, x, [lr_ranges[i], lr_ranges[i+2]], et)
 class ConstructLayer(torch.nn.Module):
@@ -299,7 +296,7 @@ class ConstructLayer(torch.nn.Module):
             graph.apply_edges(self.edge_scale, etype=etype)
             graph.update_all(self.message_func, self.reduce_func, etype=etype)
             res = graph.ndata.pop('ah')
-            return res
+            return res"""
 
 """class constrainLayer(torch.nn.Module):
     def __init__(self, in_dim):
