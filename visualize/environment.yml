@@ -7,6 +7,7 @@
    - bioconda
    - dglteam
    - pytorch
+   - open3d-admin
  dependencies:
    - numpy
    - scipy
@@ -24,11 +25,14 @@
    - torchaudio
    # - cudatoolkit =10.2
    - dgl #-cuda10.2
+   - open3d
    - pip
    - pip:
       - cooler
       - iced
       - chart_studio
+      - networkx[default]
+      - python-louvain
     
 #  - ipywidgets
 #  - ipympl

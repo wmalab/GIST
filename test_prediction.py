@@ -127,7 +127,6 @@ if __name__ == '__main__':
     # predict
     model = [em_networks, ae_networks]
     predictions = run_prediction(test_dataset, model, [model_saved_path, model_saved_name], num_heads, num_clusters, device=device)
-    print(predictions['21_0']['structures'].shape)
 
     os.makedirs(output_path, exist_ok=True)
     file = os.path.join(output_path, output_name)
