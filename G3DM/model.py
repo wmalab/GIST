@@ -69,8 +69,8 @@ class encoder_chain(torch.nn.Module):
                                     allow_zero_in_degree=True)
         self.layerMHs = dgl.nn.HeteroGraphConv( lMH, aggregate=self.agg_funcMH)
 
-        self.fc1 = torch.nn.Linear(len(etypes), len(etypes), bias=False)
-        self.fc2 = torch.nn.Linear(len(etypes), len(etypes), bias=False)
+        self.fc2 = torch.nn.Linear(len(etypes)*hidden_dim, hidden_dim, bias=False)
+        # self.fc2 = torch.nn.Linear(len(etypes), len(etypes), bias=False)
         self.fcmh = torch.nn.Linear(len(etypes), len(etypes), bias=False)
 
         gain = torch.nn.init.calculate_gain('leaky_relu', 0.2)
@@ -86,7 +86,8 @@ class encoder_chain(torch.nn.Module):
     #     return torch.mean(res, dim=-1)
 
     def agg_func2(self, tensors, dsttype):
-        stacked = torch.stack(tensors, dim=-1)
+        # stacked = torch.stack(tensors, dim=-1)
+        stacked = torch.cat(tensors, dim=-1)
         res = self.fc2(stacked)
         return torch.mean(res, dim=-1)
 
@@ -106,7 +107,7 @@ class encoder_chain(torch.nn.Module):
     def forward(self, g, x, lr_ranges, etypes, ntype):
         subg_interacts = g.edge_type_subgraph(etypes)
         sub_0 = g.edge_type_subgraph([etypes[0]])
-        lr_ranges = torch.cat( ( torch.zeros((1), device=lr_ranges.device), 
+        lr_ranges = torch.cat( ( 0.8*torch.oens((1), device=lr_ranges.device), 
                                 lr_ranges.view(-1,), 
                                 torch.tensor(float('inf'), device=lr_ranges.device).view(-1,) ), 
                                 dim=0).float().to(lr_ranges.device)
@@ -121,8 +122,8 @@ class encoder_chain(torch.nn.Module):
         res = list()
         for i in torch.arange(self.num_heads):
             x = h[ntype[0]][:,i,:]
-            # x = self.norm_(x)
-            x = self.layerConstruct(sub_0, x, [lr_ranges[0], lr_ranges[2]], etypes[0])
+            x = self.norm_(x)
+            # x = self.layerConstruct(sub_0, x, [lr_ranges[0], lr_ranges[2]], etypes[0])
             res.append(x)
         res = torch.stack(res, dim=1)
         return res, h_res
