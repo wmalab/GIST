@@ -9,7 +9,7 @@ from sklearn.metrics import confusion_matrix
 
 
 
-def plot_mat_diag(matu, matl):
+def plot_mat_diag(matu, matl, cmap=['RdBu_r', 'RdBu_r']):
     assert matu.shape == matl.shape, 'must the same shape {} and {}'.format(matu.shape, matl.shape)
     mat = np.zeros_like(matu)
 
@@ -22,8 +22,8 @@ def plot_mat_diag(matu, matl):
     mskl[np.tril_indices_from(mskl)] = True
 
     fig = plt.figure()
-    sns.heatmap(mat, annot=False, mask=msku, cmap='RdBu', square=True)
-    sns.heatmap(mat, annot=False, mask=mskl, cmap='RdBu_r', square=True)
+    sns.heatmap(mat, annot=False, mask=msku, cmap=cmap[0], square=True)
+    sns.heatmap(mat, annot=False, mask=mskl, cmap=cmap[1], square=True)
     plt.show()
 
 
