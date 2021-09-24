@@ -65,7 +65,7 @@ def plot_confusion_mat(pred, true, figsize=(10,10)):
     sns.heatmap(cm, cmap= 'YlGnBu', annot=annot, fmt='', ax=ax) #"YlGnBu"
     plt.show()
 
-def plot_3D(X, idx, opacity=0.7):
+def plot_3D(X, idx, opacity=0.7, mode='auto'):
     x = X[:,0].flatten()
     y = X[:,1].flatten()
     z = X[:,2].flatten()
@@ -79,7 +79,7 @@ def plot_3D(X, idx, opacity=0.7):
     #this string can be 'data', 'cube', 'auto', 'manual'
     #a custom aspectratio is defined as follows:
     fig.update_layout(margin=dict(l=0, r=0, b=0, t=0), 
-                    aspectmode='manual', 
+                    aspectmode=mode, 
                     aspectratio=dict(x=1, y=1, z=1))
     # fig.show()
     return fig
