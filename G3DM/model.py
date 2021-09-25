@@ -69,7 +69,7 @@ class encoder_chain(torch.nn.Module):
                                     allow_zero_in_degree=True)
         self.layerMHs = dgl.nn.HeteroGraphConv( lMH, aggregate=self.agg_funcMH)
 
-        self.fc1 = torch.nn.Linear(len(etypes)*hidden_dim, hidden_dim, bias=False)
+        self.fc1 = torch.nn.Linear(len(etypes)*hidden_dim, hidden_dim, bias=True)
         self.fc2 = torch.nn.Linear(len(etypes)*hidden_dim, hidden_dim, bias=False)
         # self.fc2 = torch.nn.Linear(len(etypes), len(etypes), bias=False)
         self.fcmh = torch.nn.Linear(len(etypes), len(etypes), bias=False)
@@ -86,10 +86,10 @@ class encoder_chain(torch.nn.Module):
         return res
 
     def agg_func2(self, tensors, dsttype):
-        # stacked = torch.stack(tensors, dim=-1)
-        stacked = torch.cat(tensors, dim=-1)
+        stacked = torch.stack(tensors, dim=-1)
+        # concated = torch.cat(tensors, dim=-1)
         res = self.fc2(stacked)
-        return res #torch.mean(res, dim=-1)
+        return torch.mean(res, dim=-1)
 
     def agg_funcMH(self, tensors, dsttype):
         stacked = torch.stack(tensors, dim=-1)
