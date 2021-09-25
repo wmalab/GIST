@@ -70,7 +70,7 @@ class encoder_chain(torch.nn.Module):
         self.layerMHs = dgl.nn.HeteroGraphConv( lMH, aggregate=self.agg_funcMH)
 
         self.fc1 = torch.nn.Linear(len(etypes)*hidden_dim, hidden_dim, bias=True)
-        self.fc2 = torch.nn.Linear(len(etypes)*hidden_dim, hidden_dim, bias=False)
+        self.fc2 = torch.nn.Linear(len(etypes)*hidden_dim, hidden_dim, bias=True)
         # self.fc2 = torch.nn.Linear(len(etypes), len(etypes), bias=False)
         self.fcmh = torch.nn.Linear(len(etypes), len(etypes), bias=False)
 
@@ -86,10 +86,10 @@ class encoder_chain(torch.nn.Module):
         return res
 
     def agg_func2(self, tensors, dsttype):
-        stacked = torch.stack(tensors, dim=-1)
-        # concated = torch.cat(tensors, dim=-1)
-        res = self.fc2(stacked)
-        return torch.mean(res, dim=-1)
+        # stacked = torch.stack(tensors, dim=-1)
+        concated = torch.cat(tensors, dim=-1)
+        res = self.fc2(concated)
+        return res # torch.mean(res, dim=-1)
 
     def agg_funcMH(self, tensors, dsttype):
         stacked = torch.stack(tensors, dim=-1)
@@ -106,7 +106,7 @@ class encoder_chain(torch.nn.Module):
 
     def forward(self, g, x, lr_ranges, etypes, ntype):
         subg_interacts = g.edge_type_subgraph(etypes)
-        sub_0 = g.edge_type_subgraph([etypes[0]])
+        # sub_0 = g.edge_type_subgraph([etypes[0]])
         # lr_ranges = torch.cat( ( 0.8*torch.ones((1), device=lr_ranges.device), lr_ranges.view(-1,), 
         #                         torch.tensor(float('inf'), device=lr_ranges.device).view(-1,) ), 
         #                         dim=0).float().to(lr_ranges.device)
@@ -121,6 +121,9 @@ class encoder_chain(torch.nn.Module):
         for i in torch.arange(self.num_heads):
             x = h[ntype[0]][:,i,:]
             x = self.norm_(x)
+            x = torch.nan_to_num(x, nan=0.0, posinf=100.0, neginf=-100.0)
+            dist = torch.distributions.Normal(x, 0.3*torch.ones_like(x))
+            x = dist.rsample()
             res.append(x)
         res = torch.stack(res, dim=1)
         return res, h_res
@@ -206,7 +209,7 @@ class decoder_gmm(torch.nn.Module):
         k = torch.sigmoid(k.clamp(min=-9.0, max=9.0))
         k = k.clamp(min=0.1)
         rate = torch.div(stds_l, stds_r)
-        kr = (k*rate).clamp(max=0.99 ) # must < 1
+        kr = (k*rate).clamp(max=1.0 ) # must < 1
         return stds_l * torch.sqrt( -2.0 * torch.log(kr) )
 
     def forward(self, distance):
