@@ -8,3 +8,5 @@ model_v1.py
 log/
 saved_model/*
 test_summary.py
+*.bed
+*.xlsx

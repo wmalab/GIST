@@ -23,10 +23,11 @@
    - pytorch
    - torchvision
    - torchaudio
+   - openpyxl
    # - cudatoolkit =10.2
    - dgl #-cuda10.2
    - pip
-   - open3d
+  #  - open3d
    - pip:
       - cooler
       - iced
