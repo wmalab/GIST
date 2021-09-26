@@ -6,7 +6,7 @@ from scipy.spatial.distance import pdist, squareform
 
 def load_excel_(path, name, sheets):
     file = os.path.join(path, name)
-    WS = pd.read_excel(file, sheet_name=sheets)
+    WS = pd.read_excel(file, engine='openpyxl', sheet_name=sheets)
     return WS
 
 def load_excel_fish3d(path, name, sheets):
