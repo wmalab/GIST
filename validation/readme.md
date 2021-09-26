@@ -18,5 +18,10 @@ __FISH data reference__ [Spatial organization of chromatin domains and compartme
 
 __Locus Position__ Convert _hg18_ to _hg19_ by [Lift Genome Annotations](https://genome.ucsc.edu/cgi-bin/hgLiftOver)
 
+Conversion failed:
+  * Partially deleted __12th__ row (1-based) in __chr20	28080000	30880000__
+  * Partially deleted __1st__ row (1-based) in __chr21	9880000	10240000__
+  * Partially deleted __27th__ row (1-based) in __chr22	48560000	49691432__
+
 __Validation method reference__ [Integrating Hi-C and FISH data for modeling of the 3D organization of chromosomes
 ](https://www.nature.com/articles/s41467-019-10005-6)
