@@ -72,9 +72,9 @@ def plot_3D(X, idx, opacity=0.7):
     z = X[:,2].flatten()
     idx = idx.flatten()
 
-    data = {'x': x, 'y': y, 'z': z, 'id': idx}
+    data = {'x': x, 'y': y, 'z': z, 'id': idx.astype(str)}
     df = pd.DataFrame(data=data)
-    fig_scatter = px.scatter_3d(df, x='x', y='y', z='z', color='id', size_max=8, opacity=opacity)
+    fig_scatter = px.scatter_3d(df, x='x', y='y', z='z', color='id',size_max=8, opacity=opacity)
     # tight layout
     #this string can be 'data', 'cube', 'auto', 'manual'
     #a custom aspectratio is defined as follows:
