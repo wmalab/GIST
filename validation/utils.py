@@ -58,8 +58,8 @@ def select_loci(data, resolution):
     start = data['Start'].to_numpy().astype(int)
     end = data['End'].to_numpy().astype(int)
     for l, r in zip(start, end):
-        tmp = np.unique( np.floor(np.arange(l, r, step=resolution)/resolution), dtype=int)
-        res.append(tmp)
+        tmp = np.unique( np.floor(np.arange(l, r, step=resolution)/resolution))
+        res.append(tmp.astype(int))
     return res
 
 def fish3d_format(dataframe):
