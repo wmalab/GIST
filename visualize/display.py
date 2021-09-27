@@ -66,7 +66,7 @@ def plot_confusion_mat(pred, true, figsize=(10,10)):
     plt.show()
 
 
-def plot_3D(X, idx, opacity=0.7, discrete=False):
+def plot_3D(X, idx, opacity=0.7, discrete=False, cds=px.colors.cyclical.mrybm):
     x = X[:,0].flatten()
     y = X[:,1].flatten()
     z = X[:,2].flatten()
@@ -80,7 +80,7 @@ def plot_3D(X, idx, opacity=0.7, discrete=False):
 
 #   color_discrete_sequence= px.colors.sequential.Plasma_r, 
     fig_scatter = px.scatter_3d(df, x='x', y='y', z='z', color='id', 
-                                color_discrete_sequence= px.colors.cyclical.IceFire, 
+                                color_discrete_sequence = px.colors.cyclical.mrybm, #IceFire, 
                                 size_max=8, opacity=opacity)
     # tight layout
     #this string can be 'data', 'cube', 'auto', 'manual'
