@@ -48,8 +48,8 @@ def remove_failed(data, failed):
     """
     failed = np.array(failed)
     data = np.array(data)
-    res = np.delete(data, failed, 0)
-    res = np.delete(res, failed, 1)
+    res = np.delete(data, failed, -1)
+    res = np.delete(res, failed, -2)
     return res
 
 def select_loci(data, resolution):
@@ -104,15 +104,16 @@ if __name__ == '__main__':
     #     name = 'hg18_{}.bed'.format(sheet)
     #     save_csv(df, path, name)
 
-    # for i in [4,5,6]:
-    #     name = 'aaf8084_supportingfile_suppl1._excel_seq{}_v1.xlsx'.format(i)
-    #     fish3d_df =  load_excel_fish3d(path, name, 0)
-    #     save_csv(fish3d_df, path, 'FISH_Chr{}.xyz'.format(i+16), True, True)
-    fish3d_df = load_df_fish3d(path, 'FISH_Chr{}.xyz'.format(20))
-    data = fish3d_format(fish3d_df)
-    print(data.shape)
-    pdist = pdist_3d(data)
-    print(np.nanmean(pdist, axis=0))
+    file_list = {'21':4, '22': 5, '20':6 }
+    for key, v in file_list.items():
+        name = 'aaf8084_supportingfile_suppl1._excel_seq{}_v1.xlsx'.format(v)
+        fish3d_df =  load_excel_fish3d(path, name, 0)
+        save_csv(fish3d_df, path, 'FISH_Chr{}.xyz'.format(key), True, True)
+    # fish3d_df = load_df_fish3d(path, 'FISH_Chr{}.xyz'.format(20))
+    # data = fish3d_format(fish3d_df)
+    # print(data.shape)
+    # pdist = pdist_3d(data)
+    # print(np.nanmean(pdist, axis=0))
 
 
     # name = 'hg19_Chr20.bed'
