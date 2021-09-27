@@ -59,7 +59,7 @@ def select_loci(data, resolution):
     end = data['End'].to_numpy().astype(int)
 
     for l, r in zip(start, end):
-        tmp = np.arange(l, r, step=resolution)/resolution
+        tmp = np.unique( int(np.arange(l, r, step=resolution)/resolution) )
         res.append(tmp)
     return res
 
