@@ -15,7 +15,7 @@ def select_structure3d(data3d, index):
     M = len(index)
     res = torch.empty((M, K, 3))
     for i, idx in enumerate(index):
-        res[i, :, :] = torch.mean( data3d[idx, :, 3], dim=0, keepdim=True)
+        res[i, :, :] = torch.mean( data3d[idx.astype(int), :, 3], dim=0, keepdim=True)
     
     res = torch.transpose(res, 0, 1)
     return res.cpu().numpy()
