@@ -13,11 +13,17 @@ def load_excel_fish3d(path, name, sheets):
     print('loading fish3d excel file {}'.format(name))
     return load_excel_(path, name, sheets)
 
+def load_df_fish3d(path, name):
+    print('loading fish3d excel file {}'.format(name))
+    file = os.path.join(path, name)
+    df = pd.read_csv(file, sep='\t')
+    return df
+
 def load_excel_loci_position(path, name, sheets):
     print('loading loci position excel file {}'.format(name))
     return load_excel_(path, name, sheets)
 
-def load_bed(path, name):
+def load_tad_bed(path, name):
     file = os.path.join(path, name)
     df = pd.read_csv(file, sep='\t', header=None, names=["Chromosome", "Start", "End"])
     df['Chromosome'] = df['Chromosome'].str.lstrip('chr')
@@ -83,9 +89,9 @@ def pdist_3d(data):
         res[i, :, :] = squareform( pdist(X, 'euclidean') )
     return res
 
-def save_csv(df, path, name):
+def save_csv(df, path, name, index=False, header=False):
     file = os.path.join(path, name)
-    df.to_csv(file, index=False, header=False, sep='\t')
+    df.to_csv(file, index=index, header=header, sep='\t')
     return
 
 if __name__ == '__main__':
@@ -99,12 +105,17 @@ if __name__ == '__main__':
     #     name = 'hg18_{}.bed'.format(sheet)
     #     save_csv(df, path, name)
 
-    # name = 'aaf8084_supportingfile_suppl1._excel_seq4_v1.xlsx'
-    # fish3d_df =  load_excel_fish3d(path, name, 0)
-    # data = fish3d_format(fish3d_df)
-    # pdist = pdist_3d(data)
-    # print(np.nanmean(pdist, axis=0))
+    # for i in [4,5,6]:
+    #     name = 'aaf8084_supportingfile_suppl1._excel_seq{}_v1.xlsx'.format(i)
+    #     fish3d_df =  load_excel_fish3d(path, name, 0)
+    #     save_csv(fish3d_df, path, 'FISH_Chr{}.xyz'.format(i+16), True, True)
+    fish3d_df = load_df_fish3d(path, 'FISH_Chr{}.xyz'.format(20))
+    data = fish3d_format(fish3d_df)
+    print(data.shape)
+    pdist = pdist_3d(data)
+    print(np.nanmean(pdist, axis=0))
+
 
     # name = 'hg19_Chr20.bed'
-    # df = load_bed(path, name)
+    # df = load_tad_bed(path, name)
     # select_loci(df, 10000)

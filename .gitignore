@@ -10,3 +10,5 @@ saved_model/*
 test_summary.py
 *.bed
 *.xlsx
+validation/FISH_Chr20.xyz
+*.xyz
