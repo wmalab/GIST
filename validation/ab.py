@@ -24,17 +24,19 @@ from scipy.stats import pearsonr
 from scipy.linalg import eig
 from sklearn.decomposition import PCA
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+from scipy.optimize import curve_fit
+from scipy.spatial.distance import pdist, squareform
 
 
 def fill_diagonal(mat, k, val):
-    """
+    '''
     Fill the k-th diagonal of the given 2-d square array.
     :param mat: array.
     :param k: int.
         if positive, above the main diagonal,
         else, below the main diagonal.
     :param val: scalar.
-    """
+    '''
     if mat.ndim != 2 or mat.shape[0] != mat.shape[1]:
         raise ValueError("mat should be a 2-d square array.")
     n = mat.shape[1]
@@ -50,7 +52,7 @@ def fill_diagonal(mat, k, val):
     mat.flat[start:end:step] = val
 
 
-def normalizebydistance(mat):
+def normalizebydistance_(mat):
     x = np.array(mat, copy=True, dtype=float)
     n = x.shape[0]
     margin = x.sum(axis=0)
@@ -80,6 +82,29 @@ def normalizebydistance(mat):
     
     return x
 
+def fit_genomic_spatial_func(x, a, b):
+    return a*(x**b)
+
+def normalizebydistance(mat, genomic_index=None):
+    if genomic_index is None:
+        return normalizebydistance_(mat)
+    
+    gen_idx = np.zeros(len(genomic_index))
+    for i, index in enumerate(genomic_index):
+        gen_idx[i] = np.nanmean(index)
+    genomic_dis = pdist(gen_idx.reshape(-1,1))
+
+    msku = np.zeros_like(mat)
+    msku[np.triu_indices_from(msku, k=1)] = True
+    triu_mat = mat[msku.astype(bool)].flatten()
+
+    popt, pcov = curve_fit(fit_genomic_spatial_func, genomic_dis, triu_mat) 
+    print('power law parameters: ', popt)
+    a = fit_genomic_spatial_func(genomic_dis, *popt)
+    expected_triu = squareform(a)
+    np.fill_diagonal(expected_triu, 1)
+    res = mat.astype(float)/expected_triu.astype(float)
+    return res
 
 def centering(mat):
     x = np.array(mat, copy=True, dtype=float)
@@ -89,7 +114,6 @@ def centering(mat):
         m = np.nanmean(x[i, :])
         x[i, :] = x[i, :] - m
     return x
-
 
 def correlation(mat, method='pearson', center=True):
     x = np.array(mat, copy=True, dtype=float)
