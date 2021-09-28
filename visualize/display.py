@@ -88,7 +88,7 @@ def plot_3D(X, idx, opacity=0.7, discrete=False, cds=px.colors.cyclical.mrybm):
     fig_scatter.update_layout(margin=dict(l=0, r=0, b=0, t=0))
     scene=dict(camera=dict(eye=dict(x=1.15, y=1.15, z=0.8)),
                xaxis=dict(), yaxis=dict(), zaxis=dict(),
-               aspectmode='manual', #this string can be 'data', 'cube', 'auto', 'manual'
+               aspectmode='data', #this string can be 'data', 'cube', 'auto', 'manual'
                aspectratio=dict(x=1, y=1, z=1) )
     fig_scatter.update_layout(scene=scene)
     
