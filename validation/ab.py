@@ -91,7 +91,7 @@ def normalizebydistance(mat, genomic_index=None):
     
     gen_idx = np.zeros(len(genomic_index))
     for i, index in enumerate(genomic_index):
-        gen_idx[i] = np.nanmean(index)
+        gen_idx[i] = np.nanmean(index)/10000
     genomic_dis = pdist(gen_idx.reshape(-1,1))
 
     msku = np.zeros_like(mat)
