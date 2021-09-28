@@ -85,7 +85,11 @@ def normalizebydistance_(mat):
 def fit_genomic_spatial_func(x, a, b):
     return a*(x**b)
 
-def normalizebydistance(mat, genomic_index=None):
+def fit_genomic_3d_func(x, a, b):
+    return a*x+b
+
+def normalizebydistance(mat, genomic_index=None, mtype='3d'):
+    # mtype='3d' or 'fish'
     if genomic_index is None:
         return normalizebydistance_(mat)
     
@@ -97,10 +101,14 @@ def normalizebydistance(mat, genomic_index=None):
     msku = np.zeros_like(mat)
     msku[np.triu_indices_from(msku, k=1)] = True
     triu_mat = mat[msku.astype(bool)].flatten()
-
-    popt, pcov = curve_fit(fit_genomic_spatial_func, genomic_dis, triu_mat) 
-    print('power law parameters: ', popt)
-    a = fit_genomic_spatial_func(genomic_dis, *popt)
+    if mtype == 'fish':
+        popt, pcov = curve_fit(fit_genomic_spatial_func, genomic_dis, triu_mat) 
+        print('power law parameters: ', popt)
+        a = fit_genomic_spatial_func(genomic_dis, *popt)
+    elif mtype == '3d':
+        popt, pcov = curve_fit(fit_genomic_3d_func, genomic_dis, triu_mat) 
+        print('linear parameters: ', popt)
+        a = fit_genomic_3d_func(genomic_dis, *popt)
     expected_triu = squareform(a)
     np.fill_diagonal(expected_triu, 1)
     res = mat.astype(float)/expected_triu.astype(float)
