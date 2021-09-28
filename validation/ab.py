@@ -104,7 +104,7 @@ def normalizebydistance(mat, genomic_index=None):
     expected_triu = squareform(a)
     np.fill_diagonal(expected_triu, 1)
     res = mat.astype(float)/expected_triu.astype(float)
-    return res
+    return res, popt
 
 def centering(mat):
     x = np.array(mat, copy=True, dtype=float)
