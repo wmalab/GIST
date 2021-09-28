@@ -83,7 +83,7 @@ def normalizebydistance_(mat):
     return x
 
 def fit_genomic_spatial_func(x, a, b):
-    return a+ b*np.log(x)
+    return (x**b)/a
 
 def normalizebydistance(mat, genomic_index=None):
     # mtype='3d' or 'fish'
