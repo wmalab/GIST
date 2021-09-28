@@ -82,8 +82,8 @@ def normalizebydistance_(mat):
     
     return x
 
-def fit_genomic_spatial_func(x, a, b):
-    return a*(x**b)
+def fit_genomic_spatial_func(x, a, b, c):
+    return a*(x**b) + c
 
 def normalizebydistance(mat, genomic_index=None):
     # mtype='3d' or 'fish'
@@ -92,7 +92,7 @@ def normalizebydistance(mat, genomic_index=None):
     
     gen_idx = np.zeros(len(genomic_index))
     for i, index in enumerate(genomic_index):
-        gen_idx[i] = np.nanmean(index)*10
+        gen_idx[i] = np.nanmean(index)
     genomic_dis = pdist(gen_idx.reshape(-1,1))
 
     msku = np.zeros_like(mat)
