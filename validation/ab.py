@@ -127,15 +127,17 @@ def correlation(mat, method='pearson', center=True):
         #     x[i, :] = x[i, :] - m
         m = np.nanmean(x, axis=1, keepdims=True)
         x = x - m
-    corr = np.zeros((n, n), dtype=float)
-    for i in range(n):
-        for j in range(i, n):
-            nas = np.logical_or(np.isnan(x[:, i]), np.isnan(x[:, j]))
-            if method == 'spearman':
-                corr[i, j], _ = spearmanr(x[~nas, i], x[~nas, j])
-            else:
-                corr[i, j], _ = pearsonr(x[~nas, i], x[~nas, j])
-            corr[j, i] = corr[i, j]
+    # corr = np.zeros((n, n), dtype=float)
+    # for i in range(n):
+    #     for j in range(i, n):
+    #         nas = np.logical_or(np.isnan(x[:, i]), np.isnan(x[:, j]))
+    #         if method == 'spearman':
+    #             corr[i, j], _ = spearmanr(x[~nas, i], x[~nas, j])
+    #         else:
+    #             corr[i, j], _ = pearsonr(x[~nas, i], x[~nas, j])
+    #         corr[j, i] = corr[i, j]
+    pearson = 1 - pdist(X, 'correlation')
+    corr = squareform(pearson).astype(float)
     # keep NAs
     # corr[np.isnan(corr)] = 0
     return corr
