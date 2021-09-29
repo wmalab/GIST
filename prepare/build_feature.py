@@ -67,8 +67,8 @@ def position_hic(hic_feat, dim, idx=None, scale=1):
     # print(step.shape)
     for i in range(0, d_model-1, 2):
         iarry = np.ones(len(pos), dtype=int)*i
-        pe[pos, iarry] = [math.sin( scale*x / (10000 ** ((2 * i)/d_model))) for x in step]
-        pe[pos, iarry + 1] = [ math.cos( scale*x / (10000 ** ((2 * (i + 1))/d_model))) for x in step]
+        pe[pos, iarry] = [math.sin( scale*np.log(x) / (10000 ** ((2 * i)/d_model))) for x in step]
+        pe[pos, iarry + 1] = [ math.cos( scale*np.log(x) / (10000 ** ((2 * (i + 1))/d_model))) for x in step]
     x = hic_feat * math.sqrt(d_model)
     #add constant to embedding
     seq_len = x.shape[1]
