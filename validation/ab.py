@@ -122,18 +122,15 @@ def correlation(mat, method='pearson', center=True):
     n = x.shape[0]
     # substract row mean from each row
     if center:
-        for i in range(n):
-            m = np.nanmean(x[i, :])
-            x[i, :] = x[i, :] - m
+        # for i in range(n):
+        #     m = np.nanmean(x[i, :])
+        #     x[i, :] = x[i, :] - m
+        m = np.nanmean(x, axis=1, keepdims=True)
+        x = x - m
     corr = np.zeros((n, n), dtype=float)
     for i in range(n):
         for j in range(i, n):
             nas = np.logical_or(np.isnan(x[:, i]), np.isnan(x[:, j]))
-            if np.all(~nas) == False:
-                corr[i,j] = np.nan
-                corr[j,i] = np.nan
-                continue
-
             if method == 'spearman':
                 corr[i, j], _ = spearmanr(x[~nas, i], x[~nas, j])
             else:
