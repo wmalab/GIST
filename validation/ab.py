@@ -131,10 +131,13 @@ def correlation(mat, method='pearson', center=True):
             nas = np.logical_or(np.isnan(x[:, i]), np.isnan(x[:, j]))
             if ~nas is None:
                 corr[i,j] = np.nan
+                corr[j,i] = np.nan
                 continue
+
             if method == 'spearman':
                 corr[i, j], _ = spearmanr(x[~nas, i], x[~nas, j])
             else:
+                print(i, j, ~nas)
                 corr[i, j], _ = pearsonr(x[~nas, i], x[~nas, j])
             corr[j, i] = corr[i, j]
     # keep NAs
