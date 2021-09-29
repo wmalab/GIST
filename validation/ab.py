@@ -129,6 +129,9 @@ def correlation(mat, method='pearson', center=True):
     for i in range(n):
         for j in range(i, n):
             nas = np.logical_or(np.isnan(x[:, i]), np.isnan(x[:, j]))
+            if ~nas is None:
+                corr[i,j] = np.nan
+                continue
             if method == 'spearman':
                 corr[i, j], _ = spearmanr(x[~nas, i], x[~nas, j])
             else:
