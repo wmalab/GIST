@@ -129,7 +129,7 @@ def correlation(mat, method='pearson', center=True):
     for i in range(n):
         for j in range(i, n):
             nas = np.logical_or(np.isnan(x[:, i]), np.isnan(x[:, j]))
-            if ~nas is None:
+            if np.all(~nas) == False:
                 corr[i,j] = np.nan
                 corr[j,i] = np.nan
                 continue
