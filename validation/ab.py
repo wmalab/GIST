@@ -137,7 +137,6 @@ def correlation(mat, method='pearson', center=True):
             if method == 'spearman':
                 corr[i, j], _ = spearmanr(x[~nas, i], x[~nas, j])
             else:
-                print(i, j, ~nas)
                 corr[i, j], _ = pearsonr(x[~nas, i], x[~nas, j])
             corr[j, i] = corr[i, j]
     # keep NAs
