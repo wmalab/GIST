@@ -136,7 +136,7 @@ def correlation(mat, method='pearson', center=True):
     #         else:
     #             corr[i, j], _ = pearsonr(x[~nas, i], x[~nas, j])
     #         corr[j, i] = corr[i, j]
-    pearson = 1 - pdist(X, 'correlation')
+    pearson = 1 - pdist(x, 'correlation')
     corr = squareform(pearson).astype(float)
     # keep NAs
     # corr[np.isnan(corr)] = 0
