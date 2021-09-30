@@ -120,7 +120,7 @@ class encoder_chain(torch.nn.Module):
         res = list()
         for i in torch.arange(self.num_heads):
             x = h[ntype[0]][:,i,:]
-            x = self.norm_(x)
+            # x = self.norm_(x)
             x = torch.nan_to_num(x, nan=0.0, posinf=100.0, neginf=-100.0)
             dist = torch.distributions.Normal(x, 0.3*torch.ones_like(x))
             x = dist.rsample()
@@ -224,6 +224,7 @@ class decoder_gmm(torch.nn.Module):
         d_right = self.fc(stds[0:-1], stds[1:], self.k[1:])
         d_right = torch.cat( (torch.zeros(1, device=d_right.device), d_right), dim=0)
         means = ((d_left + d_right) + self.interval).clamp(max=5.0)
+        means = means - means.min()
 
         # activate = torch.nn.LeakyReLU(0.01)
         # means = activate(self.means).clamp(max=4.5)

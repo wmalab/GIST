@@ -1,4 +1,4 @@
-{   "id": "train_log_20",
+{   "id": "train_nonorm_20",
     "cool_data_path":"",
     "cool_file": "Rao2014-IMR90-MboI-allreps-filtered.10kb.cool", 
     "cell_name": "Rao2014-IMR90-MboI-allreps-filtered",
@@ -17,7 +17,7 @@
             "out_dim": 30
         },
         "G3DM":{
-            "iteration": 80,
+            "iteration": 100,
             "num_heads": 40,
             "graph_dim":{"in_dim":30, "hidden_dim":10, "out_dim": 3}
         }
