@@ -142,25 +142,6 @@ def centering(mat):
     # corr[np.isnan(corr)] = 0
     return corr"""
 
-def correlation_k(mat, center=True, k=0):
-    x = np.array(mat, copy=True, dtype=float)
-    n = x.shape[0]
-    # substract row mean from each row
-    if center:
-        m = np.nanmean(x, axis=1, keepdims=True)
-        x = x - m
-    corr = np.zeros((n, n), dtype=float)
-    for i in range(n):
-        for j in range(i, n):
-            # nas = np.logical_or(np.isnan(x[:, i]), np.isnan(x[:, j]))
-            li, ri = max(i-k, 0), min(i+k, n-1)
-            lj, rj = max(j-k, 0), min(j+k, n-1)
-            corr[i, j], _ = pearsonr(x[li:ri, i], x[lj:rj, j])
-            corr[j, i] = corr[i, j]
-    # keep NAs
-    # corr[np.isnan(corr)] = 0
-    return corr
-
 def correlation(mat, center=True):
     # 'pearson' correlation
     x = np.array(mat, copy=True, dtype=float)
