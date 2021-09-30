@@ -172,8 +172,8 @@ def decomposition(mat, method='eig', nc=2):
         return eigenvec 
 
 
-def plot(mat, pc, title=None, start=0, locs=None):
-    fig = plt.figure(figsize=(5, 5))
+def plot(mat, pc, title=None, start=0, locs=None, figure=(5, 5) ):
+    fig = plt.figure(figsize=figure)
     axmatrix = plt.subplot(111)
     n, nc = pc.shape
     im = axmatrix.matshow(mat, vmin=-1, vmax=1, cmap='bwr')
