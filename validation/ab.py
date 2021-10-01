@@ -63,14 +63,14 @@ def normalizebydistance_(mat):
         fill_diagonal(x, k=1, val=np.nan)
         fill_diagonal(x, k=-1, val=np.nan)
     # fill row/col with np.nan if all zeros
-    # x[margin==0, :] = np.nan
-    # x[:, margin==0] = np.nan
+    x[margin==0, :] = np.nan
+    x[:, margin==0] = np.nan
     diagmean = np.ones(n, dtype=float)
     
     for d in range(1, n):
         diag = np.diagonal(x, offset=d)
         m = np.nanmean(diag)
-        if m > 0:
+        if ~np.isnan(m) and m > 0:
             diagmean[d] = m
 
     for i in range(n):
