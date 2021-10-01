@@ -59,9 +59,9 @@ def normalizebydistance_(mat):
     # fill diagonal with np.nan
     np.fill_diagonal(x, np.nan)
     # fill the first diagonal with np.nan if all zeros
-    # if np.nansum(np.diagonal(mat, offset=1)) == 0:
-    #     fill_diagonal(x, k=1, val=np.nan)
-    #     fill_diagonal(x, k=-1, val=np.nan)
+    if np.nansum(np.diagonal(mat, offset=1)) == 0:
+        fill_diagonal(x, k=1, val=np.nan)
+        fill_diagonal(x, k=-1, val=np.nan)
     # fill row/col with np.nan if all zeros
     x[margin==0, :] = np.nan
     x[:, margin==0] = np.nan
