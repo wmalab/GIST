@@ -53,7 +53,7 @@ def fill_diagonal(mat, k, val):
 
 
 def normalizebydistance_(mat):
-    x = np.array(mat, copy=True, dtype=float)
+    x = mat # np.array(mat, copy=True, dtype=float)
     n = x.shape[0]
     margin = x.sum(axis=0)
     # fill diagonal with np.nan
