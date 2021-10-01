@@ -65,24 +65,18 @@ def normalizebydistance_(mat):
     # fill row/col with np.nan if all zeros
     x[margin==0, :] = np.nan
     x[:, margin==0] = np.nan
-    diagmean = np.zeros(n, dtype=float)
+    diagmean = np.ones(n, dtype=float)
     
     for d in range(1, n):
         diag = np.diagonal(x, offset=d)
         m = np.nanmean(diag)
-        if ~np.isnan(m) and m>0:
+        if m > 0:
             diagmean[d] = m
-        else:
-            diagmean[d] = np.inf
 
     for i in range(n):
         for j in range(i+1, n):
-            if np.isinf(diagmean[abs(i-j)]) or np.isnan(diagmean[abs(i-j)]) or diagmean[abs(i-j)]==0:
-                x[i, j] = 0
-            else:
-                x[i, j] = x[i, j] / diagmean[abs(i-j)]
+            x[i, j] = x[i, j] / diagmean[abs(i-j)]
             x[j, i] = x[i, j]
-    
     return x
 
 def fit_genomic_spatial_func(x, a, b):
