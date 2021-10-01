@@ -23,8 +23,8 @@ def plot_mat_diag(matu, matl, cmap=['RdBu_r', 'RdBu_r']):
     mskl[np.tril_indices_from(mskl)] = True
 
     fig = plt.figure()
-    sns.heatmap(mat, annot=False, mask=msku, cmap=cmap[0], cbar_kws={'shrink': 0.5}, square=True)
-    sns.heatmap(mat, annot=False, mask=mskl, cmap=cmap[1], cbar_kws={'shrink': 0.5}, square=True)
+    sns.heatmap(mat, annot=False, mask=msku, cmap=cmap[0], cbar_kws={'shrink': 0.5, 'pad': 0.01}, square=True)
+    sns.heatmap(mat, annot=False, mask=mskl, cmap=cmap[1], cbar_kws={'shrink': 0.5, 'pad': 0.01}, square=True)
     return fig
 
 
