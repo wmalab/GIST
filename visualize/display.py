@@ -25,7 +25,7 @@ def plot_mat_diag(matu, matl, cmap=['RdBu_r', 'RdBu_r']):
     fig = plt.figure()
     sns.heatmap(mat, annot=False, mask=msku, cmap=cmap[0], square=True)
     sns.heatmap(mat, annot=False, mask=mskl, cmap=cmap[1], square=True)
-    plt.show()
+    return fig
 
 
 # sns histogram by group
@@ -35,8 +35,9 @@ def plot_label_value_distribution(value, label):
 
     data = {'value': value, 'label': label}
     df = pd.DataFrame(data=data)
+    fig = plt.figure()
     sns.displot(data, x='value', hue='label',kde=True)
-    plt.show()
+    return fig
 
 def plot_confusion_mat(pred, true, figsize=(10,10)):
     y_pred = pred.flatten()
@@ -63,7 +64,7 @@ def plot_confusion_mat(pred, true, figsize=(10,10)):
     cm.columns.name = 'Predicted'
     fig, ax = plt.subplots(figsize=figsize)
     sns.heatmap(cm, cmap= 'YlGnBu', annot=annot, fmt='', ax=ax, square=True) #"YlGnBu"
-    plt.show()
+    return fig
 
 
 def plot_3D(X, idx, opacity=0.7, discrete=False, cds=px.colors.cyclical.mrybm):
