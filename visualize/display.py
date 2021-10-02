@@ -22,10 +22,10 @@ def plot_mat_diag(matu, matl, cmap=['RdBu_r', 'RdBu_r']):
     mskl = np.zeros_like(mat)
     mskl[np.tril_indices_from(mskl)] = True
 
-    fig = plt.figure()
-    sns.heatmap(mat, annot=False, mask=msku, cmap=cmap[0], cbar_kws={'shrink': 0.5, 'pad': 0.01}, square=True)
-    sns.heatmap(mat, annot=False, mask=mskl, cmap=cmap[1], cbar_kws={'shrink': 0.5, 'pad': 0.01}, square=True)
-    return fig
+    fig, ax = plt.subplots()
+    sns.heatmap(mat, annot=False, mask=msku, cmap=cmap[0], cbar_kws={'shrink': 0.5, 'pad': 0.01}, square=True, ax=ax)
+    sns.heatmap(mat, annot=False, mask=mskl, cmap=cmap[1], cbar_kws={'shrink': 0.5, 'pad': 0.01}, square=True, ax=ax)
+    return fig, ax
 
 
 # sns histogram by group
@@ -35,9 +35,9 @@ def plot_label_value_distribution(value, label):
 
     data = {'value': value, 'label': label}
     df = pd.DataFrame(data=data)
-    fig = plt.figure()
-    sns.displot(data, x='value', hue='label',kde=True)
-    return fig
+    fig, ax = plt.subplots()
+    sns.displot(data, x='value', hue='label',kde=True, ax=ax)
+    return fig, ax
 
 def plot_confusion_mat(pred, true, figsize=(10,10)):
     y_pred = pred.flatten()
@@ -64,7 +64,7 @@ def plot_confusion_mat(pred, true, figsize=(10,10)):
     cm.columns.name = 'Predicted'
     fig, ax = plt.subplots(figsize=figsize)
     sns.heatmap(cm, cmap= 'YlGnBu', annot=annot, fmt='', ax=ax, square=True) #"YlGnBu"
-    return fig
+    return fig, ax
 
 
 def plot_3D(X, idx, opacity=0.7, discrete=False, cds=px.colors.cyclical.mrybm):
