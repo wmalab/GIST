@@ -96,6 +96,37 @@ def plot_3D(X, idx, opacity=0.7, discrete=False, cds=px.colors.cyclical.mrybm):
     # fig.show()
     return fig_scatter
 
+def plot_selected_PC(matA, matB, idx_pc, figsize=(15,6)):
+    ''' '''
+    assert matA.shape[0] == matB.shape[0], 'must the same length {} and {}'.format(matA.shape[0], matB.shape[0])
+
+    fig, axs = plt.subplots(2, 1, figsize=figsize)
+    i,j = idx_pc
+    N = matA.shape[0]
+    x = np.arange(N)
+
+    y=(matA[:,i]).T
+    idx_t = y>0
+    yt,yf = y.copy(),y.copy()
+    yt[~idx_t] = 0
+    yf[idx_t] = 0
+    g = sns.lineplot(x=x, y=yt/yt.max(), ax=axs[0],color="red",linewidth=0.)
+    axs[0].fill_between(x, yt/yt.max(), color="red", alpha=1.0)
+    g = sns.lineplot(x=x, y=-yf/yf.min(), ax=axs[0],color="blue",linewidth=0.)
+    axs[0].fill_between(x, -yf/yf.min(), color="blue", alpha=1.0)
+
+
+    y=(matB[:,j]).T
+    idx_t = y>0
+    yt,yf = y.copy(),y.copy()
+    yt[idx_f] = 0
+    yf[~idx_f] = 0
+    g = sns.lineplot(x=x, y=yt/yt.max(), ax=axs[1],color="red",linewidth=0.)
+    axs[1].fill_between(x, yt/yt.max(), color="red", alpha=1.0)
+    g = sns.lineplot(x=x, y=-yf/yf.min(), ax=axs[1],color="blue",linewidth=0.)
+    axs[1].fill_between(x, -yf/yf.min(), color="blue", alpha=1.0)
+    return fig, axs
+
 if __name__ == '__main__':
     pass
     # matu = np.arange(25).reshape(5,5)
