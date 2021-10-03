@@ -99,7 +99,7 @@ def plot_3D(X, idx, opacity=0.7, discrete=False, cds=px.colors.cyclical.mrybm):
 
 def plot_one_PC(mat, idx_pc, figsize=(15,4)):
     fig, axs = plt.subplots(1, 1, figsize=figsize)
-    i,j = idx_pc
+    i = idx_pc
     N = mat.shape[0]
     x = np.arange(N)
 
