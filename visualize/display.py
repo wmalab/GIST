@@ -37,6 +37,7 @@ def plot_label_value_distribution(value, label):
     df = pd.DataFrame(data=data)
     fig, ax = plt.subplots(1,1)
     sns.displot(data, x='value', hue='label',kde=True, ax=ax)
+    plt.close(1)
     return fig, ax
 
 def plot_confusion_mat(pred, true, figsize=(10,10)):
