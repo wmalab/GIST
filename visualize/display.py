@@ -35,7 +35,7 @@ def plot_label_value_distribution(value, label):
 
     data = {'value': value, 'label': label}
     df = pd.DataFrame(data=data)
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(1,1)
     sns.displot(data, x='value', hue='label',kde=True, ax=ax)
     return fig, ax
 
