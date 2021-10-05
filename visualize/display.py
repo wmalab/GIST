@@ -81,15 +81,11 @@ def plot_3D(X, idx, opacity=0.7, discrete=False, cds=px.colors.cyclical.mrybm):
     df = pd.DataFrame(data=data)
 
 #   color_discrete_sequence= px.colors.sequential.Plasma_r, 
-    if discrete:
-        c = np.arange(len(idx))
-        fig_scatter = px.scatter_3d(df, x='x', y='y', z='z', symbol='id', color='id', 
-                                color_discrete_sequence = cds, #IceFire, 
-                                size_max=8, opacity=opacity)
-    else:
-        fig_scatter = px.scatter_3d(df, x='x', y='y', z='z', color='id',
-                                color_discrete_sequence = cds, #IceFire, 
-                                size_max=8, opacity=opacity)
+
+    fig_scatter = px.scatter_3d(df, x='x', y='y', z='z', color='id', 
+                            color_discrete_sequence = cds, #IceFire, 
+                            size_max=8, opacity=opacity)
+
     # tight layout
     #this string can be 'data', 'cube', 'auto', 'manual'
     #a custom aspectratio is defined as follows:
