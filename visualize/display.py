@@ -83,7 +83,7 @@ def plot_3D(X, idx, opacity=0.7, discrete=False, cds=px.colors.cyclical.mrybm):
 #   color_discrete_sequence= px.colors.sequential.Plasma_r, 
     if discrete:
         c = np.arange(len(idx))
-        fig_scatter = px.scatter_3d(df, x='x', y='y', z='z', symbol='id', color=c, 
+        fig_scatter = px.scatter_3d(df, x='x', y='y', z='z', symbol='id', color='id', 
                                 color_discrete_sequence = cds, #IceFire, 
                                 size_max=8, opacity=opacity)
     else:
