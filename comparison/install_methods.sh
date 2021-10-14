@@ -7,10 +7,10 @@ source activate env_cmp
 pip install pastis
 
 # Shrec3d-extened
-https://github.com/jbmorlot/ShRec-Exented.git
+git clone https://github.com/jbmorlot/ShRec-Exented.git
 
 # GEM
-https://github.com/GuangxiangZhu/GEM.git
+git clone https://github.com/GuangxiangZhu/GEM.git
 
 # ChromSDE
 gwet https://www.comp.nus.edu.sg/~bioinfo/ChromSDE/ChromSDE_program2.2.zip
