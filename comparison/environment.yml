@@ -1,0 +1,38 @@
+ name: env_cmp
+ channels:
+   - defaults
+   - anaconda
+   - plotly
+   - conda-forge
+   - bioconda
+   - dglteam
+   - pytorch
+   - open3d-admin
+ dependencies:
+   - numpy
+   - scipy
+   - scikit-learn
+   - matplotlib
+   - jupyterlab
+   - ipykernel
+   - seaborn
+   - plotly
+   - nbformat
+   - pandas
+   - nodejs=16
+   - pytorch
+   - torchvision
+   - torchaudio
+   - openpyxl
+   - dgl
+   - scikit-image
+   - autograd
+   - pip
+   - pip:
+      - cooler
+      - iced
+      - pastis
+      - chart_studio
+
+    
+# need to install open3d: http://www.open3d.org/docs/release/compilation.html
