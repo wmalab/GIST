@@ -13,5 +13,5 @@ git clone https://github.com/jbmorlot/ShRec-Exented.git
 git clone https://github.com/GuangxiangZhu/GEM.git
 
 # ChromSDE
-gwet https://www.comp.nus.edu.sg/~bioinfo/ChromSDE/ChromSDE_program2.2.zip
+wget https://www.comp.nus.edu.sg/~bioinfo/ChromSDE/ChromSDE_program2.2.zip
 unzip ChromSDE_program2.2.zip -d ./
