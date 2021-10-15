@@ -14,13 +14,15 @@ def run(chromosome, method, raw_hic_path, name, path):
 
     if method=='pastis':
         prepare_pastis(chromosome, mat, resolution, path)
-    return
+    elif method=='shrec3d':
+        prepare_shrec3d(mat, resolution, path)
 
-def prepare_shrec3d(mat, resolution):
+def prepare_shrec3d(mat, resolution, path):
     scn_mat = scn_normalization(mat)
     nmat, idx = remove_nan_col(scn_mat)
-
-
+    name = 'norm_mat.txt'
+    file = os.path.join(path, name)
+    np.savetxt(file, namtx, delimiter='\t') 
     return 
 
 def parpare_gem(mat, resolution):
@@ -39,7 +41,7 @@ def prepare_pastis(chro, mat, resolution, path):
     config = os.path.join(path, 'config.ini')
     counts = os.path.join(input_path, 'counts.matrix')
     lengths = os.path.join(input_path, 'lengths.bed')
-    output_path = os.path.join(path, 'output')
+    output_path = os.path.join(path)
 
     os.makedirs(input_path, exist_ok=True)
     os.makedirs(output_path, exist_ok=True)
@@ -51,13 +53,7 @@ def prepare_pastis(chro, mat, resolution, path):
 
 def pastis_config(output_path, counts_path, lengths_path, norm=True):
     with open(output_path, 'w') as fout:
-        lines = "[all]\n\
-output_name: structure\n\
-verbose: 1 \n\
-max_iter: 1000\n\
-counts: {}\n\
-lengths: {}\n\
-normalize: {}".format( counts_path, lengths_path, norm)
+        lines = "[all]\noutput_name: structure\n verbose: 1\nmax_iter: 1000\ncounts: {}\nlengths: {}\nnormalize: {}".format( counts_path, lengths_path, norm)
         fout.write(lines)
         fout.close()
 
@@ -85,12 +81,17 @@ if __name__ == '__main__':
     raw_hic_path = '/rhome/yhu/bigdata/proj/experiment_G3DM/data/raw'
     name = 'Rao2014-IMR90-MboI-allreps-filtered.10kb.cool'
     chromosome = '22'
-    method = 'pastis'
     cell = name.split('.')[0]
     resolution = name.split('.')[1]
 
     path = '/rhome/yhu/bigdata/proj/experiment_G3DM'
-    path = os.path.join(path, 'comparison', method, cell, resolution, chromosome)
-    os.makedirs(path, exist_ok=True)
 
-    run(chromosome, method, raw_hic_path, name, path)
+    method = 'pastis'
+    mpath = os.path.join(path, 'comparison', method, cell, resolution, chromosome)
+    os.makedirs(mpath, exist_ok=True)
+    run(chromosome, method, raw_hic_path, name, mpath)
+
+    method = 'shrec3d'
+    mpath = os.path.join(path, 'comparison', method, cell, resolution, chromosome)
+    os.makedirs(mpath, exist_ok=True)
+    run(chromosome, method, raw_hic_path, name, mpath)
