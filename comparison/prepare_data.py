@@ -16,20 +16,32 @@ def run(chromosome, method, raw_hic_path, name, path):
         prepare_pastis(chromosome, mat, resolution, path)
     elif method=='shrec3d':
         prepare_shrec3d(mat, resolution, path)
+    elif method=='gem':
+        prepare_gem(mat, resolution, path)
 
 def prepare_shrec3d(mat, resolution, path):
     mat, idx = remove_nan_col(mat)
-    print(mat.shape)
     nmat = scn_normalization(mat)
-    print(nmat.shape)
     name = 'norm_mat.txt'
     file = os.path.join(path, name)
-    print(nmat.shape, file)
+    print('mat shape {}, file name: {}'.format(nmat.shape, name))
     np.savetxt(file, nmat, delimiter='\t') 
     return 
 
-def parpare_gem(mat, resolution):
-    pass
+def parpare_gem(mat, resolution, path):
+    mat, idx = remove_nan_col(mat)
+    nmat = iced_normalization(mat)
+    name = 'norm_mat.txt'
+    file = os.path.join(path, name)
+    print('mat shape {}, file name: {}'.format(nmat.shape, name))
+    np.savetxt(file, nmat, delimiter='\t')
+
+    name = 'loci.txt'
+    file = os.path.join(path, name)
+    print('loci shape {}, file name: {}'.format(idx.shape, name))
+    np.savetxt(file, idx*resolution, delimiter='\t')
+
+
 
 def prepare_pastis(chro, mat, resolution, path):
     iced_mat = iced_normalization(mat)
@@ -73,7 +85,8 @@ def pastis_bed(chro, resolution, idx, output_path):
     else:
         chrom = chro
     with open(output_path, 'w') as fout:
-        for i, start in enumerate(idx):
+        for i, index in enumerate(idx):
+            start = int(index*resolution)
             end = int(start) + int(resolution)
             line =  "chr{}\t{}\t{}\t{}\n".format(chrom, int(start), int(end), int(i))
             fout.write(line)
@@ -89,13 +102,19 @@ if __name__ == '__main__':
 
     path = '/rhome/yhu/bigdata/proj/experiment_G3DM'
 
-    # method = 'pastis'
-    # mpath = os.path.join(path, 'comparison', method, cell, resolution, chromosome)
-    # os.makedirs(mpath, exist_ok=True)
-    # print('prepate data for method {} \n\tsaved in {}'.format(method, mpath))
-    # run(chromosome, method, raw_hic_path, name, mpath)
+    method = 'pastis'
+    mpath = os.path.join(path, 'comparison', method, cell, resolution, chromosome)
+    os.makedirs(mpath, exist_ok=True)
+    print('prepate data for method {} \n\tsaved in {}'.format(method, mpath))
+    run(chromosome, method, raw_hic_path, name, mpath)
 
     method = 'shrec3d'
+    mpath = os.path.join(path, 'comparison', method, cell, resolution, chromosome)
+    os.makedirs(mpath, exist_ok=True)
+    print('prepate data for method {} \n\tsaved in {}'.format(method, mpath))
+    run(chromosome, method, raw_hic_path, name, mpath)
+
+    method = 'gem'
     mpath = os.path.join(path, 'comparison', method, cell, resolution, chromosome)
     os.makedirs(mpath, exist_ok=True)
     print('prepate data for method {} \n\tsaved in {}'.format(method, mpath))
