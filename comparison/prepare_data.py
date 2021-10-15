@@ -38,15 +38,14 @@ def prepare_gem(mat, resolution, path):
 
     name = 'loci.txt'
     file = os.path.join(path, name)
-    print('loci shape {}, file name: {}'.format(idx.shape, name))
     np.savetxt(file, idx*resolution, delimiter='\t')
-
 
 
 def prepare_pastis(chro, mat, resolution, path):
     iced_mat = iced_normalization(mat)
     nmat, idx = remove_nan_col(iced_mat)
     nmat = np.triu(nmat, k=1)
+    print('mat shape {}'.format(nmat.shape))
     row, col = np.where(nmat>1e-10)
     data = mat[row, col]
     n = len(idx)
