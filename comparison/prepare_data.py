@@ -18,7 +18,9 @@ def run(chromosome, method, raw_hic_path, name, path):
         prepare_shrec3d(mat, resolution, path)
 
 def prepare_shrec3d(mat, resolution, path):
+    print(mat.shape)
     scn_mat = scn_normalization(mat)
+    print(scn_mat.shape)
     nmat, idx = remove_nan_col(scn_mat)
     name = 'norm_mat.txt'
     file = os.path.join(path, name)
