@@ -28,7 +28,7 @@ def parpare_gem(mat, resolution):
 
 def prepare_pastis(chro, mat, resolution, path):
     iced_mat = iced_normalization(mat)
-    nmat, idx = remove_nan_col(scn_mat)
+    nmat, idx = remove_nan_col(iced_mat)
     nmat = np.triu(nmat, k=1)
     row, col = np.where(nmat>1e-10)
     data = mat[row, col]
