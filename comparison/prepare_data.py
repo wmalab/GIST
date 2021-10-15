@@ -22,7 +22,7 @@ def prepare_shrec3d(mat, resolution, path):
     nmat, idx = remove_nan_col(scn_mat)
     name = 'norm_mat.txt'
     file = os.path.join(path, name)
-    np.savetxt(file, namtx, delimiter='\t') 
+    np.savetxt(file, nmat, delimiter='\t') 
     return 
 
 def parpare_gem(mat, resolution):
@@ -86,12 +86,14 @@ if __name__ == '__main__':
 
     path = '/rhome/yhu/bigdata/proj/experiment_G3DM'
 
-    method = 'pastis'
-    mpath = os.path.join(path, 'comparison', method, cell, resolution, chromosome)
-    os.makedirs(mpath, exist_ok=True)
-    run(chromosome, method, raw_hic_path, name, mpath)
+    # method = 'pastis'
+    # mpath = os.path.join(path, 'comparison', method, cell, resolution, chromosome)
+    # os.makedirs(mpath, exist_ok=True)
+    # print('prepate data for method {} \n\tsaved in {}'.format(method, mpath))
+    # run(chromosome, method, raw_hic_path, name, mpath)
 
     method = 'shrec3d'
     mpath = os.path.join(path, 'comparison', method, cell, resolution, chromosome)
     os.makedirs(mpath, exist_ok=True)
+    print('prepate data for method {} \n\tsaved in {}'.format(method, mpath))
     run(chromosome, method, raw_hic_path, name, mpath)
