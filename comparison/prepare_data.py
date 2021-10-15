@@ -69,7 +69,7 @@ def pastis_count(coo_mat, output_path):
 
 def pastis_bed(chro, resolution, idx, output_path):
     "chr01   1       10000   0"
-    if len(chro)==1 & chro!='X':
+    if (len(chro)==1) & (chro!='X'):
         chrom = '0'+chro
     else:
         chrom = chro
