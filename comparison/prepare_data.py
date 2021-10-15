@@ -21,7 +21,7 @@ def prepare_shrec3d(mat, resolution, path):
     mat, idx = remove_nan_col(mat)
     print(mat.shape)
     nmat = scn_normalization(mat)
-    print(scn_mat.shape)
+    print(nmat.shape)
     name = 'norm_mat.txt'
     file = os.path.join(path, name)
     print(nmat.shape, file)
