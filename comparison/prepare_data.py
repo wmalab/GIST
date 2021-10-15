@@ -3,7 +3,7 @@ import numpy as np
 from numpy import inf
 from scipy.sparse import coo_matrix
 
-from utils import load_hic
+from utils import load_hic, remove_nan_col
 from utils import scn_normalization, iced_normalization
 import warnings
 warnings.filterwarnings('ignore')
