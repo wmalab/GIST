@@ -51,13 +51,13 @@ def prepare_pastis(chro, mat, resolution, path):
 
 def pastis_config(output_path, counts_path, lengths_path, norm=True):
     with open(output_path, 'w') as fout:
-        lines = "[all]\n \
-                output_name: structure\n \
-                verbose: 1 \n \
-                max_iter: 1000 \
-                counts: {} \
-                lengths: {} \
-                normalize: {}".format( counts_path, lengths_path, norm)
+        lines = "[all]\n\
+output_name: structure\n\
+verbose: 1 \n\
+max_iter: 1000\n\
+counts: {}\n\
+lengths: {}\n\
+normalize: {}".format( counts_path, lengths_path, norm)
         fout.write(lines)
         fout.close()
 
