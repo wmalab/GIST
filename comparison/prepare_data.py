@@ -28,7 +28,7 @@ def prepare_shrec3d(mat, resolution, path):
     np.savetxt(file, nmat, delimiter='\t') 
     return 
 
-def parpare_gem(mat, resolution, path):
+def prepare_gem(mat, resolution, path):
     mat, idx = remove_nan_col(mat)
     nmat = iced_normalization(mat)
     name = 'norm_mat.txt'
