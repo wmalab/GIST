@@ -33,7 +33,7 @@ def prepare_pastis(chro, mat, resolution, path):
     row, col = np.where(nmat>1e-10)
     data = mat[row, col]
     n = len(idx)
-    coo = coo_matrix((data, (row, col)), shape=(n, n))
+    coo_mat = coo_matrix((data, (row, col)), shape=(n, n))
 
     input_path = os.path.join(path, 'input')
     config = os.path.join(path, 'config.ini')
