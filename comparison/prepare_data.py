@@ -84,11 +84,11 @@ def pastis_bed(chro, resolution, idx, output_path):
 if __name__ == '__main__':
     raw_hic_path = '/rhome/yhu/bigdata/proj/experiment_G3DM/data/raw'
     name = 'Rao2014-IMR90-MboI-allreps-filtered.10kb.cool'
-    chromomsome = '22'
+    chromosome = '22'
     method = 'pastis'
     cell = name.split('.')[0]
     resolution = name.split('.')[1]
-    
+
     path = '/rhome/yhu/bigdata/proj/experiment_G3DM'
     path = os.path.join(path, 'comparison', method, cell, resolution, chromosome)
     os.makedirs(path, exist_ok=True)
