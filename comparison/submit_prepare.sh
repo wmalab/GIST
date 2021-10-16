@@ -4,8 +4,8 @@
 #SBATCH --mem=100G
 #SBATCH --time=2-20:00:00
 #SBATCH -p wmalab
-#SBATCH --job-name=prepare_${2}_${1}
-#SBATCH --output=Job-prepare_${2}_${1}-%J.log
+#SBATCH --job-name=prepare
+#SBATCH --output=Job-prepare-%J.log
 
 date
 hostname
