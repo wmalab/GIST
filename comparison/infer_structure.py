@@ -19,7 +19,7 @@ def run(path, method, cell, resolution, chromosome):
     elif method=='gem':
         input_path = os.path.join(path, 'comparison', method, cell, resolution, chromosome)
         output_path = os.path.join(path, 'comparison', method, cell, resolution, chromosome)
-        command = "matlab -nodesktop -nodisplay -nosplash -r \'run_gem(\"{}\"); quit;\'".format(input_path, output_path)
+        command = "matlab -nodesktop -nodisplay -nosplash -r \'run_gem(\"{}\", \"{}\"); quit;\'".format(input_path, output_path)
     run_command(command, cwd_path)
 
 if __name__ == '__main__':
