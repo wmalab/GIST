@@ -72,10 +72,11 @@ def pastis_config(output_path, counts_path, lengths_path, norm=True):
         fout.close()
 
 def pastis_count(coo_mat, output_path):
-    x = coo_mat.row
-    y = coo_mat.col
-    data = coo_mat.data
-    np.savetxt(output_path, (x.T, y.T, data.T), delimiter='\t')  
+    x = (coo_mat.row).flatten()
+    y = (coo_mat.col).flatten()
+    data = (coo_mat.data).flatten()
+    mat = np.stack((x,y,data), axis=1)
+    np.savetxt(output_path, mat, delimiter='\t')  
 
 def pastis_bed(chro, resolution, idx, output_path):
     "chr01   1       10000   0"
