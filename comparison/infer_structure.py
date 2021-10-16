@@ -15,10 +15,10 @@ def run(path, method, cell, resolution, chromosome):
     elif method=='shrec3d':
         input_path = '.'
         output_path = '.'
-        command = "matlab -nodesktop -nodisplay -nosplash -r \'{}run_shrec3d(\"{}\", \"{}\"); quit;\'".format(exc_path, input_path, output_path)
+        command = "matlab -nodesktop -nodisplay -nosplash -r \'{}/run_shrec3d(\"{}\", \"{}\"); quit;\'".format(exc_path, input_path, output_path)
     elif method=='gem':
         input_path = '.'
-        command = "matlab -nodesktop -nodisplay -nosplash -r \'{}run_GEM(\"{}\"); quit;\'".format(exc_path, input_path)
+        command = "matlab -nodesktop -nodisplay -nosplash -r \'{}/run_GEM(\"{}\"); quit;\'".format(exc_path, input_path)
     run_command(command, cwd_path)
 
 if __name__ == '__main__':
