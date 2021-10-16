@@ -18,7 +18,8 @@ def run(path, method, cell, resolution, chromosome):
         command = "matlab -nodesktop -nodisplay -nosplash -r \'run_shrec3d(\"{}\", \"{}\"); quit;\'".format(input_path, output_path)
     elif method=='gem':
         input_path = os.path.join(path, 'comparison', method, cell, resolution, chromosome)
-        command = "matlab -nodesktop -nodisplay -nosplash -r \'run_gem(\"{}\"); quit;\'".format(input_path)
+        output_path = os.path.join(path, 'comparison', method, cell, resolution, chromosome)
+        command = "matlab -nodesktop -nodisplay -nosplash -r \'run_gem(\"{}\"); quit;\'".format(input_path, output_path)
     run_command(command, cwd_path)
 
 if __name__ == '__main__':

@@ -6,7 +6,7 @@ function run_shrec3d(input_path, output_path)
     XYZ = ShRec3D_ext(DataF, 1, 'sammon');
     % XYZ=ShRec3D(DataF);
     fig=figure,plot3(XYZ(:,1),XYZ(:,2),XYZ(:,3));
-    saveas(fig,strcat(output_path, '.jpg'));
-    save(strcat(output_path, 'conformation.xyz'), 'XYZ', '-ascii');
+    saveas(fig,fullfile(output_path, 'conformation.jpg'));
+    save(fullfile(output_path, 'conformation.xyz'), 'XYZ', '-ascii');
 end
 

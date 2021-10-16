@@ -10,7 +10,7 @@ warnings.filterwarnings('ignore')
 
 def run(chromosome, method, raw_hic_path, name, path):
     file = os.path.join(raw_hic_path, name)
-    mat, resolution, cool = load_hic(file, 'chr{}:15M-20M'.format(chromosome))
+    mat, resolution, cool = load_hic(file, 'chr{}:15M-16M'.format(chromosome))
 
     if method=='pastis':
         prepare_pastis(chromosome, mat, resolution, path)
