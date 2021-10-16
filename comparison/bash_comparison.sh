@@ -1,9 +1,10 @@
 #! /bin/bash
-
 chrom=(20)  # 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 X)
 method=(pastis gem shrec3d)
 for m in "${method[@]}"
+do
     for i in "${chrom[@]}"
+    do
         # prepare data
         jid1=$(sbatch  submit_prepare.sh $i $m)
         echo ${jid1}
