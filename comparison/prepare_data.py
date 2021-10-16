@@ -60,7 +60,7 @@ def prepare_pastis(chro, mat, resolution, path):
     os.makedirs(input_path, exist_ok=True)
     os.makedirs(output_path, exist_ok=True)
 
-    pastis_config(config, counts, lengths, norm=False)
+    pastis_config(config, counts, lengths, norm=True)
     pastis_count(coo_mat, counts)
     pastis_bed(chro, resolution, idx, lengths)
     return 

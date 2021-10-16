@@ -28,6 +28,6 @@ if __name__ == '__main__':
     resolution = name.split('.')[1]
 
     path = '/rhome/yhu/bigdata/proj/experiment_G3DM/'
-    method = 'pastis'
+    method = 'shrec3d'
 
     run(path, method, cell, resolution, chromosome)
