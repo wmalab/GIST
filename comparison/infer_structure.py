@@ -8,16 +8,17 @@ def run_command(command, path):
 
 def run(path, method, cell, resolution, chromosome):
     cwd_path = os.path.join(path, 'comparison', method, cell, resolution, chromosome)
+    exc_path = os.path.join(path, 'chromosome_3D', 'comparison')
     if method=='pastis':
         input_path = '.'
         command = "pastis-pm2 {}".format(input_path)
     elif method=='shrec3d':
         input_path = '.'
         output_path = '.'
-        command = "matlab -nodesktop -nodisplay -nosplash -r \'run_shrec3d(\"{}\", \"{}\"); quit;\'".format(input_path, output_path)
+        command = "matlab -nodesktop -nodisplay -nosplash -r \'{}run_shrec3d(\"{}\", \"{}\"); quit;\'".format(exc_path, input_path, output_path)
     elif method=='gem':
         input_path = '.'
-        command = "matlab -nodesktop -nodisplay -nosplash -r \'run_GEM(\"{}\"); quit;\'".format(input_path)
+        command = "matlab -nodesktop -nodisplay -nosplash -r \'{}run_GEM(\"{}\"); quit;\'".format(exc_path, input_path)
     run_command(command, cwd_path)
 
 if __name__ == '__main__':
