@@ -1,21 +1,33 @@
-import sys
+import sys, os
 import subprocess
 
 def run_command(command, path):
+    print('cwd: {}\ncommand: {}'.format(path, command))
     p = subprocess.Popen(command, cwd=path, shell=True)
     p.wait()
 
-def run(method, input_path, output_path):
+def run(path, method, cell, resolution, chromosome):
+    cwd_path = os.path.join(path, 'comparison', method, cell, resolution, chromosome)
     if method=='pastis':
-        command = "pastis-pm2 ."
-        path = ''
+        input_path = '.'
+        command = "pastis-pm2 {}".format(input_path)
     elif method=='shrec3d':
-        command = "matlab -nodesktop -nodisplay -nosplash -r 'run_shrec3d(\"{}\", \"{}\"); quit;'".format(input_path, output_path)
+        input_path = '.'
+        output_path = '.'
+        command = "matlab -nodesktop -nodisplay -nosplash -r \'run_shrec3d(\"{}\", \"{}\"); quit;\'".format(input_path, output_path)
     elif method=='gem':
-        command = "matlab -nodesktop -nodisplay -nosplash -r 'run_GEM({}, {}); quit;".format(input_path, output_path)
-        pass
-    
-    run_command(command, path)
+        input_path = '.'
+        command = "matlab -nodesktop -nodisplay -nosplash -r \'run_GEM(\"{}\"); quit;\'".format(input_path)
+    run_command(command, cwd_path)
 
 if __name__ == '__main__':
-    pass
+    raw_hic_path = '/rhome/yhu/bigdata/proj/experiment_G3DM/data/raw'
+    name = 'Rao2014-IMR90-MboI-allreps-filtered.10kb.cool'
+    chromosome = '21'
+    cell = name.split('.')[0]
+    resolution = name.split('.')[1]
+
+    path = '/rhome/yhu/bigdata/proj/experiment_G3DM/'
+    method = 'pastis'
+
+    run(path, method, cell, resolution, chromosome)
