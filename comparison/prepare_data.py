@@ -10,7 +10,7 @@ warnings.filterwarnings('ignore')
 
 def run(chromosome, method, raw_hic_path, name, path):
     file = os.path.join(raw_hic_path, name)
-    mat, resolution, cool = load_hic(file, 'chr{}:10M-15M'.format(chromosome))
+    mat, resolution, cool = load_hic(file, 'chr{}:15M-20M'.format(chromosome))
 
     if method=='pastis':
         prepare_pastis(chromosome, mat, resolution, path)
@@ -75,7 +75,7 @@ def pastis_count(coo_mat, output_path):
     x = coo_mat.row
     y = coo_mat.col
     data = coo_mat.data
-    np.savetxt(output_path, (x, y, data), delimiter='\t')  
+    np.savetxt(output_path, (x.T, y.T, data.T), delimiter='\t')  
 
 def pastis_bed(chro, resolution, idx, output_path):
     "chr01   1       10000   0"
