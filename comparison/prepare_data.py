@@ -96,26 +96,26 @@ def pastis_bed(chro, resolution, idx, output_path):
 if __name__ == '__main__':
     raw_hic_path = '/rhome/yhu/bigdata/proj/experiment_G3DM/data/raw'
     name = 'Rao2014-IMR90-MboI-allreps-filtered.10kb.cool'
-    chromosome = '21'
+    chromosome = str(sys.argv[1]) #'21'
     cell = name.split('.')[0]
     resolution = name.split('.')[1]
 
     path = '/rhome/yhu/bigdata/proj/experiment_G3DM'
 
-    method = 'pastis'
+    method = str(sys.argv[2]) #'pastis'
     mpath = os.path.join(path, 'comparison', method, cell, resolution, chromosome)
     os.makedirs(mpath, exist_ok=True)
     print('prepate data for method {} \n\tsaved in {}'.format(method, mpath))
     run(chromosome, method, raw_hic_path, name, mpath)
 
-    method = 'shrec3d'
-    mpath = os.path.join(path, 'comparison', method, cell, resolution, chromosome)
-    os.makedirs(mpath, exist_ok=True)
-    print('prepate data for method {} \n\tsaved in {}'.format(method, mpath))
-    run(chromosome, method, raw_hic_path, name, mpath)
+    # method = 'shrec3d'
+    # mpath = os.path.join(path, 'comparison', method, cell, resolution, chromosome)
+    # os.makedirs(mpath, exist_ok=True)
+    # print('prepate data for method {} \n\tsaved in {}'.format(method, mpath))
+    # run(chromosome, method, raw_hic_path, name, mpath)
 
-    method = 'gem'
-    mpath = os.path.join(path, 'comparison', method, cell, resolution, chromosome)
-    os.makedirs(mpath, exist_ok=True)
-    print('prepate data for method {} \n\tsaved in {}'.format(method, mpath))
-    run(chromosome, method, raw_hic_path, name, mpath)
+    # method = 'gem'
+    # mpath = os.path.join(path, 'comparison', method, cell, resolution, chromosome)
+    # os.makedirs(mpath, exist_ok=True)
+    # print('prepate data for method {} \n\tsaved in {}'.format(method, mpath))
+    # run(chromosome, method, raw_hic_path, name, mpath)

@@ -24,11 +24,11 @@ def run(path, method, cell, resolution, chromosome):
 if __name__ == '__main__':
     raw_hic_path = '/rhome/yhu/bigdata/proj/experiment_G3DM/data/raw'
     name = 'Rao2014-IMR90-MboI-allreps-filtered.10kb.cool'
-    chromosome = '21'
+    chromosome = str(sys.argv[1]) #'21'
     cell = name.split('.')[0]
     resolution = name.split('.')[1]
 
     path = '/rhome/yhu/bigdata/proj/experiment_G3DM/'
-    method = 'gem'
+    method = str(sys.argv[2]) #'gem'
 
     run(path, method, cell, resolution, chromosome)
