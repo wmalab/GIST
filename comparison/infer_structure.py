@@ -10,7 +10,7 @@ def run(method, input_path, output_path):
         command = "pastis-pm2 ."
         path = ''
     elif method=='shrec3d':
-        command = "matlab -nodesktop -nodisplay -nosplash -r 'run_ShRec3D({}, {}); quit;'".format(input_path, output_path)
+        command = "matlab -nodesktop -nodisplay -nosplash -r 'run_shrec3d(\"{}\", \"{}\"); quit;'".format(input_path, output_path)
     elif method=='gem':
         command = "matlab -nodesktop -nodisplay -nosplash -r 'run_GEM({}, {}); quit;".format(input_path, output_path)
         pass
