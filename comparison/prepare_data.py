@@ -47,7 +47,7 @@ def prepare_pastis(chro, mat, resolution, path):
     nmat = np.triu(nmat, k=1)
     print('mat shape {}'.format(nmat.shape))
     row, col = np.where(nmat>1e-10)
-    data = mat[row, col]
+    data = nmat[row, col]
     n = len(idx)
     coo_mat = coo_matrix((data, (row, col)), shape=(n, n))
 
@@ -60,7 +60,7 @@ def prepare_pastis(chro, mat, resolution, path):
     os.makedirs(input_path, exist_ok=True)
     os.makedirs(output_path, exist_ok=True)
 
-    pastis_config(config, counts, lengths)
+    pastis_config(config, counts, lengths, norm=False)
     pastis_count(coo_mat, counts)
     pastis_bed(chro, resolution, idx, lengths)
     return 
