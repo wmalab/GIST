@@ -1,4 +1,4 @@
-function run_GEM(input_path)
+function run_gem(input_path)
     % cwd = '/rhome/yhu/bigdata/proj/experiment_G3DM/chromosome_3D/comparison'
     % Determine where your m-file's folder is.
     folder_dir = "/rhome/yhu/bigdata/proj/experiment_G3DM/chromosome_3D/comparison/GEM"
