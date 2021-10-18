@@ -1,6 +1,6 @@
 #! /bin/bash
 chrom=(22 21 20)  # 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 X)
-method=(pastis gem shrec3d)
+method=(shrec3d) # (pastis gem 
 for m in "${method[@]}"
 do
     for i in "${chrom[@]}"
