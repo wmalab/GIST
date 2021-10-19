@@ -20,7 +20,7 @@ def format_lordg(output_path):
             if 'CONECT' in line:
                 break
         file.close()
-    structure = np.array(structure).shape(-1,4)
+    structure = np.array(structure, ndmin=2)
 
     indx = np.loadtxt( os.path.join(output_path, idx) )
     print(indx.shape)
