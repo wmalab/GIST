@@ -27,7 +27,7 @@ def format_lordg(output_path):
     structure[ indx[:, 1].astype(int), -1] = raw_indx
 
     output_file = os.path.join(output_path, 'conformation.xyz')
-    np.savetxt(output_file, structure)
+    np.savetxt(output_file, structure, fmt="%f\t%f\t%f\t%d")
     return 
 
 def run_command(command, path):
