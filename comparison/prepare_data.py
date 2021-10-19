@@ -127,7 +127,7 @@ def lordg_count(coo_mat, output_path):
     x = (coo_mat.row).flatten().astype(int)
     y = (coo_mat.col).flatten().astype(int)
     data = (coo_mat.data).flatten()
-    mat = np.stack((int(x), int(y), data), axis=1)
+    mat = np.stack( (x, y, data), axis=1)
     np.savetxt(output_path, mat, delimiter='\t', fmt="%10d\t%10d\t%10.3f")  
 
 if __name__ == '__main__':
