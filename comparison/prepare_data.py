@@ -103,7 +103,7 @@ def prepare_lordg(mat, resolution, path):
     print('mat shape {}'.format(nmat.shape))
     row, col = np.where(nmat>1e-10)
     data = nmat[row, col]
-    coo_mat = coo_matrix((data, (row, col)), shape=(n, n))
+    coo_mat = coo_matrix((data, (row, col)), shape=nmat.shape)
 
     input_path = os.path.join(path, 'input')
     config = os.path.join(path, 'config.ini')
