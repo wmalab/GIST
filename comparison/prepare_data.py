@@ -124,8 +124,8 @@ def lordg_config(config_file, output_path, counts_file):
         fout.close()
 
 def lordg_count(coo_mat, output_path):
-    x = (coo_mat.row).flatten()
-    y = (coo_mat.col).flatten()
+    x = (coo_mat.row).flatten().astype(int)
+    y = (coo_mat.col).flatten().astype(int)
     data = (coo_mat.data).flatten()
     mat = np.stack((x,y,data), axis=1)
     np.savetxt(output_path, mat, delimiter='\t')  

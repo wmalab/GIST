@@ -22,7 +22,7 @@ def run(path, method, cell, resolution, chromosome):
         command = "matlab -nodesktop -nodisplay -nosplash -r \'run_gem(\"{}\", \"{}\"); quit;\'".format(input_path, output_path)
     elif method=='lordg':
         jar_path = os.path.join(cwd_path, 'LorDG', 'bin')
-        input_path = os.path.join(path, 'comparison', method, cell, resolution, chromosome)
+        input_path = os.path.join(path, 'comparison', method, cell, resolution, chromosome, 'config.ini')
         command = "java -jar {}/3DDistanceBaseLorentz.jar {}".format(jar_path, input_path)
     
     run_command(command, cwd_path)
