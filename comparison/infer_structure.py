@@ -12,10 +12,13 @@ def format_lordg(output_path):
     with open(os.path.join(output_path, pdb)) as file:
         next(file)
         for line in file:
-            l = line.split()
-            indx = line[1]
-            x,y,z = line[5:8]
-            structure.append([x,y,z,indx])
+            if 'ATOM' in line:
+                l = line.split()
+                indx = line[1]
+                x,y,z = line[5:8]
+                structure.append([x,y,z,indx])
+            if 'CONECT' in line:
+                break
         file.close()
     structure = np.array(structure).shape(-1,4)
 
