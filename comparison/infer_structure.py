@@ -23,9 +23,8 @@ def format_lordg(output_path):
     structure = np.array(structure, ndmin=2)
 
     indx = np.loadtxt( os.path.join(output_path, idx) )
-    print(indx.shape)
-    raw_indx = int(indx[:,0])
-    structure[ int(indx[:, 1]), -1] = raw_indx
+    raw_indx = indx[:,0].astype(int)
+    structure[ indx[:, 1].astype(int), -1] = raw_indx
 
     output_file = os.path.join(output_path, 'conformation.xyz')
     np.savetxt(output_file, structure)
