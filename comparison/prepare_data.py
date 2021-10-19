@@ -108,7 +108,7 @@ def prepare_lordg(mat, resolution, path):
     input_path = os.path.join(path, 'input')
     config = os.path.join(path, 'config.ini')
     counts = os.path.join(input_path, 'counts.matrix')
-    output_path = os.path.join(path)
+    output_path = os.path.join(path, 'output')
 
     os.makedirs(input_path, exist_ok=True)
     os.makedirs(output_path, exist_ok=True)
@@ -119,7 +119,7 @@ def prepare_lordg(mat, resolution, path):
 
 def lordg_config(config_file, output_path, counts_file):
     with open(config_file, 'w') as fout:
-        lines = "NUM = 1\nOUTPUT_FOLDER = {}\nINPUT_FILE = {}\nCONVERT_FACTOR = 1.1\nVERBOSE = true\nLEARNING_RATE = 1.0\nMAX_ITERATION = 10000".format(output_path, counts_file)
+        lines = "NUM = 1\nOUTPUT_FOLDER = {}\nINPUT_FILE = {}\nCONVERT_FACTOR = 1.0\nVERBOSE = true\nLEARNING_RATE = 0.02\nMAX_ITERATION = 10000".format(output_path, counts_file)
         fout.write(lines)
         fout.close()
 
@@ -128,7 +128,7 @@ def lordg_count(coo_mat, output_path):
     y = (coo_mat.col).flatten().astype(int)
     data = (coo_mat.data).flatten()
     mat = np.stack( (x, y, data), axis=1)
-    np.savetxt(output_path, mat, delimiter='\t', fmt="%10d\t%10d\t%10.3f")  
+    np.savetxt(output_path, mat, delimiter=' ', fmt="%d %d %10.3f")  
 
 if __name__ == '__main__':
     raw_hic_path = '/rhome/yhu/bigdata/proj/experiment_G3DM/data/raw'
