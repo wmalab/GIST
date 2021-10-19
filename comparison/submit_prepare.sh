@@ -5,7 +5,7 @@
 #SBATCH --time=2-20:00:00
 #SBATCH -p wmalab
 #SBATCH --job-name=prepare
-#SBATCH --output=Job-prepare-%J.log
+#SBATCH --output=./log/Job-prepare-%J.log
 
 date
 hostname

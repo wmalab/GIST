@@ -5,7 +5,7 @@
 #SBATCH --time=2-20:00:00
 #SBATCH -p wmalab
 #SBATCH --job-name=infer
-#SBATCH --output=Job-infer-%J.log
+#SBATCH --output=./log/Job-infer-%J.log
 
 date
 hostname

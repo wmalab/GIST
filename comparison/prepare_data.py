@@ -93,6 +93,42 @@ def pastis_bed(chro, resolution, idx, output_path):
         fout.close()
     return 
 
+def prepare_lordg(chro, mat, resolution, path):
+    iced_mat = iced_normalization(mat)
+    # nmat, idx = remove_nan_col(iced_mat)
+    nmat = np.nan_to_num(iced_mat, 0)
+    nmat = np.triu(nmat, k=1)
+    print('mat shape {}'.format(nmat.shape))
+    row, col = np.where(nmat>1e-10)
+    data = nmat[row, col]
+    n = len(idx)
+    coo_mat = coo_matrix((data, (row, col)), shape=(n, n))
+
+    input_path = os.path.join(path, 'input')
+    config = os.path.join(path, 'config.ini')
+    counts = os.path.join(input_path, 'counts.matrix')
+    output_path = os.path.join(path)
+
+    os.makedirs(input_path, exist_ok=True)
+    os.makedirs(output_path, exist_ok=True)
+
+    lordg_config(config, output_path, counts)
+    lordg_count(coo_mat, counts)
+    return 
+
+def lordg_config(config_file, output_path, counts_file):
+    with open(config_file, 'w') as fout:
+        lines = "NUM = 1\nOUTPUT_FOLDER = {}\nINPUT_FILE = {}\nCONVERT_FACTOR = 1.1\nVERBOSE = true\nLEARNING_RATE = 1.0\nMAX_ITERATION = 10000".format(output_path, counts_file)
+        fout.write(lines)
+        fout.close()
+
+def lordg_count(coo_mat, output_path):
+    x = (coo_mat.row).flatten()
+    y = (coo_mat.col).flatten()
+    data = (coo_mat.data).flatten()
+    mat = np.stack((x,y,data), axis=1)
+    np.savetxt(output_path, mat, delimiter='\t')  
+
 if __name__ == '__main__':
     raw_hic_path = '/rhome/yhu/bigdata/proj/experiment_G3DM/data/raw'
     name = 'Rao2014-IMR90-MboI-allreps-filtered.10kb.cool'
