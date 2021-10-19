@@ -95,7 +95,7 @@ def pastis_bed(chro, resolution, idx, output_path):
         fout.close()
     return 
 
-def prepare_lordg(chro, mat, resolution, path):
+def prepare_lordg(mat, resolution, path):
     iced_mat = iced_normalization(mat)
     # nmat, idx = remove_nan_col(iced_mat)
     nmat = np.nan_to_num(iced_mat, 0)
