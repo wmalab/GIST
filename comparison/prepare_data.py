@@ -10,7 +10,7 @@ warnings.filterwarnings('ignore')
 
 def run(chromosome, method, raw_hic_path, name, path):
     file = os.path.join(raw_hic_path, name)
-    mat, resolution, cool = load_hic(file, 'chr{}'.format(chromosome)) #chr{}:15M-16M
+    mat, resolution, cool = load_hic(file, 'chr{}:15M-16M'.format(chromosome)) #chr{}:15M-16M
 
     if method=='pastis':
         prepare_pastis(chromosome, mat, resolution, path)
@@ -18,6 +18,8 @@ def run(chromosome, method, raw_hic_path, name, path):
         prepare_shrec3d(mat, resolution, path)
     elif method=='gem':
         prepare_gem(mat, resolution, path)
+    elif method=='lordg':
+        prepare_lordg(mat, resolution, path)
 
 def prepare_shrec3d(mat, resolution, path):
     mat, idx = remove_nan_col(mat)
