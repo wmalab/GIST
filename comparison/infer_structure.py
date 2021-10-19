@@ -10,7 +10,7 @@ def format_lordg(output_path):
 
     structure = list()
     with open(os.path.join(output_path, pdb)) as file:
-        file.readline()
+        next(file)
         for line in file:
             l = line.split()
             indx = line[1]
