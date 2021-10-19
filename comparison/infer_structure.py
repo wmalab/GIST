@@ -1,5 +1,31 @@
 import sys, os
 import subprocess
+import numpy as np
+
+def format_lordg(output_path):
+    files = [f for f in os.listdir(output_path) if os.path.isfile(os.path.join(output_path, f))]
+    for f in files:
+        if '.pdb' in f:
+            pdb = f
+        if 'mapping' in f:
+            idx = f
+    with open(os.path.join(output_path, pdb)) as file:
+        file.readline()
+        for line in file:
+            l = line.split()
+            indx = line[1]
+            x,y,z = line[5:8]
+            structure.append([x,y,z,indx])
+        file.close()
+    structure = np.array(structure).shape(-1,4)
+
+    indx = np.loadtxt( os.path.join(output_path, idx) )
+    raw_indx = indx[:,0]
+    structure[ indx[:, 1], -1] = raw_indx
+
+    output_file = os.path.join(output_path, 'conformation.xyz')
+    np.savetxt(output_file, structure)
+    return 
 
 def run_command(command, path):
     print('cwd: {}\ncommand: {}'.format(path, command))
@@ -26,6 +52,10 @@ def run(path, method, cell, resolution, chromosome):
         command = "java -jar {}/3DDistanceBaseLorentz.jar {}".format(jar_path, input_path)
     
     run_command(command, cwd_path)
+
+    if method=='lordg':
+        output_path = input_path = os.path.join(path, 'comparison', method, cell, resolution, chromosome, 'output')
+        format_lordg(output_path)
 
 if __name__ == '__main__':
     raw_hic_path = '/rhome/yhu/bigdata/proj/experiment_G3DM/data/raw'
