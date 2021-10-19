@@ -14,9 +14,9 @@ def format_lordg(output_path):
         for line in file:
             if 'ATOM' in line:
                 l = line.split()
-                indx = line[1]
-                x,y,z = line[5:8]
-                structure.append([x,y,z,indx])
+                indx = l[1]
+                x,y,z = l[5:8]
+                structure.append([float(x),float(y),float(z),int(indx)])
             if 'CONECT' in line:
                 break
         file.close()
@@ -44,10 +44,12 @@ def run(path, method, cell, resolution, chromosome):
     elif method=='shrec3d':
         input_path = os.path.join(path, 'comparison', method, cell, resolution, chromosome)
         output_path = os.path.join(path, 'comparison', method, cell, resolution, chromosome)
+        os.makedirs(output_path, exist_ok=True)
         command = "matlab -nodesktop -nodisplay -nosplash -r \'run_shrec3d(\"{}\", \"{}\"); quit;\'".format(input_path, output_path)
     elif method=='gem':
         input_path = os.path.join(path, 'comparison', method, cell, resolution, chromosome)
         output_path = os.path.join(path, 'comparison', method, cell, resolution, chromosome)
+        os.makedirs(output_path, exist_ok=True)
         command = "matlab -nodesktop -nodisplay -nosplash -r \'run_gem(\"{}\", \"{}\"); quit;\'".format(input_path, output_path)
     elif method=='lordg':
         jar_path = os.path.join(cwd_path, 'LorDG', 'bin')
