@@ -5,10 +5,10 @@ import numpy as np
 def format_lordg(output_path):
     files = [f for f in os.listdir(output_path) if os.path.isfile(os.path.join(output_path, f))]
     for f in files:
-        if '.pdb' in f:
-            pdb = f
-        if 'mapping' in f:
-            idx = f
+        if '.pdb' in f: pdb = f
+        if 'mapping' in f: idx = f
+
+    structure = list()
     with open(os.path.join(output_path, pdb)) as file:
         file.readline()
         for line in file:
