@@ -72,36 +72,37 @@ if __name__ == '__main__':
     os.makedirs(feature_path, exist_ok=True)
     os.makedirs(output_path, exist_ok=True)
 
-    # prepare dataset
-    for chromosome in all_chromosome:
-        create_predict_data(num_clusters, chromosome, dim,
-                            cutoff_clusters_limits, 
-                            cutoff_cluster, 
-                            [section_start, section_end],
-                            cool_data_path, cool_file,
-                            [feature_path, graph_path])
+    if not os.path.exists(os.path.join( dataset_path, dataset_name)):
+        # prepare dataset
+        for chromosome in all_chromosome:
+            create_predict_data(num_clusters, chromosome, dim,
+                                cutoff_clusters_limits, 
+                                cutoff_cluster, 
+                                [section_start, section_end],
+                                cool_data_path, cool_file,
+                                [feature_path, graph_path])
 
-    graph_dict = dict()
-    feature_dict = dict()
-    cluster_weight_dict = dict()
-    train_list, test_list = list(), list()
-    for chromosome in all_chromosome:
-        feature_dict[str(chromosome)] = load_feature(feature_path, 'F_chr-{}'.format(chromosome))
-        cluster_weight_dict[str(chromosome)] = feature_dict[str(chromosome)]['cluster_weight']
+        graph_dict = dict()
+        feature_dict = dict()
+        cluster_weight_dict = dict()
+        train_list, test_list = list(), list()
+        for chromosome in all_chromosome:
+            feature_dict[str(chromosome)] = load_feature(feature_path, 'F_chr-{}'.format(chromosome))
+            cluster_weight_dict[str(chromosome)] = feature_dict[str(chromosome)]['cluster_weight']
 
-        graph_dict[str(chromosome)]=dict()
-        g_path = os.path.join(graph_path, 'chr{}'.format(chromosome))
-        files = [f for f in os.listdir(g_path) if 'chr-{}'.format(chromosome) in f]
-        for file in files:
-            gid = file.split('.')[0]
-            gid = gid.split('_')[-1]
-            gid = int(gid)
-            g, _ = load_graph(g_path, file)
-            graph_dict[str(chromosome)][gid] = g
+            graph_dict[str(chromosome)]=dict()
+            g_path = os.path.join(graph_path, 'chr{}'.format(chromosome))
+            files = [f for f in os.listdir(g_path) if 'chr-{}'.format(chromosome) in f]
+            for file in files:
+                gid = file.split('.')[0]
+                gid = gid.split('_')[-1]
+                gid = int(gid)
+                g, _ = load_graph(g_path, file)
+                graph_dict[str(chromosome)][gid] = g
 
-    # save dataset
-    HD = HiCDataset(graph_dict, feature_dict, cluster_weight_dict, dataset_path, dataset_name)
-    torch.save(HD, os.path.join( dataset_path, dataset_name))
+        # save dataset
+        HD = HiCDataset(graph_dict, feature_dict, cluster_weight_dict, dataset_path, dataset_name)
+        torch.save(HD, os.path.join( dataset_path, dataset_name))
 
     # load dataset
     print('load dataset: {}'.format(os.path.join( dataset_path, dataset_name)))
