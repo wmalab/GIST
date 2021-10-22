@@ -177,14 +177,14 @@ class decoder_distance(torch.nn.Module):
         n2 = torch.norm((edges.dst['z'] - edges.src['z']), dim=-1, keepdim=False)
         weight = torch.nn.functional.softmax(self.w.clamp(min=-3.0, max=3.0), dim=0)
         dist = torch.sum(n2*weight, dim=-1, keepdim=True)
-        std, mean = torch.std_mean(n2, dim=-1, unbiased=False, keepdim=False)
-        return {'dist_pred': dist, 'std': std/(mean+1.0)}
+        # std, mean = torch.std_mean(n2, dim=-1, unbiased=False, keepdim=False)
+        return {'dist_pred': dist}
 
     def forward(self, g, h):
         with g.local_scope():
             g.nodes[self.ntype].data['z'] = h
             g.apply_edges(self.edge_distance, etype=self.etype)
-            return g.edata.pop('dist_pred'), g.edata.pop('std')
+            return g.edata.pop('dist_pred') #, g.edata.pop('std')
 
 class decoder_gmm(torch.nn.Module):
     def __init__(self, num_clusters):

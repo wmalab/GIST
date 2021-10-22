@@ -100,7 +100,7 @@ def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae
     true_v = top_subgraphs.edges[top_list[0]].data['value']
     l_similarity = loss_fc[2](pred_similarity, true_v)
 
-    xp, _ = de_dis_net(top_graph, H)
+    xp = de_dis_net(top_graph, H)
     lt = top_graph.edges['interacts'].data['label']
     if xp.shape[0]==0 or xp.shape[0]!= lt.shape[0]: return [None]
     [dis_cmpt_lp], [dis_gmm] = de_gmm_net(xp) 
@@ -167,7 +167,7 @@ def inference(graphs, features, lr_ranges, num_heads, num_clusters, em_networks,
         X = em_bead(h_feat)
         h_center, h_highdim = en_net( top_subgraphs, X, lr_ranges, top_list, ['bead'])
 
-        xp1, _ = de_dis_net(top_graph, h_center)
+        xp1 = de_dis_net(top_graph, h_center)
 
         [dis_cmpt_lp], [dis_gmm] = de_gmm_net(xp1)
 
@@ -221,7 +221,7 @@ def predict(graphs, features, num_heads, num_clusters, em_networks, ae_networks,
 
         print('de_dis_net')
         print(top_graph, h_center.shape)
-        xp, _ = de_dis_net(top_graph, h_center)
+        xp = de_dis_net(top_graph, h_center)
         print('de_gmm_net')
         [dis_cmpt_lp], _ = de_gmm_net(xp)
         dp = torch.exp(dis_cmpt_lp).cpu().detach().numpy()
