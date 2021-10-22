@@ -2,7 +2,7 @@
 #SBATCH --partition=wmalab
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --mem=1G
+#SBATCH --mem=10G
 #SBATCH --time=15:00:00
 #SBATCH -p wmalab
 #SBATCH --job-name=pytorch_tfb
