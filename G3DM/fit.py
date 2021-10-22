@@ -220,6 +220,7 @@ def predict(graphs, features, num_heads, num_clusters, em_networks, ae_networks,
         pred_X = h_center.cpu().detach().numpy()
 
         print('de_dis_net')
+        print(top_graph, h_center.shape)
         xp, _ = de_dis_net(top_graph, h_center)
         print('de_gmm_net')
         [dis_cmpt_lp], _ = de_gmm_net(xp)
