@@ -188,7 +188,7 @@ def inference(graphs, features, lr_ranges, num_heads, num_clusters, em_networks,
 
         return pred_X, pred_distance_cluster_mat, true_cluster_mat, [dis_gmm], distance_mat
 
-def predict(graphs, features, num_heads, num_clusters, em_networks, ae_networks, device='cpu'):
+def predict(graphs, features, num_heads, num_clusters, em_networks, ae_networks, save_label, device='cpu'):
     top_graph = graphs['top_graph'].to(device)
     top_subgraphs = graphs['top_subgraphs'].to(device)
     top_list = [e for e in top_subgraphs.etypes if 'interacts_c' in e]
@@ -206,47 +206,39 @@ def predict(graphs, features, num_heads, num_clusters, em_networks, ae_networks,
     de_gmm_net = ae_networks[2]
     de_euc_net = ae_networks[3]
     de_sim_net = ae_networks[4]
-    print('\t\ttorch.no_grad')
     with torch.no_grad():
         _, [dis_gmm] = de_gmm_net( torch.ones(1, device=device) )
         mu = dis_gmm.component_distribution.mean.detach()
         stddev = dis_gmm.component_distribution.stddev.detach()
         lr_ranges = torch.exp(mu - stddev**2)
 
-        print('em_bead')
         Xf = em_bead(h_feat)
-        print('en_net')
         h_center, h_highdim = en_net( top_subgraphs, Xf, lr_ranges, top_list, ['bead'])
         pred_X = h_center.cpu().detach().numpy()
 
-        print('de_dis_net')
-        print(top_graph, h_center.shape)
-        xp = de_dis_net(top_graph, h_center)
-        print('de_gmm_net')
-        [dis_cmpt_lp], _ = de_gmm_net(xp)
-        dp = torch.exp(dis_cmpt_lp).cpu().detach().numpy()
-
-        pred_dist_cluster_mat = np.ones((pred_X.shape[0], pred_X.shape[0]), dtype=np.uint8)*(num_clusters-1)
-        pred_dist_cluster_mat[xs, ys] = np.argmax(dp, axis=1)
-        pred_dist_cluster_mat = pred_dist_cluster_mat.astype(np.uint8)
-        # pred_dist_mat = np.zeros((pred_X.shape[0], pred_X.shape[0]))
-        # pred_dist_mat[xs, ys] = xp.view(-1,).cpu().detach().numpy()
-
-        pdcm_list, pdm_list = list(), list()
-        for i in np.arange(num_heads):
-            xp = de_euc_net(top_graph, h_center[:,i,:], 'interacts')
+        if save_label:
+            xp = de_dis_net(top_graph, h_center)
             [dis_cmpt_lp], _ = de_gmm_net(xp)
             dp = torch.exp(dis_cmpt_lp).cpu().detach().numpy()
 
-            pdcm = np.ones((pred_X.shape[0], pred_X.shape[0]), dtype=np.uint8)*(num_clusters-1)
-            pdcm[xs, ys] = np.argmax(dp, axis=1)
-            # pdm = np.zeros((pred_X.shape[0], pred_X.shape[0]))
-            # pdm[xs, ys] = xp.view(-1,).cpu().detach().numpy()
+            pred_dist_cluster_mat = np.ones((pred_X.shape[0], pred_X.shape[0]), dtype=np.uint8)*(num_clusters-1)
+            pred_dist_cluster_mat[xs, ys] = np.argmax(dp, axis=1)
+            pred_dist_cluster_mat = pred_dist_cluster_mat.astype(np.uint8)
 
-            pdcm_list.append(pdcm.astype(np.uint8))
-            # pdm_list.append(pdm)
+            pdcm_list, pdm_list = list(), list()
+            for i in np.arange(num_heads):
+                xp = de_euc_net(top_graph, h_center[:,i,:], 'interacts')
+                [dis_cmpt_lp], _ = de_gmm_net(xp)
+                dp = torch.exp(dis_cmpt_lp).cpu().detach().numpy()
 
-        return pred_X, pred_dist_cluster_mat, pdcm_list, [true_cluster_mat, dis_gmm] # , pred_dist_mat, pdm_list
+                pdcm = np.ones((pred_X.shape[0], pred_X.shape[0]), dtype=np.uint8)*(num_clusters-1)
+                pdcm[xs, ys] = np.argmax(dp, axis=1)
+
+                pdcm_list.append(pdcm.astype(np.uint8))
+        else:
+            pred_dist_cluster_mat, pdcm_list = None, None
+
+        return pred_X, pred_dist_cluster_mat, pdcm_list, [true_cluster_mat, dis_gmm]
 
 def run_epoch(datasets, model, num_heads, num_clusters, loss_fc, optimizer, scheduler, iterations, device, writer=None, saved_model=None):
     train_dataset = datasets[0]
@@ -409,7 +401,7 @@ def run_epoch(datasets, model, num_heads, num_clusters, loss_fc, optimizer, sche
     path = os.path.join(model_saved_path, 'finial_' + model_saved_name)
     save_model_state_dict(models_dict, optimizer[0], path)
 
-def run_prediction(dataset, model, saved_parameters_model, num_heads, num_clusters, device='cpu'):
+def run_prediction(dataset, model, saved_parameters_model, num_heads, num_clusters, save_label=True, device='cpu'):
     # model_saved_path = saved_parameters_model[0] if saved_parameters_model is not None else None
     # model_saved_name = saved_parameters_model[1] if saved_parameters_model is not None else None
 
@@ -442,7 +434,7 @@ def run_prediction(dataset, model, saved_parameters_model, num_heads, num_cluste
     prediction = dict()
     for i, data in enumerate(dataset):
         t0 = time.time()
-        print('\t #{} get data'.format(i))
+
         graphs, features, _, index = data
         h_f, h_p = features['feat'], features['pos']
         h_f_n = torch.nn.functional.normalize(torch.tensor(h_f), p=1.0, dim=1)*h_f.shape[1]
@@ -450,11 +442,9 @@ def run_prediction(dataset, model, saved_parameters_model, num_heads, num_cluste
         h_feat = torch.stack([h_f_n, h_p_n], dim=1).to(device)
         h_feat = h_feat.float()
 
-        print('\t predict')
         [pred_X, 
         pred_dist_cluster_mat, pdcm_list, 
-        # pred_dist_mat, pdm_list, 
-        [true_cluster_mat, dis_gmm]] = predict(graphs, h_feat, num_heads, num_clusters, em_networks, ae_networks, device)
+        [true_cluster_mat, dis_gmm]] = predict(graphs, h_feat, num_heads, num_clusters, em_networks, ae_networks, save_label, device)
         for name, param in models_dict['decoder_distance_model'].named_parameters():
             if name=='w':
                 weights = torch.nn.functional.softmax(param.clamp(min=-3.0, max=3.0), dim=0).cpu().detach().numpy()
@@ -462,7 +452,6 @@ def run_prediction(dataset, model, saved_parameters_model, num_heads, num_cluste
         prediction[index] = {'structures': pred_X, 
                             'structures_weights':weights,
                             'predict_cluster': [pred_dist_cluster_mat, pdcm_list], 
-                            # 'predict_distance': [pred_dist_mat, pdm_list],
                             'true_cluster': true_cluster_mat}
         prediction['mixture model'] = dis_gmm
         dur = time.time() - t0

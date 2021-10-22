@@ -129,8 +129,9 @@ if __name__ == '__main__':
 
     # predict
     print('Start prediction')
+    save_label = False if section_end - section_start > 10000 else True
     model = [em_networks, ae_networks]
-    predictions = run_prediction(test_dataset, model, [model_saved_path, model_saved_name], num_heads, num_clusters, device=device)
+    predictions = run_prediction(test_dataset, model, [model_saved_path, model_saved_name], num_heads, num_clusters, save_label=save_label, device=device)
 
     os.makedirs(output_path, exist_ok=True)
     file = os.path.join(output_path, output_name)
