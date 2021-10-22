@@ -193,12 +193,6 @@ def predict(graphs, features, num_heads, num_clusters, em_networks, ae_networks,
     top_subgraphs = graphs['top_subgraphs'].to(device)
     top_list = [e for e in top_subgraphs.etypes if 'interacts_c' in e]
 
-    tp = top_graph.edges['interacts'].data['label'].cpu().detach().numpy()
-    true_cluster_mat = np.ones((features.shape[0], features.shape[0]))*(num_clusters-1)
-    
-    xs,ys = graphs['top_graph'].edges(etype='interacts', form='uv')[0], graphs['top_graph'].edges(etype='interacts', form='uv')[1]
-    true_cluster_mat[xs, ys] = tp
-
     h_feat = features
     em_bead = em_networks[0]
     en_net = ae_networks[0]
@@ -215,8 +209,15 @@ def predict(graphs, features, num_heads, num_clusters, em_networks, ae_networks,
         Xf = em_bead(h_feat)
         h_center, h_highdim = en_net( top_subgraphs, Xf, lr_ranges, top_list, ['bead'])
         pred_X = h_center.cpu().detach().numpy()
-
+        print('pred X done')
         if save_label:
+
+            tp = top_graph.edges['interacts'].data['label'].cpu().detach().numpy()
+            true_cluster_mat = np.ones((features.shape[0], features.shape[0]))*(num_clusters-1)
+            
+            xs,ys = graphs['top_graph'].edges(etype='interacts', form='uv')[0], graphs['top_graph'].edges(etype='interacts', form='uv')[1]
+            true_cluster_mat[xs, ys] = tp
+
             xp = de_dis_net(top_graph, h_center)
             [dis_cmpt_lp], _ = de_gmm_net(xp)
             dp = torch.exp(dis_cmpt_lp).cpu().detach().numpy()
@@ -237,7 +238,9 @@ def predict(graphs, features, num_heads, num_clusters, em_networks, ae_networks,
                 pdcm_list.append(pdcm.astype(np.uint8))
         else:
             pred_dist_cluster_mat, pdcm_list = None, None
+            true_cluster_mat, dis_gmm = None, None
 
+        print('prediction X done')
         return pred_X, pred_dist_cluster_mat, pdcm_list, [true_cluster_mat, dis_gmm]
 
 def run_epoch(datasets, model, num_heads, num_clusters, loss_fc, optimizer, scheduler, iterations, device, writer=None, saved_model=None):
@@ -445,10 +448,11 @@ def run_prediction(dataset, model, saved_parameters_model, num_heads, num_cluste
         [pred_X, 
         pred_dist_cluster_mat, pdcm_list, 
         [true_cluster_mat, dis_gmm]] = predict(graphs, h_feat, num_heads, num_clusters, em_networks, ae_networks, save_label, device)
-        for name, param in models_dict['decoder_distance_model'].named_parameters():
-            if name=='w':
-                weights = torch.nn.functional.softmax(param.clamp(min=-3.0, max=3.0), dim=0).cpu().detach().numpy()
-                print(weights*100)
+        if save_label:
+            for name, param in models_dict['decoder_distance_model'].named_parameters():
+                if name=='w':
+                    weights = torch.nn.functional.softmax(param.clamp(min=-3.0, max=3.0), dim=0).cpu().detach().numpy()
+                    print(weights*100)
         prediction[index] = {'structures': pred_X, 
                             'structures_weights':weights,
                             'predict_cluster': [pred_dist_cluster_mat, pdcm_list], 
