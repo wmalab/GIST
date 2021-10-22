@@ -129,7 +129,6 @@ if __name__ == '__main__':
 
     # predict
     print('Start prediction')
-    print('save label {}, section_start {}, end {}'.format(save_label, section_start, section_end))
     model = [em_networks, ae_networks]
     predictions = run_prediction(test_dataset, model, [model_saved_path, model_saved_name], num_heads, num_clusters, device=device)
 
