@@ -111,12 +111,12 @@ if __name__ == '__main__':
     test_indices = np.array(HiCDataset.list)
     test_dataset = torch.utils.data.Subset(HiCDataset, test_indices)
 
-    # creat network model
-    print('creat network model')
+    # create network model
+    print('Create network model')
     em_networks, ae_networks, num_heads, num_clusters, _, _, _ = create_network(config_data, device)
     
     # load parameters
-    print('load parameters')
+    print('Load parameters')
     path = os.path.join(model_saved_path, model_saved_name)
     checkpoint = torch.load(path, map_location=device)
     em_networks[0].load_state_dict(checkpoint['embedding_model_state_dict'])
@@ -128,7 +128,7 @@ if __name__ == '__main__':
     # optimizer[0].load_state_dict(checkpoint['optimizer_state_dict'])
 
     # predict
-    print('start prediction')
+    print('Start prediction')
     model = [em_networks, ae_networks]
     predictions = run_prediction(test_dataset, model, [model_saved_path, model_saved_name], num_heads, num_clusters, device=device)
 

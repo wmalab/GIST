@@ -406,28 +406,28 @@ def run_epoch(datasets, model, num_heads, num_clusters, loss_fc, optimizer, sche
     save_model_state_dict(models_dict, optimizer[0], path)
 
 def run_prediction(dataset, model, saved_parameters_model, num_heads, num_clusters, device='cpu'):
-    model_saved_path = saved_parameters_model[0] if saved_parameters_model is not None else None
-    model_saved_name = saved_parameters_model[1] if saved_parameters_model is not None else None
+    # model_saved_path = saved_parameters_model[0] if saved_parameters_model is not None else None
+    # model_saved_name = saved_parameters_model[1] if saved_parameters_model is not None else None
 
     em_networks, ae_networks = model
-    models_dict = {
-        'embedding_model': em_networks[0],
-        'encoder_model': ae_networks[0],
-        'decoder_distance_model': ae_networks[1],
-        'decoder_gmm_model': ae_networks[2],
-        'decoder_euclidean_model': ae_networks[3],
-        'decoder_similarity_model': ae_networks[4]
-    }
+    # models_dict = {
+    #     'embedding_model': em_networks[0],
+    #     'encoder_model': ae_networks[0],
+    #     'decoder_distance_model': ae_networks[1],
+    #     'decoder_gmm_model': ae_networks[2],
+    #     'decoder_euclidean_model': ae_networks[3],
+    #     'decoder_similarity_model': ae_networks[4]
+    # }
 
-    path = os.path.join(model_saved_path, model_saved_name)
-    checkpoint = torch.load(path, map_location=device)
-    em_networks[0].load_state_dict(checkpoint['embedding_model_state_dict'])
-    ae_networks[0].load_state_dict(checkpoint['encoder_model_state_dict'])
-    ae_networks[1].load_state_dict(checkpoint['decoder_distance_model_state_dict'])
-    ae_networks[2].load_state_dict(checkpoint['decoder_gmm_model_state_dict'])
-    ae_networks[3].load_state_dict(checkpoint['decoder_euclidean_model_state_dict'])
-    ae_networks[4].load_state_dict(checkpoint['decoder_simlarity_model_state_dict'])
-    # optimizer[0].load_state_dict(checkpoint['optimizer_state_dict'])
+    # path = os.path.join(model_saved_path, model_saved_name)
+    # checkpoint = torch.load(path, map_location=device)
+    # em_networks[0].load_state_dict(checkpoint['embedding_model_state_dict'])
+    # ae_networks[0].load_state_dict(checkpoint['encoder_model_state_dict'])
+    # ae_networks[1].load_state_dict(checkpoint['decoder_distance_model_state_dict'])
+    # ae_networks[2].load_state_dict(checkpoint['decoder_gmm_model_state_dict'])
+    # ae_networks[3].load_state_dict(checkpoint['decoder_euclidean_model_state_dict'])
+    # ae_networks[4].load_state_dict(checkpoint['decoder_simlarity_model_state_dict'])
+    # # optimizer[0].load_state_dict(checkpoint['optimizer_state_dict'])
 
     for key, m in models_dict.items():
         for param in list(m.parameters()):
@@ -449,6 +449,7 @@ def run_prediction(dataset, model, saved_parameters_model, num_heads, num_cluste
         [pred_X, 
         pred_dist_cluster_mat, pdcm_list, 
         # pred_dist_mat, pdm_list, 
+        print('\t predict')
         [true_cluster_mat, dis_gmm]] = predict(graphs, h_feat, num_heads, num_clusters, em_networks, ae_networks, device)
         for name, param in models_dict['decoder_distance_model'].named_parameters():
             if name=='w':
