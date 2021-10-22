@@ -410,14 +410,14 @@ def run_prediction(dataset, model, saved_parameters_model, num_heads, num_cluste
     # model_saved_name = saved_parameters_model[1] if saved_parameters_model is not None else None
 
     em_networks, ae_networks = model
-    # models_dict = {
-    #     'embedding_model': em_networks[0],
-    #     'encoder_model': ae_networks[0],
-    #     'decoder_distance_model': ae_networks[1],
-    #     'decoder_gmm_model': ae_networks[2],
-    #     'decoder_euclidean_model': ae_networks[3],
-    #     'decoder_similarity_model': ae_networks[4]
-    # }
+    models_dict = {
+        'embedding_model': em_networks[0],
+        'encoder_model': ae_networks[0],
+        'decoder_distance_model': ae_networks[1],
+        'decoder_gmm_model': ae_networks[2],
+        'decoder_euclidean_model': ae_networks[3],
+        'decoder_similarity_model': ae_networks[4]
+    }
 
     # path = os.path.join(model_saved_path, model_saved_name)
     # checkpoint = torch.load(path, map_location=device)
