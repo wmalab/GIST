@@ -209,9 +209,9 @@ def predict(graphs, features, num_heads, num_clusters, em_networks, ae_networks,
         Xf = em_bead(h_feat)
         h_center, h_highdim = en_net( top_subgraphs, Xf, lr_ranges, top_list, ['bead'])
         pred_X = h_center.cpu().detach().numpy()
-        print('pred X done')
+        print('predict X')
         if save_label:
-
+            print('predict labels')
             tp = top_graph.edges['interacts'].data['label'].cpu().detach().numpy()
             true_cluster_mat = np.ones((features.shape[0], features.shape[0]))*(num_clusters-1)
             
@@ -240,7 +240,7 @@ def predict(graphs, features, num_heads, num_clusters, em_networks, ae_networks,
             pred_dist_cluster_mat, pdcm_list = None, None
             true_cluster_mat, dis_gmm = None, None
 
-        print('prediction X done')
+        print('prediction done')
         return pred_X, pred_dist_cluster_mat, pdcm_list, [true_cluster_mat, dis_gmm]
 
 def run_epoch(datasets, model, num_heads, num_clusters, loss_fc, optimizer, scheduler, iterations, device, writer=None, saved_model=None):
