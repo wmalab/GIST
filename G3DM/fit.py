@@ -206,19 +206,22 @@ def predict(graphs, features, num_heads, num_clusters, em_networks, ae_networks,
     de_gmm_net = ae_networks[2]
     de_euc_net = ae_networks[3]
     de_sim_net = ae_networks[4]
-
+    print('\t\ttorch.no_grad')
     with torch.no_grad():
-
         _, [dis_gmm] = de_gmm_net( torch.ones(1, device=device) )
         mu = dis_gmm.component_distribution.mean.detach()
         stddev = dis_gmm.component_distribution.stddev.detach()
         lr_ranges = torch.exp(mu - stddev**2)
 
+        print('em_bead')
         Xf = em_bead(h_feat)
+        print('en_net')
         h_center, h_highdim = en_net( top_subgraphs, Xf, lr_ranges, top_list, ['bead'])
         pred_X = h_center.cpu().detach().numpy()
 
+        print('de_dis_net')
         xp, _ = de_dis_net(top_graph, h_center)
+        print('de_gmm_net')
         [dis_cmpt_lp], _ = de_gmm_net(xp)
         dp = torch.exp(dis_cmpt_lp).cpu().detach().numpy()
 
