@@ -438,7 +438,7 @@ def run_prediction(dataset, model, saved_parameters_model, num_heads, num_cluste
     prediction = dict()
     for i, data in enumerate(dataset):
         t0 = time.time()
-
+        print('\t #{} get data'.format(i))
         graphs, features, _, index = data
         h_f, h_p = features['feat'], features['pos']
         h_f_n = torch.nn.functional.normalize(torch.tensor(h_f), p=1.0, dim=1)*h_f.shape[1]
@@ -446,10 +446,10 @@ def run_prediction(dataset, model, saved_parameters_model, num_heads, num_cluste
         h_feat = torch.stack([h_f_n, h_p_n], dim=1).to(device)
         h_feat = h_feat.float()
 
+        print('\t predict')
         [pred_X, 
         pred_dist_cluster_mat, pdcm_list, 
         # pred_dist_mat, pdm_list, 
-        print('\t predict')
         [true_cluster_mat, dis_gmm]] = predict(graphs, h_feat, num_heads, num_clusters, em_networks, ae_networks, device)
         for name, param in models_dict['decoder_distance_model'].named_parameters():
             if name=='w':
