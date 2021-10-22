@@ -454,6 +454,8 @@ def run_prediction(dataset, model, saved_parameters_model, num_heads, num_cluste
                 if name=='w':
                     weights = torch.nn.functional.softmax(param.clamp(min=-3.0, max=3.0), dim=0).cpu().detach().numpy()
                     print(weights*100)
+        else:
+            weights = None
         prediction[index] = {'structures': pred_X, 
                             'structures_weights':weights,
                             'predict_cluster': [pred_dist_cluster_mat, pdcm_list], 
