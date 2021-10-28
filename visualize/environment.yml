@@ -8,6 +8,7 @@
    - dglteam
    - pytorch
    - open3d-admin
+   - tensorly
  dependencies:
    - numpy
    - scipy
@@ -27,6 +28,7 @@
    # - cudatoolkit =10.2
    - dgl #-cuda10.2
    - pip
+   - tensorly
   #  - open3d
    - pip:
       - cooler
