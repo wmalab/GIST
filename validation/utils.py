@@ -104,7 +104,7 @@ if __name__ == '__main__':
     #     name = 'hg18_{}.bed'.format(sheet)
     #     save_csv(df, path, name)
 
-    file_list = {'21':4, '22': 5, '20':6 }
+    file_list = {'Xa':7, 'Xi':8} # '21':4, '22': 5, '20':6, 
     for key, v in file_list.items():
         name = 'aaf8084_supportingfile_suppl1._excel_seq{}_v1.xlsx'.format(v)
         fish3d_df =  load_excel_fish3d(path, name, 0)
