@@ -238,7 +238,7 @@ def predict(graphs, features, num_heads, num_clusters, em_networks, ae_networks,
                 pdcm_list.append(pdcm.astype(np.uint8))
         else:
             pred_dist_cluster_mat, pdcm_list = None, None
-            true_cluster_mat, dis_gmm = None, None
+            true_cluster_mat, dis_gmm = None, dis_gmm
 
         print('prediction done')
         return pred_X, pred_dist_cluster_mat, pdcm_list, [true_cluster_mat, dis_gmm]
