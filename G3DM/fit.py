@@ -449,13 +449,12 @@ def run_prediction(dataset, model, saved_parameters_model, num_heads, num_cluste
         [pred_X, 
         pred_dist_cluster_mat, pdcm_list, 
         [true_cluster_mat, dis_gmm]] = predict(graphs, h_feat, num_heads, num_clusters, em_networks, ae_networks, save_label, device)
-        if save_label:
-            for name, param in models_dict['decoder_distance_model'].named_parameters():
-                if name=='w':
-                    weights = torch.nn.functional.softmax(param.clamp(min=-3.0, max=3.0), dim=0).cpu().detach().numpy()
-                    print(weights*100)
-        else:
-            weights = None
+
+        for name, param in models_dict['decoder_distance_model'].named_parameters():
+            if name=='w':
+                weights = torch.nn.functional.softmax(param.clamp(min=-3.0, max=3.0), dim=0).cpu().detach().numpy()
+                print(weights*100)
+
         prediction[index] = {'structures': pred_X, 
                             'structures_weights':weights,
                             'predict_cluster': [pred_dist_cluster_mat, pdcm_list], 
