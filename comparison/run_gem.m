@@ -5,5 +5,5 @@ function run_gem(input_path, output_path)
     addpath(genpath(folder_dir));
     x = fullfile( input_path, "norm_mat.txt")
     bin = fullfile( input_path, "loci.txt")
-    GEM(x, bin, 1E3, 10, 5E12, 0, -1, output_path);
+    GEM(x, bin, 1E3, 4, 5E12, 1, -1, output_path);
 end

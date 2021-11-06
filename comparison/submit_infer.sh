@@ -11,5 +11,6 @@ date
 hostname
 source activate env_cmp
 module load matlab
+# 21 GEM
 echo python infer_structure.py $1 $2
 python infer_structure.py $1 $2
