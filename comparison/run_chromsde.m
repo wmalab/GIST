@@ -1,4 +1,4 @@
-function run_chromsde(input_path, chrnum, resolution, method_type, output_path)
+function run_chromsde(input_path, chrnum, method_type, output_path)
     % Determine where your m-file's folder is.
     folder_dir = "/rhome/yhu/bigdata/proj/experiment_G3DM/chromosome_3D/comparison/ChromSDE/program"
     addpath(genpath(folder_dir));
@@ -11,19 +11,21 @@ function run_chromsde(input_path, chrnum, resolution, method_type, output_path)
     x = fullfile( input_path, "norm_mat.txt")
     trainFreq = load(x);
     s=size(trainFreq, 2);
-    trainBin=zeros(s,4);
-    chr = chrnum;
-    if (strcmp(chrnum, 'X'))
-        chr = 23;
-    else
-        chr = str2num(chrnum);
-    end
-    for i=1:s
-        trainBin(i,1)=chr;
-        trainBin(i,2)=1+(i-1)*resolution;
-        trainBin(i,3)=i*resolution;
-        trainBin(i,4)=i;
-    end
+    cbin = fullfile( input_path, "loci.txt")
+    trainBin = load(cbin);
+    % trainBin=zeros(s,4);
+    % chr = chrnum;
+    % if (strcmp(chrnum, 'X'))
+    %     chr = 23;
+    % else
+    %     chr = str2num(chrnum);
+    % end
+    % for i=1:s
+    %     trainBin(i,2)=chr;
+    %     trainBin(i,3)=1+(i-1)*resolution;
+    %     trainBin(i,4)=i*resolution;
+    %     trainBin(i,1)=i;
+    % end
     size(trainBin)
     size(trainFreq)
     ChromSDE(trainBin, trainFreq, method_type, output_path);

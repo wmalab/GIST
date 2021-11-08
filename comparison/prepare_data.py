@@ -21,7 +21,7 @@ def run(chromosome, method, raw_hic_path, name, path):
     elif method=='lordg':
         prepare_lordg(mat, resolution, path)
     elif method=='chromsde':
-        prepare_chromsde(mat, path)
+        prepare_chromsde(chromosome, mat, resolution, path)
 
 def prepare_shrec3d(mat, resolution, path):
     mat, idx = remove_nan_col(mat)
@@ -132,13 +132,22 @@ def lordg_count(coo_mat, output_path):
     mat = np.stack( (x, y, data), axis=1)
     np.savetxt(output_path, mat, delimiter=' ', fmt="%d %d %10.3f")  
 
-def prepare_chromsde(mat, path):
+def prepare_chromsde(chro, mat, resolution, path):
     mat, idx = remove_nan_col(mat)
     nmat = iced_normalization(mat)
     name = 'norm_mat.txt'
     file = os.path.join(path, name)
     print('mat shape {}, file name: {}'.format(nmat.shape, name))
     np.savetxt(file, nmat, delimiter='\t')
+
+    name = 'loci.txt'
+    file = os.path.join(path, name)
+    loci = np.empty((len(idx), 4))
+    loci[:,0] = np.arange(1, len(idx)+1)
+    loci[:,1] = [int(chro) if chro!='X' else 23]*len(idx)
+    loci[:,2] = idx*resolution
+    loci[:,3] = 1 + (idx-1)*resolution
+    np.savetxt(file, loci, delimiter='\t')
     return 
 
 if __name__ == '__main__':
