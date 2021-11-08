@@ -55,6 +55,11 @@ def run(path, method, cell, resolution, chromosome):
         jar_path = os.path.join(cwd_path, 'LorDG', 'bin')
         input_path = os.path.join(path, 'comparison', method, cell, resolution, chromosome, 'config.ini')
         command = "java -jar {}/3DDistanceBaseLorentz.jar {}".format(jar_path, input_path)
+    elif method=='chromsde':
+        input_path = os.path.join(path, 'comparison', method, cell, resolution, chromosome)
+        output_path = os.path.join(path, 'comparison', method, cell, resolution, chromosome)
+        os.makedirs(output_path, exist_ok=True)
+        command = "matlab -nodesktop -nodisplay -nosplash -r \'run_chromsde(\"{}\", \"{}\", {}, 1, \"{}\"); quit;\'".format(input_path, chromosome, resolution, output_path+'/file')
     
     run_command(command, cwd_path)
 

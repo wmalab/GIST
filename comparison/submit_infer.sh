@@ -2,7 +2,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --mem=100G
-#SBATCH --time=2-20:00:00
+#SBATCH --time=5-20:00:00
 #SBATCH -p wmalab
 #SBATCH --job-name=infer
 #SBATCH --output=./log/Job-infer-%J.log

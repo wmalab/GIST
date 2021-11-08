@@ -20,6 +20,8 @@ def run(chromosome, method, raw_hic_path, name, path):
         prepare_gem(mat, resolution, path)
     elif method=='lordg':
         prepare_lordg(mat, resolution, path)
+    elif method=='chromsde':
+        prepare_chromsde(mat, path)
 
 def prepare_shrec3d(mat, resolution, path):
     mat, idx = remove_nan_col(mat)
@@ -129,6 +131,15 @@ def lordg_count(coo_mat, output_path):
     data = (coo_mat.data).flatten()
     mat = np.stack( (x, y, data), axis=1)
     np.savetxt(output_path, mat, delimiter=' ', fmt="%d %d %10.3f")  
+
+def prepare_chromsde(mat, path):
+    mat, idx = remove_nan_col(mat)
+    nmat = iced_normalization(mat)
+    name = 'norm_mat.txt'
+    file = os.path.join(path, name)
+    print('mat shape {}, file name: {}'.format(nmat.shape, name))
+    np.savetxt(file, nmat, delimiter='\t')
+    return 
 
 if __name__ == '__main__':
     raw_hic_path = '/rhome/yhu/bigdata/proj/experiment_G3DM/data/raw'
