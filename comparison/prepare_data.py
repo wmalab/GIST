@@ -144,9 +144,9 @@ def prepare_chromsde(chro, mat, resolution, path):
     file = os.path.join(path, name)
     loci = np.empty((len(idx), 4), dtype=int)
     loci[:,0] = [int(chro) if chro!='X' else 23]*len(idx)
-    loci[:,1] = int(idx*resolution)
-    loci[:,2] = int(1 + (idx-1)*resolution)
-    loci[:,3] = int(np.arange(1, len(idx)+1))
+    loci[:,1] = (idx*resolution).astype(int)
+    loci[:,2] = (1 + (idx-1)*resolution).astype(int)
+    loci[:,3] = (np.arange(1, len(idx)+1)).astype(int)
     np.savetxt(file, loci, delimiter='\t')
     return 
 
