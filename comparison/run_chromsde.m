@@ -28,6 +28,7 @@ function run_chromsde(input_path, chrnum, method_type, output_path)
     % end
     size(trainBin)
     size(trainFreq)
+    output_path
     ChromSDE(trainBin, trainFreq, method_type, output_path);
 end
     

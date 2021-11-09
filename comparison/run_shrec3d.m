@@ -5,6 +5,7 @@ function run_shrec3d(input_path, output_path)
     DataF=importdata( fullfile(input_path, "norm_mat.txt") );
     XYZ = ShRec3D_ext(DataF, 3, 'sammon');
     % XYZ=ShRec3D(DataF);
+    fullfile(output_path, 'conformation.xyz')
     fig=figure,plot3(XYZ(:,1),XYZ(:,2),XYZ(:,3));
     saveas(fig,fullfile(output_path, 'conformation.jpg'));
     save(fullfile(output_path, 'conformation.xyz'), 'XYZ', '-ascii');
