@@ -17,7 +17,7 @@ def format_chromsde(output_path):
         file.close()
     structure = np.array(structure, ndmin=2)
     output_file = os.path.join(output_path, 'conformation.xyz')
-    np.savetxt(output_file, structure, fmt="%f\t%f\t%f\t%d")
+    np.savetxt(output_file, structure, fmt="%f\t%f\t%f")
 
 def format_lordg(output_path):
     files = [f for f in os.listdir(output_path) if os.path.isfile(os.path.join(output_path, f))]
