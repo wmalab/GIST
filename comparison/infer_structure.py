@@ -11,7 +11,7 @@ def format_chromsde(output_path):
         next(file)
         for line in file:
             l = line.split(',')
-            indx = int(l[0])%10e10
+            indx = int(float(l[0]))%10e10
             x,y,z = l[1:]
             structure.append([float(x),float(y),float(z)])
         file.close()
