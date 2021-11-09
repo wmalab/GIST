@@ -1,6 +1,23 @@
 import sys, os
 import subprocess
 import numpy as np
+def format_chromsde(output_path):
+    files = [f for f in os.listdir(output_path) if os.path.isfile(os.path.join(output_path, f))]
+    for f in files:
+        if '.pos' in f: pdb = f
+
+    structure = []
+    with open(os.path.join(output_path, pdb)) as file:
+        next(file)
+        for line in file:
+            l = line.split()
+            indx = int(l[0])%10e10
+            x,y,z = l[1:]
+            structure.append([float(x),float(y),float(z)])
+        file.close()
+    structure = np.array(structure, ndmin=2)
+    output_file = os.path.join(output_path, 'conformation.xyz')
+    np.savetxt(output_file, structure, fmt="%f\t%f\t%f\t%d")
 
 def format_lordg(output_path):
     files = [f for f in os.listdir(output_path) if os.path.isfile(os.path.join(output_path, f))]
@@ -64,7 +81,7 @@ def run(path, method, cell, resolution, chromosome):
     run_command(command, cwd_path)
 
     if method=='lordg':
-        output_path = input_path = os.path.join(path, 'comparison', method, cell, resolution, chromosome, 'output')
+        output_path = os.path.join(path, 'comparison', method, cell, resolution, chromosome, 'output')
         format_lordg(output_path)
 
 if __name__ == '__main__':
@@ -77,4 +94,7 @@ if __name__ == '__main__':
     path = '/rhome/yhu/bigdata/proj/experiment_G3DM/'
     method = str(sys.argv[2]) #'gem'
 
-    run(path, method, cell, resolution, chromosome)
+    # run(path, method, cell, resolution, chromosome)
+
+    output_path = os.path.join(path, 'comparison', method, cell, resolution, chromosome)
+    format_chromsde(output_path)
