@@ -1,4 +1,4 @@
-{   "id": "predict_X",
+{   "id": "predict_v1_X",
     "cool_data_path":"",
     "cool_file": "Rao2014-IMR90-MboI-allreps-filtered.10kb.cool", 
     "cell_name": "Rao2014-IMR90-MboI-allreps-filtered",
@@ -6,7 +6,7 @@
     "all_chromosomes": ["X"],
     "test_chromosomes": ["X"],
     "saved_model": {
-        "path": "/rhome/yhu/bigdata/proj/experiment_G3DM/data/Rao2014-IMR90-MboI-allreps-filtered/10kb_train_X/saved_model", 
+        "path": "/rhome/yhu/bigdata/proj/experiment_G3DM/data/Rao2014-IMR90-MboI-allreps-filtered/10kb_train_v1_X/saved_model", 
         "name": "finial_model_net"},
     "parameter": {
         "section":{"start":-1, "end":-1},
