@@ -15,4 +15,4 @@ echo ${jid3}
 echo ${jid3##* }
 
 # show dependencies in squeue output:
-squeue -u $USER -o "%.8A %.4C %.10m %.20E"
+squeue -u $USER # -o "%.8A %.4C %.10m %.20E"

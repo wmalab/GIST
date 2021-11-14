@@ -86,6 +86,7 @@ def create_fit_graph(norm_hic,
     # log_hic = norm_hic
     # only 1 log Hi-C
     cp_low, cp_high = float(cutoff_clusters_limits['low']), float(cutoff_clusters_limits['high'])
+
     low = np.nanpercentile(log_hic, cp_low)
     high = np.nanpercentile(log_hic, cp_high)
     threshold = ((log_hic>low) & (log_hic<high))
@@ -152,6 +153,7 @@ def create_predict_graph(norm_hic,
     # log_hic = norm_hic
     # only 1 log Hi-C
     cp_low, cp_high = float(cutoff_clusters_limits['low']), float(cutoff_clusters_limits['high'])
+
     low = np.nanpercentile(log_hic, cp_low)
     high = np.nanpercentile(log_hic, cp_high)
     threshold = ((log_hic>low) & (log_hic<high))

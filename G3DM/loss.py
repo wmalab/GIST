@@ -54,7 +54,7 @@ class RMSLELoss(nn.Module):
         self.mse = nn.MSELoss()
 
     def forward(self, pred, target):
-        return torch.sqrt( self.mse(torch.log1p(pred.float()), torch.log1p(target.float())) )
+        return torch.sqrt( 1e-8 + self.mse(torch.log1p(1+pred.float()), torch.log1p(1+target.float())) )
 
 class MSELoss(nn.Module):
     def __init__(self):
@@ -62,7 +62,7 @@ class MSELoss(nn.Module):
         self.mse = nn.MSELoss()
 
     def forward(self, pred, target):
-        return torch.sqrt(self.mse(pred.float(), target.float())).float()
+        return torch.sqrt( 1e-8 + self.mse(pred.float(), target.float()) ).float()
 
 class stdLoss(nn.Module):
     def __init__(self):

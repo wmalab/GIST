@@ -8,10 +8,10 @@ from kornia import losses
 
 from .model import embedding, encoder_chain, decoder_distance, decoder_gmm, decoder_euclidean, decoder_similarity
 from .model import save_model_state_dict
-from .loss import nllLoss, WassersteinLoss, RMSLELoss #MSELoss # stdLoss, ClusterLoss,
+from .loss import nllLoss, WassersteinLoss, RMSLELoss # , RMSLELoss #MSELoss # stdLoss, ClusterLoss,
 from .visualize import plot_feature, plot_X, plot_cluster, plot_confusion_mat, plot_distributions, plot_histogram2d
 from .visualize import plot_scaler
-
+torch.autograd.set_detect_anomaly(True)
 # import GPUtil
 # gpuIDs = GPUtil.getAvailable(order = 'first', limit = 1, maxLoad = 0.05, maxMemory = 0.05, includeNan=False, excludeID=[], excludeUUID=[])
 # device =  'cpu' if len(gpuIDs)==0 else 'cuda:{}'.format(gpuIDs[0])
@@ -49,7 +49,7 @@ def create_network(configuration, device):
 
     nll = nllLoss().to(device).float()
     wnl = WassersteinLoss(nc).to(device).float()
-    msel = RMSLELoss().to(device).float()
+    msel = RMSLELoss().to(device).float() # MSELoss().to(device).float() #
 
     parameters_list = list(em_bead.parameters()) + list(en_net.parameters()) + \
                     list(de_distance_net.parameters()) + list(de_gmm_net.parameters()) + \
@@ -281,6 +281,7 @@ def run_epoch(datasets, model, num_heads, num_clusters, loss_fc, optimizer, sche
             stddev = dis_gmm.component_distribution.stddev.detach()
             lr_ranges = torch.exp(mu - stddev**2)
             # lr_ranges = dis_gmm.component_distribution.mean.detach()
+            
             if None in ll:
                 continue
             

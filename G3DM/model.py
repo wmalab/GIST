@@ -122,7 +122,7 @@ class encoder_chain(torch.nn.Module):
             x = h[ntype[0]][:,i,:]
             x = self.norm_(x)
             x = torch.nan_to_num(x, nan=0.0, posinf=100.0, neginf=-100.0)
-            dist = torch.distributions.Normal(x, 0.3*torch.ones_like(x))
+            dist = torch.distributions.Normal(x, 0.1*torch.ones_like(x))
             x = dist.rsample()
             res.append(x)
         res = torch.stack(res, dim=1)
@@ -198,32 +198,34 @@ class decoder_gmm(torch.nn.Module):
 
         self.distance_stdevs = torch.nn.Parameter( 0.3*torch.ones((self.num_clusters)), requires_grad=True)
 
-        inter = torch.linspace(start=0, end=1.0, steps=self.num_clusters)
+        inter = torch.linspace(start=0, end=0.01, steps=self.num_clusters)
         self.interval = torch.nn.Parameter( inter, requires_grad=False)
 
         self.cweight = torch.nn.Parameter( torch.zeros((self.num_clusters)), requires_grad=True)
-        self.bias =  torch.nn.Parameter( torch.linspace(1e-8, 1e-6, steps=self.num_clusters, dtype=torch.float), requires_grad=False)
+        self.bias =  torch.nn.Parameter( torch.linspace(1e-8, 1e-5, steps=self.num_clusters, dtype=torch.float), requires_grad=False)
 
     # gmm
     def fc(self, stds_l, stds_r, k):
-        k = torch.sigmoid(k.clamp(min=-9.0, max=9.0))
-        k = k.clamp(min=0.1)
+        k = torch.sigmoid(k.clamp(min=-torch.log(torch.tensor(9.0)), max=6.0))
         rate = torch.div(stds_l, stds_r)
-        kr = (k*rate).clamp(max=1.0 ) # must < 1
-        return stds_l * torch.sqrt( -2.0 * torch.log(kr) )
+        kr = (k*rate).clamp(min=1e-8, max=(1-1e-8)) # must < 1
+        return stds_l * torch.sqrt( -2.0*torch.log(kr) + 1e-8  )
 
     def forward(self, distance):
         cweight = torch.nn.functional.softmax(self.cweight.view(-1,), 0)
         mix = D.Categorical(cweight)
 
-        stds = torch.relu(self.distance_stdevs) + 1e-3
+        stds = torch.relu(self.distance_stdevs) + 1e-8
 
-        d_left = self.fc(stds, stds, self.k) #.clamp(min=0.0)
-        d_left = torch.relu(torch.cumsum(d_left, dim=0)) #.clamp(min=0.0)
+        d_left = self.fc(stds[1:], stds[1:], self.k[1:])
+        d_right = torch.cat( (torch.zeros(1, device=d_left.device), d_left), dim=0)
+        d_left = torch.cumsum(d_left, dim=0)
 
         d_right = self.fc(stds[0:-1], stds[1:], self.k[1:])
         d_right = torch.cat( (torch.zeros(1, device=d_right.device), d_right), dim=0)
-        means = ((d_left + d_right) + self.interval).clamp(max=5.0)
+        d_right = torch.cumsum(d_right, dim=0)
+        means = (d_left + d_right)
+        means = (means + self.interval).clamp(max=4.5)
 
         # activate = torch.nn.LeakyReLU(0.01)
         # means = activate(self.means).clamp(max=4.5)

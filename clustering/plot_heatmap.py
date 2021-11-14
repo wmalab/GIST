@@ -34,39 +34,44 @@ def get_mat(path, chrom, lows, nums):
             bic_mat[i, j] = b
     return aic_mat, bic_mat
 
+def plot_line(data, lows, nums, path, title):
+    fig, ax = plt.subplots(1, 1, figsize=(5, 3))
+    ax.plot(nums, data[0].flatten(), '+-')
+    ax.plot(nums, data[1].flatten(), 'x:')
+    print(data)
+    ax.set_xticks(nums)
+    ax.set_xticklabels(nums)
+    ax.legend(['aic', 'bic'])
+    # ax[0].set_title('{} aic'.format(title))
+    # im = ax[1].plot(nums, data[1].flatten())
+    # ax[1].set_xticks(nums)
+    # ax[1].set_xticklabels(nums)
+    # ax[1].set_title('{} bic'.format(title))
+    fig.tight_layout()
+    os.makedirs(path, exist_ok=True)
+    plt.savefig(os.path.join(path, '{}.pdf'.format(title)), format='pdf')
+    plt.close()
+
 def plot_hp(data, lows, nums, path, title):
     fig, ax = plt.subplots(2, 1)
     im = ax[0].imshow(data[0], cmap='RdBu_r')
     fig.colorbar(im, ax=ax[0])
 
-    # We want to show all ticks...
     ax[0].set_xticks(np.arange(len(nums)))
     ax[0].set_yticks(np.arange(len(lows)))
-    # ... and label them with the respective list entries
     ax[0].set_xticklabels(nums)
     ax[0].set_yticklabels(lows)
     ax[0].set_title('{} aic'.format(title))
-    # Rotate the tick labels and set their alignment.
-    # plt.setp(ax.get_xticklabels(), rotation=45, ha="right",
-    #         rotation_mode="anchor")
 
-    # Loop over data dimensions and create text annotations.
-    # for i in range(len(lows)):
-    #     for j in range(len(nums)):
-    #         text = ax.text(j, i, data[i, j],
-    #                     ha="center", va="center", color="w")
 
-    im = ax[1].imshow(data[0], cmap='RdBu_r')
-    # We want to show all ticks...
+    im = ax[1].imshow(data[1], cmap='RdBu_r')
     ax[1].set_xticks(np.arange(len(nums)))
     ax[1].set_yticks(np.arange(len(lows)))
-    # ... and label them with the respective list entries
     ax[1].set_xticklabels(nums)
     ax[1].set_yticklabels(lows)
     ax[1].set_title('{} bic'.format(title))
     fig.colorbar(im, ax=ax[1])
     fig.tight_layout()
-
     os.makedirs(path, exist_ok=True)
     plt.savefig(os.path.join(path, '{}.pdf'.format(title)), format='pdf')
     plt.close()
@@ -74,16 +79,22 @@ def plot_hp(data, lows, nums, path, title):
 # cut_figure or figure
 # cutoff_{}_{} or {}_{}.txt
 if __name__ == '__main__':
-    chromosomes = ['14'] #, '15', '16', '17', '18', '19', '20', '21', '22', 'X'] # '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', 
-    lows = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50]
-    nums = np.arange(3, 21)
-    path = '/rhome/yhu/bigdata/proj/experiment_G3DM/gmm_parameter'
+    chromosomes = ['21', '22'] #, '15', '16', '17', '18', '19', '20', '21', '22', 'X'] # '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', 
+    lows = [5] # , 10, 15, 20, 25, 30, 35, 40, 45, 50]
+    nums = np.arange(2, 15)
+    
+    name = 'Rao2014-IMR90-MboI-allreps-filtered.10kb.cool'
+    cell = name.split('.')[0]
+    resolu = name.split('.')[1]
+    path = os.path.join('/rhome/yhu', 'bigdata', 'proj', 'experiment_G3DM', 'figures', 'gmm_parameter', cell, resolu)
+    # path = '/rhome/yhu/bigdata/proj/experiment_G3DM/figures/gmm_parameter'
 
     aic_list = []
     bic_list = []
     for chro in chromosomes:
         a, b = get_mat(path, chro, lows, nums)
-        plot_hp([a, b], lows, nums, os.path.join(path, 'cut_figure'), 'chr{}'.format(chro))
+        # plot_hp([a, b], lows, nums, os.path.join(path, 'cut_figure'), 'chr{}'.format(chro))
+        plot_line([a, b], lows, nums, os.path.join(path, 'cut_figure'), 'chr{}'.format(chro))
         aic_list.append(a)
         bic_list.append(b)
         print('chromosome {} plot done'.format(chro))
@@ -93,10 +104,12 @@ if __name__ == '__main__':
 
     aic_mean = np.nanmean(aic_all, axis=2, keepdims=False)
     bic_mean = np.nanmean(bic_all, axis=2, keepdims=False)
-    plot_hp([aic_mean, bic_mean], lows, nums, os.path.join(path, 'cut_figure'), 'all chromosomes mean')
+    # plot_hp([aic_mean, bic_mean], lows, nums, os.path.join(path, 'cut_figure'), 'all chromosomes mean')
+    plot_line([aic_mean, bic_mean], lows, nums, os.path.join(path, 'cut_figure'), 'all chromosomes mean')
     print('chromosomes mean plot done')
 
     aic_med = np.nanmedian(aic_all, axis=2, keepdims=False)
     bic_med = np.nanmedian(bic_all, axis=2, keepdims=False)
-    plot_hp([aic_med, bic_med], lows, nums, os.path.join(path, 'cut_figure'), 'all chromosomes median')
+    # plot_hp([aic_med, bic_med], lows, nums, os.path.join(path, 'cut_figure'), 'all chromosomes median')
+    plot_line([aic_med, bic_med], lows, nums, os.path.join(path, 'cut_figure'), 'all chromosomes median')
     print('chromosomes median plot done')
