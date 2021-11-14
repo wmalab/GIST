@@ -1,4 +1,4 @@
-{   "id": "train_v1_20",
+{   "id": "train_v2_20",
     "cool_data_path":"",
     "cool_file": "Rao2014-IMR90-MboI-allreps-filtered.10kb.cool", 
     "cell_name": "Rao2014-IMR90-MboI-allreps-filtered",
@@ -8,9 +8,9 @@
     "parameter": {
         "graph":{
             "max_len": 1000,
-            "num_clusters": 7,
+            "num_clusters": 9,
             "cutoff_clusters":{"low": 5.0, "high": 100},
-            "cutoff_cluster": 5
+            "cutoff_cluster": 7
         },
         "feature":{
             "in_dim": 300,

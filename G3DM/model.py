@@ -198,7 +198,7 @@ class decoder_gmm(torch.nn.Module):
 
         self.distance_stdevs = torch.nn.Parameter( 0.3*torch.ones((self.num_clusters)), requires_grad=True)
 
-        inter = torch.linspace(start=0, end=0.01, steps=self.num_clusters)
+        inter = torch.linspace(start=0, end=1.0, steps=self.num_clusters)
         self.interval = torch.nn.Parameter( inter, requires_grad=False)
 
         self.cweight = torch.nn.Parameter( torch.zeros((self.num_clusters)), requires_grad=True)
@@ -206,9 +206,9 @@ class decoder_gmm(torch.nn.Module):
 
     # gmm
     def fc(self, stds_l, stds_r, k):
-        k = torch.sigmoid(k.clamp(min=-torch.log(torch.tensor(9.0)), max=6.0))
+        k = torch.sigmoid(k.clamp(min=-torch.log(torch.tensor(9.0)), max=9.0))
         rate = torch.div(stds_l, stds_r)
-        kr = (k*rate).clamp(min=1e-8, max=(1-1e-8)) # must < 1
+        kr = (k*rate).clamp(min=1e-8, max=0.95) # must < 1
         return stds_l * torch.sqrt( -2.0*torch.log(kr) + 1e-8  )
 
     def forward(self, distance):
@@ -217,8 +217,7 @@ class decoder_gmm(torch.nn.Module):
 
         stds = torch.relu(self.distance_stdevs) + 1e-8
 
-        d_left = self.fc(stds[1:], stds[1:], self.k[1:])
-        d_left = torch.cat( (torch.zeros(1, device=d_left.device), d_left), dim=0)
+        d_left = self.fc(stds, stds, self.k)
         d_left = torch.cumsum(d_left, dim=0)
 
         d_right = self.fc(stds[0:-1], stds[1:], self.k[1:])
