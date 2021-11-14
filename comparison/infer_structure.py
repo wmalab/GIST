@@ -83,6 +83,10 @@ def run(path, method, cell, resolution, chromosome):
     if method=='lordg':
         output_path = os.path.join(path, 'comparison', method, cell, resolution, chromosome, 'output')
         format_lordg(output_path)
+    
+    if method =='chromsde':
+        output_path = os.path.join(path, 'comparison', method, cell, resolution, chromosome)
+        format_chromsde(output_path)
 
 if __name__ == '__main__':
     raw_hic_path = '/rhome/yhu/bigdata/proj/experiment_G3DM/data/raw'
@@ -94,7 +98,4 @@ if __name__ == '__main__':
     path = '/rhome/yhu/bigdata/proj/experiment_G3DM/'
     method = str(sys.argv[2]) #'gem'
 
-    # run(path, method, cell, resolution, chromosome)
-
-    output_path = os.path.join(path, 'comparison', method, cell, resolution, chromosome)
-    format_chromsde(output_path)
+    run(path, method, cell, resolution, chromosome)
