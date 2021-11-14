@@ -218,7 +218,7 @@ class decoder_gmm(torch.nn.Module):
         stds = torch.relu(self.distance_stdevs) + 1e-8
 
         d_left = self.fc(stds[1:], stds[1:], self.k[1:])
-        d_right = torch.cat( (torch.zeros(1, device=d_left.device), d_left), dim=0)
+        d_left = torch.cat( (torch.zeros(1, device=d_left.device), d_left), dim=0)
         d_left = torch.cumsum(d_left, dim=0)
 
         d_right = self.fc(stds[0:-1], stds[1:], self.k[1:])
