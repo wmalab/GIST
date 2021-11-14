@@ -215,7 +215,7 @@ class decoder_gmm(torch.nn.Module):
         cweight = torch.nn.functional.softmax(self.cweight.view(-1,), 0)
         mix = D.Categorical(cweight)
 
-        stds = torch.relu(self.distance_stdevs) + 1e-8
+        stds = torch.relu(self.distance_stdevs) + 1e-3
 
         d_left = self.fc(stds, stds, self.k)
         d_left = torch.cumsum(d_left, dim=0)
