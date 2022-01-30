@@ -22,7 +22,7 @@ print(device)
 
 if __name__ == '__main__':
     # root = os.path.join('.') #
-    root = os.path.join('/rhome/yhu/bigdata/proj/experiment_G3DM')
+    root = os.path.join('/rhome/yhu/bigdata/proj/experiment_GIST')
     configuration_src_path = os.path.join(root, 'data')
     configuration_name = sys.argv[1]# 'config_train.json'
     with open(os.path.join(configuration_src_path, configuration_name)) as f:

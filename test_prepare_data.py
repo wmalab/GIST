@@ -17,7 +17,7 @@ warnings.filterwarnings('ignore')
 
 if __name__ == '__main__':
     # root = '.'
-    root = '/rhome/yhu/bigdata/proj/experiment_G3DM'
+    root = '/rhome/yhu/bigdata/proj/experiment_GIST'
 
     configuration_src_path = os.path.join(root, 'data')
     configuration_name = sys.argv[1] # 'config_train.json'
