@@ -151,13 +151,13 @@ def prepare_chromsde(chro, mat, resolution, path):
     return 
 
 if __name__ == '__main__':
-    raw_hic_path = '/rhome/yhu/bigdata/proj/experiment_G3DM/data/raw'
+    raw_hic_path = '/rhome/yhu/bigdata/proj/experiment_GIST/data/raw'
     name = 'Rao2014-IMR90-MboI-allreps-filtered.10kb.cool'
     chromosome = str(sys.argv[1]) #'21'
     cell = name.split('.')[0]
     resolution = name.split('.')[1]
 
-    path = '/rhome/yhu/bigdata/proj/experiment_G3DM'
+    path = '/rhome/yhu/bigdata/proj/experiment_GIST'
 
     method = str(sys.argv[2]) #'pastis'
     mpath = os.path.join(path, 'comparison', method, cell, resolution, chromosome)

@@ -16,7 +16,7 @@
             "in_dim": 300,
             "out_dim": 30
         },
-        "G3DM":{
+        "GIST":{
             "iteration": 100,
             "num_heads": 40,
             "graph_dim":{"in_dim":30, "hidden_dim":10, "out_dim": 3}

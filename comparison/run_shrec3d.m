@@ -1,5 +1,5 @@
 function run_shrec3d(input_path, output_path)
-    folder_dir = "/rhome/yhu/bigdata/proj/experiment_G3DM/chromosome_3D/comparison/ShRec-Exented" 
+    folder_dir = "/rhome/yhu/bigdata/proj/experiment_GIST/chromosome_3D/comparison/ShRec-Exented" 
     % Add that folder plus all subfolders to the path.
     addpath(genpath(folder_dir));
     DataF=importdata( fullfile(input_path, "norm_mat.txt") );

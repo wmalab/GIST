@@ -86,8 +86,8 @@ if __name__ == '__main__':
     name = 'Rao2014-IMR90-MboI-allreps-filtered.10kb.cool'
     cell = name.split('.')[0]
     resolu = name.split('.')[1]
-    path = os.path.join('/rhome/yhu', 'bigdata', 'proj', 'experiment_G3DM', 'figures', 'gmm_parameter', cell, resolu)
-    # path = '/rhome/yhu/bigdata/proj/experiment_G3DM/figures/gmm_parameter'
+    path = os.path.join('/rhome/yhu', 'bigdata', 'proj', 'experiment_GIST', 'figures', 'gmm_parameter', cell, resolu)
+    # path = '/rhome/yhu/bigdata/proj/experiment_GIST/figures/gmm_parameter'
 
     aic_list = []
     bic_list = []

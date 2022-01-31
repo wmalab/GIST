@@ -32,7 +32,7 @@ if __name__ == '__main__':
     cell = cool_file.split('.')[0]
     hyper = '_'.join([cool_file.split('.')[1], config_data["id"]])
 
-    # '/rhome/yhu/bigdata/proj/experiment_G3DM'
+    # '/rhome/yhu/bigdata/proj/experiment_GIST'
     root = root
     cool_data_path = os.path.join( root, 'data', 'raw')
     graph_path = os.path.join( root, 'data', cell, hyper, 'graph')

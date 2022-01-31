@@ -4,12 +4,12 @@
 #SBATCH --mem=300G
 #SBATCH --time=2-20:00:00
 #SBATCH -p wmalab
-#SBATCH --job-name=G3DM_predict
-#SBATCH --output=Job-G3DM-predict-%J.log
+#SBATCH --job-name=GIST_predict
+#SBATCH --output=Job-GIST-predict-%J.log
 
 date
 hostname
-source activate env_G3DM
+source activate env_GIST
 echo python test_prediction.py config_predict_$1.json
 cp config_predict_$1.json ../data/
 python test_prediction.py config_predict_$1.json

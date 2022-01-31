@@ -1,6 +1,6 @@
 function run_chromsde(input_path, chrnum, method_type, output_path)
     % Determine where your m-file's folder is.
-    folder_dir = "/rhome/yhu/bigdata/proj/experiment_G3DM/chromosome_3D/comparison/ChromSDE/program"
+    folder_dir = "/rhome/yhu/bigdata/proj/experiment_GIST/chromosome_3D/comparison/ChromSDE/program"
     addpath(genpath(folder_dir));
     % Add that folder plus all subfolders to the path.
     % Input data: (assume n loci)

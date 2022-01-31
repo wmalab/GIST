@@ -57,7 +57,7 @@ def remove_nan_col(hic):
     return mat, idxy
 
 if __name__ == '__main__':
-    path = '/rhome/yhu/bigdata/proj/experiment_G3DM/data/raw'
+    path = '/rhome/yhu/bigdata/proj/experiment_GIST/data/raw'
     # name = 'Rao2014-GM12878-MboI-allreps-filtered.10kb.cool'
     name = 'Rao2014-IMR90-MboI-allreps-filtered.10kb.cool'
     cell = name.split('.')[0]
@@ -85,7 +85,7 @@ if __name__ == '__main__':
     fig.colorbar(im, ax=ax[0])
     im = ax[1].imshow(log1p_nhic, cmap='RdBu_r', interpolation='nearest')
     fig.colorbar(im, ax=ax[1])
-    save_path = os.path.join('/rhome/yhu', 'bigdata', 'proj', 'experiment_G3DM', 'figures', 'gmm_parameter')
+    save_path = os.path.join('/rhome/yhu', 'bigdata', 'proj', 'experiment_GIST', 'figures', 'gmm_parameter')
     os.makedirs(save_path, exist_ok=True)
     title = 'chr{}'.format(chromosome)
     plt.savefig(os.path.join(save_path, '{}.pdf'.format(title)), format='pdf')
@@ -94,5 +94,5 @@ if __name__ == '__main__':
     low = float(sys.argv[2]) # 0 5, 10, 15, 20, 25, 30, 35, 40
     high = float(100)
     num_cluster = int(sys.argv[3]) # 3 - 20
-    save_path = os.path.join('/rhome/yhu', 'bigdata', 'proj', 'experiment_G3DM', 'figures', 'gmm_parameter', cell, resolu, 'chr{}'.format(chromosome))
+    save_path = os.path.join('/rhome/yhu', 'bigdata', 'proj', 'experiment_GIST', 'figures', 'gmm_parameter', cell, resolu, 'chr{}'.format(chromosome))
     run(log1p_nhic, low, high, num_cluster, save_path)

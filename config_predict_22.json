@@ -6,7 +6,7 @@
     "all_chromosomes": ["22"],
     "test_chromosomes": ["22"],
     "saved_model": {
-        "path": "/rhome/yhu/bigdata/proj/experiment_G3DM/data/Rao2014-IMR90-MboI-allreps-filtered/10kb_train_v2_22/saved_model", 
+        "path": "/rhome/yhu/bigdata/proj/experiment_GIST/data/Rao2014-IMR90-MboI-allreps-filtered/10kb_train_v2_22/saved_model", 
         "name": "finial_model_net"},
     "parameter": {
         "section":{"start":-1, "end":-1},
@@ -19,7 +19,7 @@
             "in_dim": 300,
             "out_dim": 30
         },
-        "G3DM":{
+        "GIST":{
             "num_heads": 40,
             "graph_dim":{"in_dim":30, "hidden_dim":10, "out_dim": 3}
         }

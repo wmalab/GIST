@@ -34,9 +34,9 @@ def create_network(configuration, device):
 
     em_bead = embedding(in_dim=ind, out_dim=outd, in_num_channels=2).to(device).float()
 
-    nh = int(config['G3DM']['num_heads'])
+    nh = int(config['GIST']['num_heads'])
 
-    chain = config['G3DM']['graph_dim']
+    chain = config['GIST']['graph_dim']
     cin, chidden, cout = int(chain['in_dim']), int( chain['hidden_dim']), int(chain['out_dim'])
     e_list = ['interacts_c{}'.format(i) for i in np.arange( int(config['graph']['cutoff_cluster']))]
     en_net = encoder_chain( cin, chidden, cout, num_heads=nh, etypes=e_list).to(device).float()
@@ -68,10 +68,10 @@ def create_network(configuration, device):
     return em_networks, ae_networks, nh, nc+1, [nll, wnl, msel], [opt], scheduler
 
 def setup_train(configuration):
-    itn = int(configuration['parameter']['G3DM']['iteration'])
+    itn = int(configuration['parameter']['GIST']['iteration'])
     num_clusters = int(configuration['parameter']['graph']['num_clusters'])
-    num_heads = int(configuration['parameter']['G3DM']['num_heads'])
-    # batch_size = int(configuration['parameter']['G3DM']['batchsize'])
+    num_heads = int(configuration['parameter']['GIST']['num_heads'])
+    # batch_size = int(configuration['parameter']['GIST']['batchsize'])
     return itn, num_heads, num_clusters
 
 def fit_one_step(require_grad, graphs, features, cluster_ranges, em_networks, ae_networks, loss_fc, optimizer, device):
@@ -330,7 +330,7 @@ def run_epoch(datasets, model, num_heads, num_clusters, loss_fc, optimizer, sche
                 plot_cluster(m, writer, num_clusters,'0, cluster/bead', step=None)
 
             if epoch%3==0 and j == 0 and writer is not None: # and config is not None:
-                # num_heads = int(config['parameter']['G3DM']['num_heads'])
+                # num_heads = int(config['parameter']['GIST']['num_heads'])
                 [X, pred_distance_mat, 
                 center_true_mat, [dis_gmm], 
                 distance_mat ] = inference(graphs, h_feat, lr_ranges, num_heads, num_clusters, 

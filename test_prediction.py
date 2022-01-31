@@ -40,7 +40,7 @@ if __name__ == '__main__':
     shutil.copy(os.path.join(configuration_src_path,
                              configuration_name), configuration_dst_path)
 
-    # '/rhome/yhu/bigdata/proj/experiment_G3DM'
+    # '/rhome/yhu/bigdata/proj/experiment_GIST'
     root = root
     cool_data_path = os.path.join( root, 'data', 'raw')
     graph_path = os.path.join( root, 'data', cell, hyper, 'graph')

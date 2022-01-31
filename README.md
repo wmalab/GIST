@@ -37,7 +37,7 @@ This repository is built for our experiments. A general package/interface will r
             "in_dim": // input dimension e.g. 300,
             "out_dim": // output dimension, e.g. 30
         },
-        "G3DM":{
+        "GIST":{
             "iteration": // training epoch, e.g. 100,
             "num_heads": // number of heads, e.g. 40,
             "graph_dim": // dimensions of node, e.g.{"in_dim":30, "hidden_dim":10, "out_dim": 3}

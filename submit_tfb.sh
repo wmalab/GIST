@@ -36,9 +36,9 @@ SSH port: 22
 "
 
 # load modules or conda environments here
-# source activate env_G3DM
+# source activate env_GIST
 source activate tf_base
 echo -e "PLEASE USE GENERATED URL BELOW IN BROWSER\nYOU MUST REPLACE '${node}' with 'localhost'"
-tensorboard --logdir='/rhome/yhu/bigdata/proj/experiment_G3DM/log' --port=${port} --host=${node}
+tensorboard --logdir='/rhome/yhu/bigdata/proj/experiment_GIST/log' --port=${port} --host=${node}
 # Comment out the line above and uncomment the line below if you would like jupyter-notebook instead of jupyter-lab
 #jupyter-notebook --no-browser --port=${port} --ip=${node}

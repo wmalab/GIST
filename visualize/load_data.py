@@ -41,7 +41,7 @@ def load_configuration(path, name):
     section_end = int(config_data['parameter']['section']['end'])
     resolution = int(config_data['resolution'])
     num_clusters = int(config_data['parameter']['graph']['num_clusters']) 
-    num_heads = int(config_data['parameter']['G3DM']['num_heads'])
+    num_heads = int(config_data['parameter']['GIST']['num_heads'])
     info = dict()
     info['chromosome'] = chromosome
     info['start'] = section_start
@@ -63,7 +63,7 @@ def load_prediction(path, name):
 
 if __name__ == '__main__':
     root = '../'
-    # root = os.path.join('/rhome/yhu/bigdata/proj/experiment_G3DM')
+    # root = os.path.join('/rhome/yhu/bigdata/proj/experiment_GIST')
 
     # load config .json
     configuration_path = '/Users/huyangyang/Desktop/chromosome_3D/'
