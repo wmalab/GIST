@@ -7,8 +7,8 @@ from torch.utils import tensorboard
 import GPUtil
 
 import numpy as np
-from G3DM.fit import load_dataset, create_network, setup_train, run_epoch
-from G3DM.model import save_model_state_dict
+from GIST.fit import load_dataset, create_network, setup_train, run_epoch
+from GIST.model import save_model_state_dict
 
 import warnings
 warnings.filterwarnings('ignore')

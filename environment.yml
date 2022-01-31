@@ -24,7 +24,7 @@
         - tensorboard
         - iced
         - torch_optimizer
-        - kornia
+      #   - kornia
 #        - torchinfo
 #        - pykeops
 #        - geomloss

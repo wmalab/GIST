@@ -4,7 +4,7 @@ import dgl
 import torch
 import torch_optimizer as optim
 import numpy as np
-from kornia import losses
+# from kornia import losses
 
 from .model import embedding, encoder_chain, decoder_distance, decoder_gmm, decoder_euclidean, decoder_similarity
 from .model import save_model_state_dict
