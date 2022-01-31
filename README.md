@@ -11,12 +11,6 @@ Create a conda *env* with installed:
 
 ---
 
-## Disclaimer
-
-This repository is built for our experiments. A general package/interface will release later. 
-
----
-
 ## Overview of model 
 ![model](/figure/model.png)
 
@@ -32,16 +26,13 @@ The results of experiments are shown by jupyter notebooks.
 ---
 
 ## Usage
-__GIST__ contains the architecture of model
+__Disclaimer__: This repository is built for our experiments. A general package/interface will release later. 
 
-__clustering__ contains the functions for determining the number of clusters for edge by GMM
-
-__prepare__ contains the functions for preparing features and graphs for our model
-
-__comparison__ contains the wrapers for other state of the art methods
-
-__validation__ and __visualize__ contain the functions for validations of A/B compartments and TADs
-
+- __GIST__ contains the architecture of model
+- __clustering__ contains the functions for determining the number of clusters for edge by GMM
+- __prepare__ contains the functions for preparing features and graphs for our model
+- __comparison__ contains the wrapers for other state of the art methods
+- __validation__ and __visualize__ contain the functions for validations of A/B compartments and TADs
 
 The **test_prepare.py**, **test_train.py**, and **test_prediction.py** are scripts for data preparation, training model and predictions. So do the **\*.sh** bash scripts and **\*.json** files are for the corresponding experiments
 
