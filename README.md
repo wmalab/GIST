@@ -1,20 +1,14 @@
 # GIST
 Graph-based Neural Network Inference of Chromatin Spatial Structures using Hi-C data
 
----
-
 ## Environment
 Create a conda *env* with installed:
 ```
 > conda env create -f environment.yml
 ```
 
----
-
 ## Overview of model 
 ![model](/figure/model.png)
-
----
 
 ## Results
 
@@ -36,7 +30,6 @@ __Disclaimer__: This repository is built for our experiments. A general package/
 
 The **test_prepare.py**, **test_train.py**, and **test_prediction.py** are scripts for data preparation, training model and predictions. So do the **\*.sh** bash scripts and **\*.json** files are for the corresponding experiments
 
-----
 
 ## Input configuration
 ```json
@@ -66,6 +59,7 @@ The **test_prepare.py**, **test_train.py**, and **test_prediction.py** are scrip
     }
 }
 ```
+
 ## Citation
 
 This work has been submitted to ISMB 2022
