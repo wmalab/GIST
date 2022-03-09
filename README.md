@@ -59,7 +59,3 @@ The **test_prepare.py**, **test_train.py**, and **test_prediction.py** are scrip
     }
 }
 ```
-
-## Citation
-
-This work has been submitted to ISMB 2022
